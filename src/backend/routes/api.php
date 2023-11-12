@@ -2,6 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\JobCategoryController;
+use App\Http\Controllers\PositionController;
+use App\Http\Controllers\EmploymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,9 +23,21 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware(['middleware' => 'api'])->group(function () {
     # 職種
-    Route::post('/job_categories/create', 'App\Http\Controllers\JobCategoryController@create');
-    Route::get('/job_categories', 'App\Http\Controllers\JobCategoryController@index');
-    Route::get('/job_categories/{id}', 'App\Http\Controllers\JobCategoryController@show');
-    Route::patch('/job_categories/update/{id}' , 'App\Http\Controllers\JobCategoryController@update');
-    Route::delete('/job_categories/{id}', 'App\Http\Controllers\JobCategoryController@delete');
+    Route::get('/job_categories', [JobCategoryController::class, 'index']);
+    Route::get('/job_categories/{id}', [JobCategoryController::class, 'show']);
+    Route::post('/job_categories/create', [JobCategoryController::class, 'create']);
+    Route::patch('/job_categories/update/{id}' , [JobCategoryController::class, 'update']);
+    Route::delete('/job_categories/{id}', [JobCategoryController::class, 'destroy']);
+    # 役職/役割
+    Route::get('/positions', [PositionController::class, 'index']);
+    Route::get('/positions/{id}', [PositionController::class, 'show']);
+    Route::post('/positions/create', [PositionController::class, 'create']);
+    Route::patch('/positions/update/{id}' , [PositionController::class, 'update']);
+    Route::delete('/positions/{id}', [PositionController::class, 'destroy']);
+    // 雇用形態
+    Route::get('/employments', [EmploymentController::class, 'index']);
+    Route::get('/employments/{id}', [EmploymentController::class, 'show']);
+    Route::post('/employments/create', [EmploymentController::class, 'create']);
+    Route::patch('/employments/update/{id}' , [EmploymentController::class, 'update']);
+    Route::delete('/employments/{id}', [EmploymentController::class, 'destroy']);
 });
