@@ -1,10 +1,12 @@
-import "./globals.css";
 import type { Metadata } from "next";
-import "@fontsource/roboto/300.css";
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
+
 import ThemeProvider from "@/theme";
+import { primaryFont } from "@/theme/typography";
+
+import ProgressBar from "@/components/progress-bar";
+import { MotionLazy } from "@/components/animate/motion-lazy";
+import SnackbarProvider from "@/components/snackbar/snackbar-provider";
+import { SettingsDrawer, SettingsProvider } from "@/components/settings";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,9 +19,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja">
+    <html lang="ja" className={primaryFont.className}>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <SettingsProvider
+          defaultSettings={{
+            themeMode: "light", // 'light' | 'dark'
+            themeDirection: "ltr", //  'rtl' | 'ltr'
+            themeContrast: "default", // 'default' | 'bold'
+            themeLayout: "vertical", // 'vertical' | 'horizontal' | 'mini'
+            themeColorPresets: "default", // 'default' | 'cyan' | 'purple' | 'blue' | 'orange' | 'red'
+            themeStretch: false,
+          }}
+        >
+          <ThemeProvider>
+            <MotionLazy>
+              <SnackbarProvider>
+                <SettingsDrawer />
+                <ProgressBar />
+                {children}
+              </SnackbarProvider>
+            </MotionLazy>
+          </ThemeProvider>
+        </SettingsProvider>
       </body>
     </html>
   );

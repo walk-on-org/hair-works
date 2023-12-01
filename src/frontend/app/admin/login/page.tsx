@@ -15,7 +15,6 @@ import { RouterLink } from "@/routes/components";
 import { useBoolean } from "@/hooks/use-boolean";
 import Iconify from "@/components/iconify";
 import FormProvider, { RHFTextField } from "@/components/hook-form";
-import AuthLayout from "@/layouts/auth";
 import { useRouter } from "next/navigation";
 
 // ----------------------------------------------------------------------
@@ -58,57 +57,55 @@ export default function AdminLogin() {
   });
 
   return (
-    <AuthLayout>
-      <FormProvider methods={methods} onSubmit={onSubmit}>
-        <Stack spacing={2} sx={{ mb: 5 }}>
-          <Typography variant="h4">ヘアワークス事業所様ログイン</Typography>
-        </Stack>
-        <Stack spacing={2.5}>
-          <RHFTextField name="email" label="メールアドレス" />
-          <RHFTextField
-            name="password"
-            label="パスワード"
-            type={displayPassword.value ? "text" : "password"}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={displayPassword.onToggle} edge="end">
-                    <Iconify
-                      icon={
-                        displayPassword.value
-                          ? "solar:eye-bold"
-                          : "solar:eye-closed-bold"
-                      }
-                    />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
+    <FormProvider methods={methods} onSubmit={onSubmit}>
+      <Stack spacing={2} sx={{ mb: 5 }}>
+        <Typography variant="h4">ヘアワークス事業所様ログイン</Typography>
+      </Stack>
+      <Stack spacing={2.5}>
+        <RHFTextField name="email" label="メールアドレス" />
+        <RHFTextField
+          name="password"
+          label="パスワード"
+          type={displayPassword.value ? "text" : "password"}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={displayPassword.onToggle} edge="end">
+                  <Iconify
+                    icon={
+                      displayPassword.value
+                        ? "solar:eye-bold"
+                        : "solar:eye-closed-bold"
+                    }
+                  />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
 
-          <Link
-            component={RouterLink}
-            href={"/admin/resetpassword"}
-            variant="body2"
-            color="inherit"
-            underline="always"
-            sx={{ alignSelf: "flex-end" }}
-          >
-            パスワードを忘れた方はこちら
-          </Link>
+        <Link
+          component={RouterLink}
+          href={"/admin/resetpassword"}
+          variant="body2"
+          color="inherit"
+          underline="always"
+          sx={{ alignSelf: "flex-end" }}
+        >
+          パスワードを忘れた方はこちら
+        </Link>
 
-          <LoadingButton
-            fullWidth
-            color="inherit"
-            size="large"
-            type="submit"
-            variant="contained"
-            loading={isSubmitting}
-          >
-            ログイン
-          </LoadingButton>
-        </Stack>
-      </FormProvider>
-    </AuthLayout>
+        <LoadingButton
+          fullWidth
+          color="inherit"
+          size="large"
+          type="submit"
+          variant="contained"
+          loading={isSubmitting}
+        >
+          ログイン
+        </LoadingButton>
+      </Stack>
+    </FormProvider>
   );
 }
