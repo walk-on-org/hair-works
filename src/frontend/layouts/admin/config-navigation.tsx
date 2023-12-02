@@ -80,6 +80,12 @@ export function useNavData() {
             path: paths.admin.jobCategory.root,
             icon: ICONS.user,
           },
+          // 役職/役割
+          {
+            title: "役職/役割",
+            path: paths.admin.position.root,
+            icon: ICONS.user,
+          },
         ],
       },
     ],

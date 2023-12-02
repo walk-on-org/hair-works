@@ -15,7 +15,7 @@ class PositionController extends Controller
     public function index()
     {
         $positions = Position::all();
-        return response()->json($positions);
+        return response()->json(['positions' => $positions]);
     }
 
     /**
@@ -28,7 +28,7 @@ class PositionController extends Controller
             if (!$position) {
                 throw new ModelNotFoundException();
             }
-            return response()->json($position);
+            return response()->json(['position' => $position]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Position not found'], 404);
         }
@@ -68,23 +68,6 @@ class PositionController extends Controller
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
-        }
-    }
-
-    /**
-     * 役職/役割マスタ削除
-     */
-    public function destroy($id)
-    {
-        try {
-            $position = Position::find($id);
-            if (!$position) {
-                throw new ModelNotFoundException();
-            }
-            $position->delete();
-            return response()->json(['result' => 'ok']);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Position not found'], 404);
         }
     }
 }

@@ -37,4 +37,10 @@ export const endpoints = {
     create: "/api/job_categories/create",
     update: (id: string) => `/api/job_categories/update/${id}`,
   },
+  position: {
+    list: "/api/positions",
+    detail: (id: string) => `/api/positions/${id}`,
+    create: "/api/positions/create",
+    update: (id: string) => `/api/positions/update/${id}`,
+  },
 };

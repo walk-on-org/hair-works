@@ -32,7 +32,6 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/positions/{id}', [PositionController::class, 'show']);
     Route::post('/positions/create', [PositionController::class, 'create']);
     Route::patch('/positions/update/{id}' , [PositionController::class, 'update']);
-    Route::delete('/positions/{id}', [PositionController::class, 'destroy']);
     // 雇用形態
     Route::get('/employments', [EmploymentController::class, 'index']);
     Route::get('/employments/{id}', [EmploymentController::class, 'show']);

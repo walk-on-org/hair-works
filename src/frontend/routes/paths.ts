@@ -28,5 +28,11 @@ export const paths = {
       detail: (id: string) => `${ROOTS.ADMIN}/settings/job_categories/${id}`,
       edit: (id: string) => `${ROOTS.ADMIN}/settings/job_categories/${id}/edit`,
     },
+    position: {
+      root: `${ROOTS.ADMIN}/settings/positions`,
+      new: `${ROOTS.ADMIN}/settings/positions/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/positions/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/settings/positions/${id}/edit`,
+    },
   },
 };
