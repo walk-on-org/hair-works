@@ -27,7 +27,6 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/job_categories/{id}', [JobCategoryController::class, 'show']);
     Route::post('/job_categories/create', [JobCategoryController::class, 'create']);
     Route::patch('/job_categories/update/{id}' , [JobCategoryController::class, 'update']);
-    Route::delete('/job_categories/{id}', [JobCategoryController::class, 'destroy']);
     # 役職/役割
     Route::get('/positions', [PositionController::class, 'index']);
     Route::get('/positions/{id}', [PositionController::class, 'show']);

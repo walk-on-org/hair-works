@@ -15,7 +15,7 @@ class JobCategoryController extends Controller
     public function index()
     {
         $jobCategories = JobCategory::all();
-        return response()->json($jobCategories);
+        return response()->json(['jobCategories' => $jobCategories]);
     }
 
     /**
@@ -28,7 +28,7 @@ class JobCategoryController extends Controller
             if (!$jobCategory) {
                 throw new ModelNotFoundException();
             }
-            return response()->json($jobCategory);
+            return response()->json(['jobCategory' => $jobCategory]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Job category not found'], 404);
         }
@@ -68,23 +68,6 @@ class JobCategoryController extends Controller
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
-        }
-    }
-
-    /**
-     * 職種マスタ削除
-     */
-    public function destroy($id)
-    {
-        try {
-            $jobCategory = JobCategory::find($id);
-            if (!$jobCategory) {
-                throw new ModelNotFoundException();
-            }
-            $jobCategory->delete();
-            return response()->json(['result' => 'ok']);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Job category not found'], 404);
         }
     }
 }
