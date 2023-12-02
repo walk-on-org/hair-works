@@ -102,3 +102,11 @@ php artisan make:controller JobCategoryController --model=JobCategory
 ```
 
 ```
+
+## 管理画面の UI
+
+- 管理画面テンプレート
+  https://docs.minimals.cc/introduction
+  https://mui.com/store/previews/minimal-dashboard/
+- Material UI
+  https://mui.com/
