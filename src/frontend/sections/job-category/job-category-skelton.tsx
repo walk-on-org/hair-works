@@ -4,7 +4,7 @@ import Grid, { Grid2Props } from "@mui/material/Unstable_Grid2";
 
 // ----------------------------------------------------------------------
 
-export function JobCategoryDetailsSkeleton({ ...other }: Grid2Props) {
+export function JobCategoryDetailSkeleton({ ...other }: Grid2Props) {
   return (
     <Grid container spacing={8} {...other}>
       <Grid xs={12}>

@@ -21,7 +21,7 @@ type Props = {
   onSelectRow: VoidFunction;
 };
 
-export default function ProductTableRow({
+export default function JobCategoryTableRow({
   row,
   selected,
   onSelectRow,

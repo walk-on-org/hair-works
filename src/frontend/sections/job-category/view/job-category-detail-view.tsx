@@ -18,7 +18,7 @@ import EmptyContent from "@/components/empty-content";
 import { useSettingsContext } from "@/components/settings";
 
 import JobCategoryDetailToolbar from "../job-category-detail-toolbar";
-import { JobCategoryDetailsSkeleton } from "../job-category-skelton";
+import { JobCategoryDetailSkeleton } from "../job-category-skelton";
 
 // ----------------------------------------------------------------------
 
@@ -26,13 +26,13 @@ type Props = {
   id: string;
 };
 
-export default function ProductDetailsView({ id }: Props) {
+export default function JobCategoryDetailView({ id }: Props) {
   const { jobCategory, jobCategoryLoading, jobCategoryError } =
     useGetJobCategory(id);
 
   const settings = useSettingsContext();
 
-  const renderSkeleton = <JobCategoryDetailsSkeleton />;
+  const renderSkeleton = <JobCategoryDetailSkeleton />;
 
   const renderError = (
     <EmptyContent

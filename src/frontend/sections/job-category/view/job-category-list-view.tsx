@@ -6,17 +6,13 @@ import { useState, useEffect, useCallback } from "react";
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
 import Button from "@mui/material/Button";
-import Tooltip from "@mui/material/Tooltip";
 import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
-import IconButton from "@mui/material/IconButton";
 import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
-
-import { useBoolean } from "@/hooks/use-boolean";
 
 import { useGetJobCategories } from "@/api/job-category";
 
