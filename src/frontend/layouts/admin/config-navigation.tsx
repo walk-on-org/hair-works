@@ -78,19 +78,21 @@ export function useNavData() {
           {
             title: "職種",
             path: paths.admin.jobCategory.root,
-            icon: ICONS.user,
           },
           // 役職/役割
           {
             title: "役職/役割",
             path: paths.admin.position.root,
-            icon: ICONS.user,
           },
           // 雇用形態
           {
             title: "雇用形態",
             path: paths.admin.employment.root,
-            icon: ICONS.user,
+          },
+          // 都道府県
+          {
+            title: "都道府県",
+            path: paths.admin.prefecture.root,
           },
         ],
       },

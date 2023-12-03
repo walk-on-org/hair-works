@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\EmploymentController;
+use App\Http\Controllers\PrefectureController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -37,5 +39,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/employments/{id}', [EmploymentController::class, 'show']);
     Route::post('/employments/create', [EmploymentController::class, 'create']);
     Route::patch('/employments/update/{id}' , [EmploymentController::class, 'update']);
-    Route::delete('/employments/{id}', [EmploymentController::class, 'destroy']);
+    // 都道府県
+    Route::get('/prefectures', [PrefectureController::class, 'index']);
+    Route::get('/prefectures/{id}', [PrefectureController::class, 'show']);
+    Route::post('/prefectures/create', [PrefectureController::class, 'create']);
+    Route::patch('/prefectures/update/{id}' , [PrefectureController::class, 'update']);
 });
