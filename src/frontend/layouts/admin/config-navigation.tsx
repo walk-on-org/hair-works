@@ -86,6 +86,12 @@ export function useNavData() {
             path: paths.admin.position.root,
             icon: ICONS.user,
           },
+          // 雇用形態
+          {
+            title: "雇用形態",
+            path: paths.admin.employment.root,
+            icon: ICONS.user,
+          },
         ],
       },
     ],

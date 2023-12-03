@@ -14,7 +14,7 @@ import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
 
-import { useGetPositions } from "@/api/position";
+import { useGetEmployments } from "@/api/employment";
 
 import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
@@ -33,20 +33,20 @@ import {
 } from "@/components/table";
 
 import {
-  IPositionItem,
-  IPositionTableFilters,
-  IPositionTableFilterValue,
-} from "@/types/position";
+  IEmploymentItem,
+  IEmploymentTableFilters,
+  IEmploymentTableFilterValue,
+} from "@/types/employment";
 
-import PositionTableRow from "../position-table-row";
-import PositionTableToolbar from "../position-table-toolbar";
-import PositionTableFiltersResult from "../position-table-filters-result";
+import EmploymentTableRow from "../employment-table-row";
+import EmploymentTableToolbar from "../employment-table-toolbar";
+import EmploymentTableFiltersResult from "../employment-table-filters-result";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: "id", label: "役職/役割ID", width: 160 },
-  { id: "name", label: "役職/役割名" },
+  { id: "id", label: "雇用形態ID", width: 160 },
+  { id: "name", label: "雇用形態名" },
   { id: "permalink", label: "パーマリンク", width: 160 },
   { id: "status", label: "状態", width: 110 },
   { id: "", width: 88 },
@@ -57,28 +57,29 @@ const STATUS_OPTIONS = [
   { value: "0", label: "無効" },
 ];
 
-const defaultFilters: IPositionTableFilters = {
+const defaultFilters: IEmploymentTableFilters = {
   name: "",
   status: [],
 };
 
 // ----------------------------------------------------------------------
 
-export default function PositionListView() {
+export default function EmploymentListView() {
   const router = useRouter();
   const table = useTable();
   const settings = useSettingsContext();
-  const [tableData, setTableData] = useState<IPositionItem[]>([]);
+  const [tableData, setTableData] = useState<IEmploymentItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
 
-  // 役職/役割データ取得
-  const { positions, positionsLoading, positionsEmpty } = useGetPositions();
+  // 雇用形態データ取得
+  const { employments, employmentsLoading, employmentsEmpty } =
+    useGetEmployments();
 
   useEffect(() => {
-    if (positions.length) {
-      setTableData(positions);
+    if (employments.length) {
+      setTableData(employments);
     }
-  }, [positions]);
+  }, [employments]);
 
   const dataFiltered = applyFilter({
     inputData: tableData,
@@ -90,10 +91,10 @@ export default function PositionListView() {
 
   const canReset = !isEqual(defaultFilters, filters);
 
-  const notFound = (!dataFiltered.length && canReset) || positionsEmpty;
+  const notFound = (!dataFiltered.length && canReset) || employmentsEmpty;
 
   const handleFilters = useCallback(
-    (name: string, value: IPositionTableFilterValue) => {
+    (name: string, value: IEmploymentTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,
@@ -105,14 +106,14 @@ export default function PositionListView() {
 
   const handleEditRow = useCallback(
     (id: string) => {
-      router.push(paths.admin.position.edit(id));
+      router.push(paths.admin.employment.edit(id));
     },
     [router]
   );
 
   const handleViewRow = useCallback(
     (id: string) => {
-      router.push(paths.admin.position.detail(id));
+      router.push(paths.admin.employment.detail(id));
     },
     [router]
   );
@@ -125,30 +126,30 @@ export default function PositionListView() {
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
         <CustomBreadcrumbs
-          heading="役職/役割マスタ"
+          heading="雇用形態マスタ"
           links={[
             { name: "ダッシュボード", href: paths.admin.dashboard },
             {
-              name: "役職/役割マスタ",
-              href: paths.admin.position.root,
+              name: "雇用形態マスタ",
+              href: paths.admin.employment.root,
             },
             { name: "一覧" },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.admin.position.new}
+              href={paths.admin.employment.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              役職/役割マスタを作成
+              雇用形態マスタを作成
             </Button>
           }
           sx={{ mb: { xs: 3, md: 5 } }}
         />
 
         <Card>
-          <PositionTableToolbar
+          <EmploymentTableToolbar
             filters={filters}
             onFilters={handleFilters}
             //
@@ -156,7 +157,7 @@ export default function PositionListView() {
           />
 
           {canReset && (
-            <PositionTableFiltersResult
+            <EmploymentTableFiltersResult
               filters={filters}
               onFilters={handleFilters}
               //
@@ -201,7 +202,7 @@ export default function PositionListView() {
                 />
 
                 <TableBody>
-                  {positionsLoading ? (
+                  {employmentsLoading ? (
                     [...Array(table.rowsPerPage)].map((i, index) => (
                       <TableSkeleton key={index} sx={{ height: denseHeight }} />
                     ))
@@ -213,7 +214,7 @@ export default function PositionListView() {
                           table.page * table.rowsPerPage + table.rowsPerPage
                         )
                         .map((row) => (
-                          <PositionTableRow
+                          <EmploymentTableRow
                             key={row.id}
                             row={row}
                             selected={table.selected.includes(row.id)}
@@ -260,9 +261,9 @@ function applyFilter({
   comparator,
   filters,
 }: {
-  inputData: IPositionItem[];
+  inputData: IEmploymentItem[];
   comparator: (a: any, b: any) => number;
-  filters: IPositionTableFilters;
+  filters: IEmploymentTableFilters;
 }) {
   const { name, status } = filters;
 
@@ -278,8 +279,8 @@ function applyFilter({
 
   if (name) {
     inputData = inputData.filter(
-      (position) =>
-        position.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
+      (employment) =>
+        employment.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
     );
   }
 
