@@ -26,4 +26,8 @@ class Prefecture extends Model
         7 => '四国',
         8 => '九州・沖縄',
     ];
+
+    public function governmentCities() {
+        return $this->hasMany('App\Models\GovernmentCity');
+    }
 }

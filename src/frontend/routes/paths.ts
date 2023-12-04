@@ -46,5 +46,12 @@ export const paths = {
       detail: (id: string) => `${ROOTS.ADMIN}/settings/prefectures/${id}`,
       edit: (id: string) => `${ROOTS.ADMIN}/settings/prefectures/${id}/edit`,
     },
+    governmentCity: {
+      root: `${ROOTS.ADMIN}/settings/government_cities`,
+      new: `${ROOTS.ADMIN}/settings/government_cities/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/government_cities/${id}`,
+      edit: (id: string) =>
+        `${ROOTS.ADMIN}/settings/government_cities/${id}/edit`,
+    },
   },
 };

@@ -94,6 +94,11 @@ export function useNavData() {
             title: "都道府県",
             path: paths.admin.prefecture.root,
           },
+          // 政令指定都市
+          {
+            title: "政令指定都市",
+            path: paths.admin.governmentCity.root,
+          },
         ],
       },
     ],

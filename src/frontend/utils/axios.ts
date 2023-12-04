@@ -55,4 +55,10 @@ export const endpoints = {
     create: "/api/prefectures/create",
     update: (id: string) => `/api/prefectures/update/${id}`,
   },
+  governmentCity: {
+    list: "/api/government_cities",
+    detail: (id: string) => `/api/government_cities/${id}`,
+    create: "/api/government_cities/create",
+    update: (id: string) => `/api/government_cities/update/${id}`,
+  },
 };

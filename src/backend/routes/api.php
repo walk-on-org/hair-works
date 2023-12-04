@@ -6,6 +6,7 @@ use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\EmploymentController;
 use App\Http\Controllers\PrefectureController;
+use App\Http\Controllers\GovernmentCityController;
 
 
 /*
@@ -44,4 +45,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/prefectures/{id}', [PrefectureController::class, 'show']);
     Route::post('/prefectures/create', [PrefectureController::class, 'create']);
     Route::patch('/prefectures/update/{id}' , [PrefectureController::class, 'update']);
+    // 政令指定都市
+    Route::get('/government_cities', [GovernmentCityController::class, 'index']);
+    Route::get('/government_cities/{id}', [GovernmentCityController::class, 'show']);
+    Route::post('/government_cities/create', [GovernmentCityController::class, 'create']);
+    Route::patch('/government_cities/update/{id}', [GovernmentCityController::class, 'update']);
 });

@@ -14,8 +14,8 @@ class JobCategoryController extends Controller
      */
     public function index()
     {
-        $jobCategories = JobCategory::all();
-        return response()->json(['jobCategories' => $jobCategories]);
+        $job_categories = JobCategory::all();
+        return response()->json(['job_categrories' => $job_categories]);
     }
 
     /**
@@ -24,11 +24,11 @@ class JobCategoryController extends Controller
     public function show($id)
     {
         try {
-            $jobCategory = JobCategory::find($id);
-            if (!$jobCategory) {
+            $job_category = JobCategory::find($id);
+            if (!$job_category) {
                 throw new ModelNotFoundException();
             }
-            return response()->json(['jobCategory' => $jobCategory]);
+            return response()->json(['job_category' => $job_category]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Job category not found'], 404);
         }
