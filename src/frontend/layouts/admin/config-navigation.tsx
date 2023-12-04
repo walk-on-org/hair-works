@@ -104,6 +104,11 @@ export function useNavData() {
             title: "市区町村",
             path: paths.admin.city.root,
           },
+          // 鉄道事業者
+          {
+            title: "鉄道事業者",
+            path: paths.admin.trainCompany.root,
+          },
         ],
       },
     ],

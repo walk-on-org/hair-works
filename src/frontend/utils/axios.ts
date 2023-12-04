@@ -67,4 +67,10 @@ export const endpoints = {
     create: "/api/cities/create",
     update: (id: string) => `/api/cities/update/${id}`,
   },
+  trainCompany: {
+    list: "/api/train_companies",
+    detail: (id: string) => `/api/train_companies/${id}`,
+    create: "/api/train_companies/create",
+    update: (id: string) => `/api/train_companies/update/${id}`,
+  },
 };

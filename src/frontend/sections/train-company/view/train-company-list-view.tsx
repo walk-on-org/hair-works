@@ -14,7 +14,7 @@ import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
 
-import { useGetEmployments } from "@/api/employment";
+import { useGetTrainCompanies } from "@/api/train-company";
 
 import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
@@ -33,49 +33,50 @@ import {
 } from "@/components/table";
 
 import {
-  IEmploymentItem,
-  IEmploymentTableFilters,
-  IEmploymentTableFilterValue,
-} from "@/types/employment";
+  ITrainCompanyItem,
+  ITrainCompanyTableFilters,
+  ITrainCompanyTableFilterValue,
+} from "@/types/train-company";
 
-import EmploymentTableRow from "../employment-table-row";
-import EmploymentTableToolbar from "../employment-table-toolbar";
-import EmploymentTableFiltersResult from "../employment-table-filters-result";
-import { STATUS_OPTIONS } from "@/config-global";
+import TrainCompanyTableRow from "../train-company-table-row";
+import TrainCompanyTableToolbar from "../train-company-table-toolbar";
+import TrainCompanyTableFiltersResult from "../train-company-table-filters-result";
+import { TRAIN_STATUS_OPTIONS } from "@/config-global";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: "id", label: "雇用形態ID", width: 160 },
-  { id: "name", label: "雇用形態名" },
-  { id: "permalink", label: "パーマリンク", width: 160 },
+  { id: "id", label: "鉄道事業者ID", width: 160 },
+  { id: "name", label: "鉄道事業者名" },
+  { id: "nam_r", label: "鉄道事業者名（略称）", width: 160 },
   { id: "status", label: "状態", width: 110 },
+  { id: "sort", label: "並び順", width: 110 },
   { id: "", width: 88 },
 ];
 
-const defaultFilters: IEmploymentTableFilters = {
+const defaultFilters: ITrainCompanyTableFilters = {
   name: "",
   status: [],
 };
 
 // ----------------------------------------------------------------------
 
-export default function EmploymentListView() {
+export default function TrainCompanyListView() {
   const router = useRouter();
   const table = useTable();
   const settings = useSettingsContext();
-  const [tableData, setTableData] = useState<IEmploymentItem[]>([]);
+  const [tableData, setTableData] = useState<ITrainCompanyItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
 
-  // 雇用形態データ取得
-  const { employments, employmentsLoading, employmentsEmpty } =
-    useGetEmployments();
+  // 鉄道事業者データ取得
+  const { trainCompanies, trainCompaniesLoading, trainCompaniesEmpty } =
+    useGetTrainCompanies();
 
   useEffect(() => {
-    if (employments.length) {
-      setTableData(employments);
+    if (trainCompanies.length) {
+      setTableData(trainCompanies);
     }
-  }, [employments]);
+  }, [trainCompanies]);
 
   const dataFiltered = applyFilter({
     inputData: tableData,
@@ -87,10 +88,10 @@ export default function EmploymentListView() {
 
   const canReset = !isEqual(defaultFilters, filters);
 
-  const notFound = (!dataFiltered.length && canReset) || employmentsEmpty;
+  const notFound = (!dataFiltered.length && canReset) || trainCompaniesEmpty;
 
   const handleFilters = useCallback(
-    (name: string, value: IEmploymentTableFilterValue) => {
+    (name: string, value: ITrainCompanyTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,
@@ -102,14 +103,14 @@ export default function EmploymentListView() {
 
   const handleEditRow = useCallback(
     (id: string) => {
-      router.push(paths.admin.employment.edit(id));
+      router.push(paths.admin.trainCompany.edit(id));
     },
     [router]
   );
 
   const handleViewRow = useCallback(
     (id: string) => {
-      router.push(paths.admin.employment.detail(id));
+      router.push(paths.admin.trainCompany.detail(id));
     },
     [router]
   );
@@ -122,38 +123,38 @@ export default function EmploymentListView() {
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
         <CustomBreadcrumbs
-          heading="雇用形態マスタ"
+          heading="鉄道事業者マスタ"
           links={[
             { name: "ダッシュボード", href: paths.admin.dashboard },
             {
-              name: "雇用形態マスタ",
-              href: paths.admin.employment.root,
+              name: "鉄道事業者マスタ",
+              href: paths.admin.trainCompany.root,
             },
             { name: "一覧" },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.admin.employment.new}
+              href={paths.admin.trainCompany.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              雇用形態マスタを作成
+              鉄道事業者マスタを作成
             </Button>
           }
           sx={{ mb: { xs: 3, md: 5 } }}
         />
 
         <Card>
-          <EmploymentTableToolbar
+          <TrainCompanyTableToolbar
             filters={filters}
             onFilters={handleFilters}
             //
-            statusOptions={STATUS_OPTIONS}
+            statusOptions={TRAIN_STATUS_OPTIONS}
           />
 
           {canReset && (
-            <EmploymentTableFiltersResult
+            <TrainCompanyTableFiltersResult
               filters={filters}
               onFilters={handleFilters}
               //
@@ -198,7 +199,7 @@ export default function EmploymentListView() {
                 />
 
                 <TableBody>
-                  {employmentsLoading ? (
+                  {trainCompaniesLoading ? (
                     [...Array(table.rowsPerPage)].map((i, index) => (
                       <TableSkeleton key={index} sx={{ height: denseHeight }} />
                     ))
@@ -210,7 +211,7 @@ export default function EmploymentListView() {
                           table.page * table.rowsPerPage + table.rowsPerPage
                         )
                         .map((row) => (
-                          <EmploymentTableRow
+                          <TrainCompanyTableRow
                             key={row.id}
                             row={row}
                             selected={table.selected.includes(row.id)}
@@ -257,9 +258,9 @@ function applyFilter({
   comparator,
   filters,
 }: {
-  inputData: IEmploymentItem[];
+  inputData: ITrainCompanyItem[];
   comparator: (a: any, b: any) => number;
-  filters: IEmploymentTableFilters;
+  filters: ITrainCompanyTableFilters;
 }) {
   const { name, status } = filters;
 
@@ -275,15 +276,15 @@ function applyFilter({
 
   if (name) {
     inputData = inputData.filter(
-      (employment) =>
-        employment.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
+      (trainCompany) =>
+        trainCompany.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
     );
   }
 
   // TODO 確認
   if (status.length) {
-    inputData = inputData.filter((employment) =>
-      status.includes(employment.status)
+    inputData = inputData.filter((trainCompany) =>
+      status.includes(trainCompany.status)
     );
   }
 

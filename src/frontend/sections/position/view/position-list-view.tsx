@@ -281,8 +281,8 @@ function applyFilter({
 
   // TODO 確認
   if (status.length) {
-    inputData = inputData.filter((jobCategory) =>
-      status.includes(jobCategory.status)
+    inputData = inputData.filter((position) =>
+      status.includes(position.status)
     );
   }
 

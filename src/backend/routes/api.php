@@ -8,7 +8,7 @@ use App\Http\Controllers\EmploymentController;
 use App\Http\Controllers\PrefectureController;
 use App\Http\Controllers\GovernmentCityController;
 use App\Http\Controllers\CityController;
-
+use App\Http\Controllers\TrainCompanyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,4 +56,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/cities/{id}', [CityController::class, 'show']);
     Route::post('/cities/create', [CityController::class, 'create']);
     Route::patch('/cities/update/{id}', [CityController::class, 'update']);
+    // 鉄道事業者
+    Route::get('/train_companies', [TrainCompanyController::class, 'index']);
+    Route::get('/train_companies/{id}', [TrainCompanyController::class, 'show']);
+    Route::post('/train_companies/create', [TrainCompanyController::class, 'create']);
+    Route::patch('/train_companies/update/{id}', [TrainCompanyController::class, 'update']);
 });
