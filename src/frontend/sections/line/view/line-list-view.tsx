@@ -14,8 +14,8 @@ import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
 
-import { useGetCities } from "@/api/city";
-import { useGetPrefectures } from "@/api/prefecture";
+import { useGetLines } from "@/api/line";
+import { useGetTrainCompanies } from "@/api/train-company";
 
 import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
@@ -34,49 +34,50 @@ import {
 } from "@/components/table";
 
 import {
-  ICityItem,
-  ICityTableFilters,
-  ICityTableFilterValue,
-} from "@/types/city";
+  ILineItem,
+  ILineTableFilters,
+  ILineTableFilterValue,
+} from "@/types/line";
 
-import CityTableRow from "../city-table-row";
-import CityTableToolbar from "../city-table-toolbar";
-import CityTableFiltersResult from "../city-table-filters-result";
+import LineTableRow from "../line-table-row";
+import LineTableToolbar from "../line-table-toolbar";
+import LineTableFiltersResult from "../line-table-filters-result";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: "id", label: "市区町村ID", width: 160 },
-  { id: "name", label: "市区町村名" },
+  { id: "id", label: "路線ID", width: 160 },
+  { id: "name", label: "路線名" },
   { id: "permalink", label: "パーマリンク", width: 160 },
-  { id: "prefecture", label: "都道府県", width: 120 },
-  { id: "prefecture", label: "政令指定都市", width: 120 },
+  { id: "train_company", label: "鉄道事業者", width: 120 },
+  { id: "status", label: "状態", width: 110 },
+  { id: "sort", label: "並び順", width: 110 },
   { id: "", width: 88 },
 ];
 
-const defaultFilters: ICityTableFilters = {
+const defaultFilters: ILineTableFilters = {
   name: "",
-  prefecture: [],
+  trainCompany: [],
 };
 
 // ----------------------------------------------------------------------
 
-export default function CityListView() {
+export default function LineListView() {
   const router = useRouter();
   const table = useTable();
   const settings = useSettingsContext();
-  const [tableData, setTableData] = useState<ICityItem[]>([]);
+  const [tableData, setTableData] = useState<ILineItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
 
-  // 市区町村データ取得
-  const { cities, citiesLoading, citiesEmpty } = useGetCities();
-  const { prefectures } = useGetPrefectures();
+  // 路線データ取得
+  const { lines, linesLoading, linesEmpty } = useGetLines();
+  const { trainCompanies } = useGetTrainCompanies();
 
   useEffect(() => {
-    if (cities.length) {
-      setTableData(cities);
+    if (lines.length) {
+      setTableData(lines);
     }
-  }, [cities]);
+  }, [lines]);
 
   const dataFiltered = applyFilter({
     inputData: tableData,
@@ -88,10 +89,10 @@ export default function CityListView() {
 
   const canReset = !isEqual(defaultFilters, filters);
 
-  const notFound = (!dataFiltered.length && canReset) || citiesEmpty;
+  const notFound = (!dataFiltered.length && canReset) || linesEmpty;
 
   const handleFilters = useCallback(
-    (name: string, value: ICityTableFilterValue) => {
+    (name: string, value: ILineTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,
@@ -103,14 +104,14 @@ export default function CityListView() {
 
   const handleEditRow = useCallback(
     (id: string) => {
-      router.push(paths.admin.city.edit(id));
+      router.push(paths.admin.line.edit(id));
     },
     [router]
   );
 
   const handleViewRow = useCallback(
     (id: string) => {
-      router.push(paths.admin.city.detail(id));
+      router.push(paths.admin.line.detail(id));
     },
     [router]
   );
@@ -123,37 +124,37 @@ export default function CityListView() {
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
         <CustomBreadcrumbs
-          heading="市区町村マスタ"
+          heading="路線マスタ"
           links={[
             { name: "ダッシュボード", href: paths.admin.dashboard },
             {
-              name: "市区町村マスタ",
-              href: paths.admin.city.root,
+              name: "路線マスタ",
+              href: paths.admin.line.root,
             },
             { name: "一覧" },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.admin.city.new}
+              href={paths.admin.line.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              市区町村マスタを作成
+              路線マスタを作成
             </Button>
           }
           sx={{ mb: { xs: 3, md: 5 } }}
         />
 
         <Card>
-          <CityTableToolbar
+          <LineTableToolbar
             filters={filters}
             onFilters={handleFilters}
-            prefectures={prefectures}
+            trainCompanies={trainCompanies}
           />
 
           {canReset && (
-            <CityTableFiltersResult
+            <LineTableFiltersResult
               filters={filters}
               onFilters={handleFilters}
               //
@@ -198,7 +199,7 @@ export default function CityListView() {
                 />
 
                 <TableBody>
-                  {citiesLoading ? (
+                  {linesLoading ? (
                     [...Array(table.rowsPerPage)].map((i, index) => (
                       <TableSkeleton key={index} sx={{ height: denseHeight }} />
                     ))
@@ -210,7 +211,7 @@ export default function CityListView() {
                           table.page * table.rowsPerPage + table.rowsPerPage
                         )
                         .map((row) => (
-                          <CityTableRow
+                          <LineTableRow
                             key={row.id}
                             row={row}
                             selected={table.selected.includes(row.id)}
@@ -257,11 +258,11 @@ function applyFilter({
   comparator,
   filters,
 }: {
-  inputData: ICityItem[];
+  inputData: ILineItem[];
   comparator: (a: any, b: any) => number;
-  filters: ICityTableFilters;
+  filters: ILineTableFilters;
 }) {
-  const { name, prefecture } = filters;
+  const { name, trainCompany } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
@@ -275,13 +276,13 @@ function applyFilter({
 
   if (name) {
     inputData = inputData.filter(
-      (city) => city.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
+      (line) => line.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
     );
   }
 
-  if (prefecture.length) {
-    inputData = inputData.filter((city) =>
-      prefecture.includes(city.prefecture_id)
+  if (trainCompany.length) {
+    inputData = inputData.filter((line) =>
+      trainCompany.includes(line.train_company_id)
     );
   }
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\PrefectureController;
 use App\Http\Controllers\GovernmentCityController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\TrainCompanyController;
+use App\Http\Controllers\LineController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,4 +62,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/train_companies/{id}', [TrainCompanyController::class, 'show']);
     Route::post('/train_companies/create', [TrainCompanyController::class, 'create']);
     Route::patch('/train_companies/update/{id}', [TrainCompanyController::class, 'update']);
+    // 路線
+    Route::get('/lines', [LineController::class, 'index']);
+    Route::get('/lines/{id}', [LineController::class, 'show']);
+    Route::post('/lines/create', [LineController::class, 'create']);
+    Route::patch('/lines/update/{id}', [LineController::class, 'update']);
 });

@@ -66,5 +66,11 @@ export const paths = {
       edit: (id: string) =>
         `${ROOTS.ADMIN}/settings/train_companies/${id}/edit`,
     },
+    line: {
+      root: `${ROOTS.ADMIN}/settings/lines`,
+      new: `${ROOTS.ADMIN}/settings/lines/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/lines/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/settings/lines/${id}/edit`,
+    },
   },
 };

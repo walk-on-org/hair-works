@@ -12,23 +12,23 @@ import Select, { SelectChangeEvent } from "@mui/material/Select";
 
 import Iconify from "@/components/iconify";
 
-import { ICityTableFilters, ICityTableFilterValue } from "@/types/city";
-import { IPrefectureItem } from "@/types/prefecture";
+import { ILineTableFilters, ILineTableFilterValue } from "@/types/line";
+import { ITrainCompanyItem } from "@/types/train-company";
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  filters: ICityTableFilters;
-  onFilters: (name: string, value: ICityTableFilterValue) => void;
+  filters: ILineTableFilters;
+  onFilters: (name: string, value: ILineTableFilterValue) => void;
   //
-  prefectures: IPrefectureItem[];
+  trainCompanies: ITrainCompanyItem[];
 };
 
-export default function CityTableToolbar({
+export default function LineTableToolbar({
   filters,
   onFilters,
   //
-  prefectures,
+  trainCompanies,
 }: Props) {
   const handleFilterName = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,10 +37,10 @@ export default function CityTableToolbar({
     [onFilters]
   );
 
-  const handleFilterPrefecture = useCallback(
+  const handleFilterTrainCompany = useCallback(
     (event: SelectChangeEvent<string[]>) => {
       onFilters(
-        "prefecture",
+        "trainCompany",
         typeof event.target.value === "string"
           ? event.target.value.split(",")
           : event.target.value
@@ -69,25 +69,25 @@ export default function CityTableToolbar({
             width: { xs: 1, md: 200 },
           }}
         >
-          <InputLabel>都道府県</InputLabel>
+          <InputLabel>鉄道事業者</InputLabel>
 
           <Select
-            value={filters.prefecture}
-            onChange={handleFilterPrefecture}
-            input={<OutlinedInput label="都道府県" />}
+            value={filters.trainCompany}
+            onChange={handleFilterTrainCompany}
+            input={<OutlinedInput label="鉄道事業者" />}
             renderValue={(selected) =>
               selected.map((value) => value).join(", ")
             }
             sx={{ textTransform: "capitalize" }}
           >
-            {prefectures.map((p) => (
-              <MenuItem key={p.id} value={p.id}>
+            {trainCompanies.map((c) => (
+              <MenuItem key={c.id} value={c.id}>
                 <Checkbox
                   disableRipple
                   size="small"
-                  checked={filters.prefecture.includes(p.id)}
+                  checked={filters.trainCompany.includes(c.id)}
                 />
-                {p.name}
+                {c.name}
               </MenuItem>
             ))}
           </Select>
@@ -104,7 +104,7 @@ export default function CityTableToolbar({
             fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="市区町村名より探す"
+            placeholder="路線名より探す"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

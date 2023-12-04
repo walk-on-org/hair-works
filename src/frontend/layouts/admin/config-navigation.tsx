@@ -109,6 +109,11 @@ export function useNavData() {
             title: "鉄道事業者",
             path: paths.admin.trainCompany.root,
           },
+          // 路線
+          {
+            title: "路線",
+            path: paths.admin.line.root,
+          },
         ],
       },
     ],

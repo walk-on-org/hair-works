@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TrainCompany extends Model
+class Line extends Model
 {
     use HasFactory;
     protected  $fillable = [
         'name',
-        'name_r',
+        'permalink',
+        'train_company_id'
         'status',
         'sort',
     ];
@@ -21,7 +22,7 @@ class TrainCompany extends Model
         2 => '廃止',
     ];
 
-    public function lines() {
-        return $this->hasMany('App\Models\Line');
+    public function trainCompany() {
+        return $this->belongsTo('App\Models\TrainCompany');
     }
 }
