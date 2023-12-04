@@ -5,20 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class GovernmentCity extends Model
+class City extends Model
 {
     use HasFactory;
     protected  $fillable = [
         'name',
         'permalink',
         'prefecture_id',
+        'government_city_id',
     ];
 
     public function prefecture() {
         return $this->belongsTo('App\Models\Prefecture');
     }
 
-    public function cities() {
-        return $this->hasMany('App\Models\City');
+    public function governmentCity() {
+        return $this->belongsTo('App\Models\GovernmentCity');
     }
 }

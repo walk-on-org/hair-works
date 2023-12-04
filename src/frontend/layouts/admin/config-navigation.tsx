@@ -99,6 +99,11 @@ export function useNavData() {
             title: "政令指定都市",
             path: paths.admin.governmentCity.root,
           },
+          // 市区町村
+          {
+            title: "市区町村",
+            path: paths.admin.city.root,
+          },
         ],
       },
     ],

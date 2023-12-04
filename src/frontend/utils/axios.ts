@@ -61,4 +61,10 @@ export const endpoints = {
     create: "/api/government_cities/create",
     update: (id: string) => `/api/government_cities/update/${id}`,
   },
+  city: {
+    list: "/api/cities",
+    detail: (id: string) => `/api/cities/${id}`,
+    create: "/api/cities/create",
+    update: (id: string) => `/api/cities/update/${id}`,
+  },
 };
