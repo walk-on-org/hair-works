@@ -41,6 +41,7 @@ import {
 import JobCategoryTableRow from "../job-category-table-row";
 import JobCategoryTableToolbar from "../job-category-table-toolbar";
 import JobCategoryTableFiltersResult from "../job-category-table-filters-result";
+import { STATUS_OPTIONS } from "@/config-global";
 
 // ----------------------------------------------------------------------
 
@@ -50,11 +51,6 @@ const TABLE_HEAD = [
   { id: "permalink", label: "パーマリンク", width: 160 },
   { id: "status", label: "状態", width: 110 },
   { id: "", width: 88 },
-];
-
-const STATUS_OPTIONS = [
-  { value: "1", label: "有効" },
-  { value: "0", label: "無効" },
 ];
 
 const defaultFilters: IJobCategoryTableFilters = {
