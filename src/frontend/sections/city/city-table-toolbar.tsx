@@ -69,7 +69,7 @@ export default function CityTableToolbar({
           <Select
             value={filters.prefecture}
             onChange={handleFilterPrefecture}
-            input={<OutlinedInput label="状態" />}
+            input={<OutlinedInput label="都道府県" />}
             renderValue={(selected) =>
               selected.map((value) => value).join(", ")
             }

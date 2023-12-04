@@ -112,6 +112,7 @@ export default function GovernmentCityNewEditForm({
             <RHFTextField name="permalink" label="パーマリンク" />
 
             <RHFSelect native name="prefecture_id" label="都道府県">
+              <option value=""></option>
               {prefectures.map((prefecture) => (
                 <option key={prefecture.id} value={prefecture.id}>
                   {prefecture.name}
