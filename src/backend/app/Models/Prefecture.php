@@ -34,4 +34,8 @@ class Prefecture extends Model
     public function cities() {
         return $this->hasMany('App\Models\City');
     }
+
+    public function stations() {
+        return $this->hasMany('App\Models\Station');
+    }
 }

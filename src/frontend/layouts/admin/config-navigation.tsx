@@ -114,6 +114,11 @@ export function useNavData() {
             title: "路線",
             path: paths.admin.line.root,
           },
+          // 駅
+          {
+            title: "駅",
+            path: paths.admin.station.root,
+          },
         ],
       },
     ],

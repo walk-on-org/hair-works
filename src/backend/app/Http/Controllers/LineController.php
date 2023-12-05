@@ -66,14 +66,6 @@ class LineController extends Controller
                 'status' => 'numeric|regex:/^[0-2]{1}$/',
                 'sort' => 'numeric',
             ]);
-
-            // ID重複チェック
-            /*$same_id_line_count = DB::table('lines')
-                ->where('lines.id', '=', $data['id'])
-                ->count();
-            if ($same_id_line_count > 0) {
-                throw new Exception('既に登録済みの路線IDが入力されております。');
-            }*/
             
             // 鉄道事業者マスタ存在チェック
             $train_company = TrainCompany::find($data['train_company_id']);
@@ -105,9 +97,6 @@ class LineController extends Controller
                 'sort' => 'numeric',
             ]);
             
-            // ID重複チェック
-            // TODO
-
             // 鉄道事業者マスタ存在チェック
             $train_company = TrainCompany::find($data['train_company_id']);
             if (!$train_company) {

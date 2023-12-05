@@ -26,4 +26,8 @@ class Line extends Model
     public function trainCompany() {
         return $this->belongsTo('App\Models\TrainCompany');
     }
+
+    public function stations() {
+        return $this->hasMany('App\Models\Station');
+    }
 }

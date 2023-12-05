@@ -79,4 +79,10 @@ export const endpoints = {
     create: "/api/lines/create",
     update: (id: string) => `/api/lines/update/${id}`,
   },
+  station: {
+    list: "/api/stations",
+    detail: (id: string) => `/api/stations/${id}`,
+    create: "/api/stations/create",
+    update: (id: string) => `/api/stations/update/${id}`,
+  },
 };
