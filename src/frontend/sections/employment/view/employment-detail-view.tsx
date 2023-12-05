@@ -102,7 +102,7 @@ export default function EmploymentDetailView({ id }: Props) {
               variant="soft"
               color={(employment.status == "1" && "info") || "default"}
             >
-              {employment.status == "1" ? "有効" : "無効"}
+              {employment.status_name}
             </Label>
           </Stack>
         </Stack>

@@ -14,13 +14,13 @@ export function useGetJobCategories() {
 
   const memoizedValue = useMemo(
     () => ({
-      jobCategories: (data?.job_categroies as IJobCategoryItem[]) || [],
+      jobCategories: (data?.job_categories as IJobCategoryItem[]) || [],
       jobCategoriesLoading: isLoading,
       jobCategoriesError: error,
       jobCategoriesValidating: isValidating,
-      jobCategoriesEmpty: !isLoading && !data?.job_categroies.length,
+      jobCategoriesEmpty: !isLoading && !data?.job_categories.length,
     }),
-    [data?.job_categroies, error, isLoading, isValidating]
+    [data?.job_categories, error, isLoading, isValidating]
   );
 
   return memoizedValue;

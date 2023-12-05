@@ -13,15 +13,15 @@ import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Iconify from "@/components/iconify";
 
 import {
-  IHolidayTableFilters,
-  IHolidayTableFilterValue,
-} from "@/types/holiday";
+  ICommitmentTermTableFilters,
+  ICommitmentTermTableFilterValue,
+} from "@/types/commitment-term";
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  filters: IHolidayTableFilters;
-  onFilters: (name: string, value: IHolidayTableFilterValue) => void;
+  filters: ICommitmentTermTableFilters;
+  onFilters: (name: string, value: ICommitmentTermTableFilterValue) => void;
   //
   statusOptions: {
     value: string;
@@ -29,7 +29,7 @@ type Props = {
   }[];
 };
 
-export default function HolidayTableToolbar({
+export default function CommitmentTermTableToolbar({
   filters,
   onFilters,
   //
@@ -110,7 +110,7 @@ export default function HolidayTableToolbar({
             fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="休日名より探す"
+            placeholder="こだわり条件名より探す"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

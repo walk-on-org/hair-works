@@ -124,6 +124,11 @@ export function useNavData() {
             title: "休日",
             path: paths.admin.holiday.root,
           },
+          // こだわり条件
+          {
+            title: "こだわり条件",
+            path: paths.admin.commitmentTerm.root,
+          },
         ],
       },
     ],

@@ -101,7 +101,7 @@ export default function HolidayDetailView({ id }: Props) {
               variant="soft"
               color={(holiday.status == "1" && "info") || "default"}
             >
-              {holiday.status == "1" ? "有効" : "無効"}
+              {holiday.status_name}
             </Label>
           </Stack>
         </Stack>

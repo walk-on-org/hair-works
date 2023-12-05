@@ -12,6 +12,7 @@ use App\Http\Controllers\TrainCompanyController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\HolidayController;
+use App\Http\Controllers\CommitmentTermController;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,4 +80,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/holidays/{id}', [HolidayController::class, 'show']);
     Route::post('/holidays/create', [HolidayController::class, 'create']);
     Route::patch('/holidays/update/{id}', [HolidayController::class, 'update']);
+    // こだわり条件
+    Route::get('/commitment_terms', [CommitmentTermController::class, 'index']);
+    Route::get('/commitment_terms/{id}', [CommitmentTermController::class, 'show']);
+    Route::post('/commitment_terms/create', [CommitmentTermController::class, 'create']);
+    Route::patch('/commitment_terms/update/{id}', [CommitmentTermController::class, 'update']);
 });

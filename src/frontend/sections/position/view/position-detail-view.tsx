@@ -101,7 +101,7 @@ export default function PositionDetailView({ id }: Props) {
               variant="soft"
               color={(position.status == "1" && "info") || "default"}
             >
-              {position.status == "1" ? "有効" : "無効"}
+              {position.status_name}
             </Label>
           </Stack>
         </Stack>

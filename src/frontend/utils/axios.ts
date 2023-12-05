@@ -91,4 +91,10 @@ export const endpoints = {
     create: "/api/holidays/create",
     update: (id: string) => `/api/holidays/update/${id}`,
   },
+  commitmentTerm: {
+    list: "/api/commitment_terms",
+    detail: (id: string) => `/api/commitment_terms/${id}`,
+    create: "/api/commitment_terms/create",
+    update: (id: string) => `/api/commitment_terms/update/${id}`,
+  },
 };

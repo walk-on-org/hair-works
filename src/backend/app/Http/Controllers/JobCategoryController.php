@@ -18,7 +18,7 @@ class JobCategoryController extends Controller
         foreach ($job_categories as $j) {
             $j['status_name'] = JobCategory::STATUS[$j->status];
         }
-        return response()->json(['job_categroies' => $job_categories]);
+        return response()->json(['job_categories' => $job_categories]);
     }
 
     /**

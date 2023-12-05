@@ -19,3 +19,11 @@ export const REGION_OPTIONS = [
   { value: "7", label: "四国" },
   { value: "8", label: "九州・沖縄" },
 ];
+
+export const COMMITMENT_TERM_CATEGORY = [
+  { value: "1", label: "待遇・条件" },
+  { value: "2", label: "教育・研修" },
+  { value: "3", label: "経験・資格" },
+  { value: "4", label: "店舗の特徴" },
+  { value: "5", label: "在籍スタッフ" },
+];

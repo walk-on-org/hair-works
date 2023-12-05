@@ -84,5 +84,12 @@ export const paths = {
       detail: (id: string) => `${ROOTS.ADMIN}/settings/holidays/${id}`,
       edit: (id: string) => `${ROOTS.ADMIN}/settings/holidays/${id}/edit`,
     },
+    commitmentTerm: {
+      root: `${ROOTS.ADMIN}/settings/commitment_terms`,
+      new: `${ROOTS.ADMIN}/settings/commitment_terms/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/commitment_terms/${id}`,
+      edit: (id: string) =>
+        `${ROOTS.ADMIN}/settings/commitment_terms/${id}/edit`,
+    },
   },
 };

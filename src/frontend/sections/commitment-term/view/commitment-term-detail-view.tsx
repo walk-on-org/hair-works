@@ -9,7 +9,7 @@ import Stack from "@mui/material/Stack";
 import { paths } from "@/routes/paths";
 import { RouterLink } from "@/routes/components";
 
-import { useGetJobCategory } from "@/api/job-category";
+import { useGetCommitmentTerm } from "@/api/commitment-term";
 
 import Label from "@/components/label";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
@@ -17,8 +17,8 @@ import Iconify from "@/components/iconify";
 import EmptyContent from "@/components/empty-content";
 import { useSettingsContext } from "@/components/settings";
 
-import JobCategoryDetailToolbar from "../job-category-detail-toolbar";
-import { JobCategoryDetailSkeleton } from "../job-category-skelton";
+import CommitmentTermDetailToolbar from "../commitment-term-detail-toolbar";
+import { CommitmentTermDetailSkeleton } from "../commitment-term-skelton";
 
 // ----------------------------------------------------------------------
 
@@ -26,22 +26,22 @@ type Props = {
   id: string;
 };
 
-export default function JobCategoryDetailView({ id }: Props) {
-  const { jobCategory, jobCategoryLoading, jobCategoryError } =
-    useGetJobCategory(id);
+export default function CommitmentTermDetailView({ id }: Props) {
+  const { commitmentTerm, commitmentTermLoading, commitmentTermError } =
+    useGetCommitmentTerm(id);
 
   const settings = useSettingsContext();
 
-  const renderSkeleton = <JobCategoryDetailSkeleton />;
+  const renderSkeleton = <CommitmentTermDetailSkeleton />;
 
   const renderError = (
     <EmptyContent
       filled
-      title={`${jobCategoryError?.message}`}
+      title={`${commitmentTermError?.message}`}
       action={
         <Button
           component={RouterLink}
-          href={paths.admin.jobCategory.root}
+          href={paths.admin.commitmentTerm.root}
           startIcon={<Iconify icon="eva:arrow-ios-back-fill" width={16} />}
           sx={{ mt: 3 }}
         >
@@ -52,36 +52,36 @@ export default function JobCategoryDetailView({ id }: Props) {
     />
   );
 
-  const renderJobCategory = jobCategory && (
+  const renderCommitmentTerm = commitmentTerm && (
     <>
       <CustomBreadcrumbs
-        heading="職種マスタ詳細"
+        heading="こだわり条件マスタ詳細"
         links={[
           { name: "ダッシュボード", href: paths.admin.dashboard },
           {
-            name: "職種マスタ",
-            href: paths.admin.jobCategory.root,
+            name: "こだわり条件マスタ",
+            href: paths.admin.commitmentTerm.root,
           },
-          { name: jobCategory?.name },
+          { name: commitmentTerm?.name },
         ]}
         sx={{
           mb: { xs: 3, md: 5 },
         }}
       />
 
-      <JobCategoryDetailToolbar
-        backLink={paths.admin.jobCategory.root}
-        editLink={paths.admin.jobCategory.edit(`${jobCategory?.id}`)}
+      <CommitmentTermDetailToolbar
+        backLink={paths.admin.commitmentTerm.root}
+        editLink={paths.admin.commitmentTerm.edit(`${commitmentTerm?.id}`)}
       />
 
       <Card>
         <Stack spacing={3} sx={{ p: 3 }}>
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              職種名
+              こだわり条件名
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {jobCategory.name}
+              {commitmentTerm.name}
             </Typography>
           </Stack>
 
@@ -90,8 +90,29 @@ export default function JobCategoryDetailView({ id }: Props) {
               パーマリンク
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {jobCategory.permalink}
+              {commitmentTerm.permalink}
             </Typography>
+          </Stack>
+
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
+              カテゴリ
+            </Typography>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {commitmentTerm.category_name}
+            </Typography>
+          </Stack>
+
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
+              おすすめ
+            </Typography>
+            <Label
+              variant="soft"
+              color={(commitmentTerm.recommend == "1" && "info") || "default"}
+            >
+              {commitmentTerm.recommend_name}
+            </Label>
           </Stack>
 
           <Stack direction="row">
@@ -100,9 +121,9 @@ export default function JobCategoryDetailView({ id }: Props) {
             </Typography>
             <Label
               variant="soft"
-              color={(jobCategory.status == "1" && "info") || "default"}
+              color={(commitmentTerm.status == "1" && "info") || "default"}
             >
-              {jobCategory.status_name}
+              {commitmentTerm.status_name}
             </Label>
           </Stack>
         </Stack>
@@ -112,11 +133,11 @@ export default function JobCategoryDetailView({ id }: Props) {
 
   return (
     <Container maxWidth={settings.themeStretch ? false : "lg"}>
-      {jobCategoryLoading && renderSkeleton}
+      {commitmentTermLoading && renderSkeleton}
 
-      {jobCategoryError && renderError}
+      {commitmentTermError && renderError}
 
-      {jobCategory && renderJobCategory}
+      {commitmentTerm && renderCommitmentTerm}
     </Container>
   );
 }
