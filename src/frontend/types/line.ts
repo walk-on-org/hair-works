@@ -15,5 +15,6 @@ export type ILineTableFilterValue = string | string[];
 
 export type ILineTableFilters = {
   name: string;
+  status: string[];
   trainCompany: string[];
 };

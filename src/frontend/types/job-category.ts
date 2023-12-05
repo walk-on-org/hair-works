@@ -3,6 +3,7 @@ export type IJobCategoryItem = {
   name: string;
   permalink: string;
   status: string;
+  status_name: string;
   createdAt: Date;
   updatedAt: Date;
 };

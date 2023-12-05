@@ -15,6 +15,9 @@ class EmploymentController extends Controller
     public function index()
     {
         $employments = Employment::all();
+        foreach ($employments as $e) {
+            $e['status_name'] = Employment::STATUS[$e->status];
+        }
         return response()->json(['employments' => $employments]);
     }
 
@@ -28,6 +31,7 @@ class EmploymentController extends Controller
             if (!$employment) {
                 throw new ModelNotFoundException();
             }
+            $employment['status_name'] = Employment::STATUS[$employment->status];
             return response()->json(['employment' => $employment]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Employment not found'], 404);

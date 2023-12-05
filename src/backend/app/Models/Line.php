@@ -9,9 +9,10 @@ class Line extends Model
 {
     use HasFactory;
     protected  $fillable = [
+        'id',
         'name',
         'permalink',
-        'train_company_id'
+        'train_company_id',
         'status',
         'sort',
     ];

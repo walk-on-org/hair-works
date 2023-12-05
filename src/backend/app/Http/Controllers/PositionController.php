@@ -15,6 +15,9 @@ class PositionController extends Controller
     public function index()
     {
         $positions = Position::all();
+        foreach ($positions as $p) {
+            $p['status_name'] = Position::STATUS[$p->status];
+        }
         return response()->json(['positions' => $positions]);
     }
 
@@ -28,6 +31,7 @@ class PositionController extends Controller
             if (!$position) {
                 throw new ModelNotFoundException();
             }
+            $position['status_name'] = Position::STATUS[$position->status];
             return response()->json(['position' => $position]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Position not found'], 404);

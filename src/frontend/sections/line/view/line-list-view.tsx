@@ -42,6 +42,7 @@ import {
 import LineTableRow from "../line-table-row";
 import LineTableToolbar from "../line-table-toolbar";
 import LineTableFiltersResult from "../line-table-filters-result";
+import { TRAIN_STATUS_OPTIONS } from "@/config-global";
 
 // ----------------------------------------------------------------------
 
@@ -57,6 +58,7 @@ const TABLE_HEAD = [
 
 const defaultFilters: ILineTableFilters = {
   name: "",
+  status: [],
   trainCompany: [],
 };
 
@@ -151,6 +153,7 @@ export default function LineListView() {
             filters={filters}
             onFilters={handleFilters}
             trainCompanies={trainCompanies}
+            statusOptions={TRAIN_STATUS_OPTIONS}
           />
 
           {canReset && (
@@ -262,7 +265,7 @@ function applyFilter({
   comparator: (a: any, b: any) => number;
   filters: ILineTableFilters;
 }) {
-  const { name, trainCompany } = filters;
+  const { name, status, trainCompany } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
@@ -280,9 +283,13 @@ function applyFilter({
     );
   }
 
+  if (status.length) {
+    inputData = inputData.filter((line) => status.includes(line.status_name));
+  }
+
   if (trainCompany.length) {
     inputData = inputData.filter((line) =>
-      trainCompany.includes(line.train_company_id)
+      trainCompany.includes(line.train_company_name)
     );
   }
 

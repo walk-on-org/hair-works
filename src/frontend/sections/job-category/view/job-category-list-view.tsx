@@ -282,7 +282,7 @@ function applyFilter({
 
   if (status.length) {
     inputData = inputData.filter((jobCategory) =>
-      status.includes(jobCategory.status)
+      status.includes(jobCategory.status_name)
     );
   }
 

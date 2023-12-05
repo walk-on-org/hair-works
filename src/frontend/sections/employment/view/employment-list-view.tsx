@@ -280,10 +280,9 @@ function applyFilter({
     );
   }
 
-  // TODO 確認
   if (status.length) {
     inputData = inputData.filter((employment) =>
-      status.includes(employment.status)
+      status.includes(employment.status_name)
     );
   }
 

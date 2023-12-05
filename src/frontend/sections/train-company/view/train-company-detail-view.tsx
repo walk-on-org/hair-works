@@ -101,7 +101,7 @@ export default function TrainCompanyDetailView({ id }: Props) {
             <Label
               variant="soft"
               color={
-                (trainCompany.status == "1" && "info") ||
+                (trainCompany.status == "0" && "info") ||
                 (trainCompany.status == "1" && "default") ||
                 "warning"
               }

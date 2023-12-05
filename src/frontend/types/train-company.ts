@@ -3,7 +3,7 @@ export type ITrainCompanyItem = {
   name: string;
   name_r: string;
   status: string;
-  status_name: number;
+  status_name: string;
   sort: number;
   createdAt: Date;
   updatedAt: Date;

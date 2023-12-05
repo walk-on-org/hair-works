@@ -28,7 +28,7 @@ export default function EmploymentTableRow({
   onEditRow,
   onViewRow,
 }: Props) {
-  const { id, name, permalink, status } = row;
+  const { id, name, permalink, status, status_name } = row;
   const popover = usePopover();
 
   return (
@@ -56,7 +56,7 @@ export default function EmploymentTableRow({
 
         <TableCell>
           <Label variant="soft" color={(status == "1" && "info") || "default"}>
-            {status == "1" ? "有効" : "無効"}
+            {status_name}
           </Label>
         </TableCell>
 

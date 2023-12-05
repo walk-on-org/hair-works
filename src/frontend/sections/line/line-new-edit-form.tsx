@@ -39,6 +39,7 @@ export default function LineNewEditForm({
   const { enqueueSnackbar } = useSnackbar();
 
   const NewLineSchema = Yup.object().shape({
+    id: Yup.string().required("路線IDを入力してください。"),
     name: Yup.string().required("路線名を入力してください。"),
     permalink: Yup.string().required("パーマリンクを入力してください。"),
     train_company_id: Yup.string().required("鉄道事業者を入力してください。"),
@@ -50,10 +51,11 @@ export default function LineNewEditForm({
 
   const defaultValues = useMemo(
     () => ({
+      id: currentLine?.id || "",
       name: currentLine?.name || "",
       permalink: currentLine?.permalink || "",
       train_company_id: currentLine?.train_company_id || "",
-      status: currentLine?.status || "",
+      status: String(currentLine?.status) || "",
       sort: currentLine?.sort || 0,
     }),
     [currentLine]
@@ -81,6 +83,7 @@ export default function LineNewEditForm({
       let res;
       if (currentLine) {
         res = await axios.patch(endpoints.line.update(currentLine.id), {
+          id: Number(data.id),
           name: data.name,
           permalink: data.permalink,
           train_company_id: Number(data.train_company_id),
@@ -89,6 +92,7 @@ export default function LineNewEditForm({
         });
       } else {
         res = await axios.post(endpoints.line.create, {
+          id: Number(data.id),
           name: data.name,
           permalink: data.permalink,
           train_company_id: Number(data.train_company_id),
@@ -113,6 +117,8 @@ export default function LineNewEditForm({
       <Grid xs={12}>
         <Card>
           <Stack spacing={3} sx={{ p: 3 }}>
+            <RHFTextField name="id" label="路線ID" />
+
             <RHFTextField name="name" label="路線名" />
 
             <RHFTextField name="permalink" label="パーマリンク" />

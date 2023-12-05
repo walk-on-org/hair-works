@@ -72,6 +72,7 @@ export default function CityTableToolbar({
           <InputLabel>都道府県</InputLabel>
 
           <Select
+            multiple
             value={filters.prefecture}
             onChange={handleFilterPrefecture}
             input={<OutlinedInput label="都道府県" />}
@@ -81,11 +82,11 @@ export default function CityTableToolbar({
             sx={{ textTransform: "capitalize" }}
           >
             {prefectures.map((p) => (
-              <MenuItem key={p.id} value={p.id}>
+              <MenuItem key={p.name} value={p.name}>
                 <Checkbox
                   disableRipple
                   size="small"
-                  checked={filters.prefecture.includes(p.id)}
+                  checked={filters.prefecture.includes(p.name)}
                 />
                 {p.name}
               </MenuItem>

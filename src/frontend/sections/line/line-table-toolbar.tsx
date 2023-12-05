@@ -22,6 +22,10 @@ type Props = {
   onFilters: (name: string, value: ILineTableFilterValue) => void;
   //
   trainCompanies: ITrainCompanyItem[];
+  statusOptions: {
+    value: string;
+    label: string;
+  }[];
 };
 
 export default function LineTableToolbar({
@@ -29,10 +33,23 @@ export default function LineTableToolbar({
   onFilters,
   //
   trainCompanies,
+  statusOptions,
 }: Props) {
   const handleFilterName = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       onFilters("name", event.target.value);
+    },
+    [onFilters]
+  );
+
+  const handleFilterStatus = useCallback(
+    (event: SelectChangeEvent<string[]>) => {
+      onFilters(
+        "status",
+        typeof event.target.value === "string"
+          ? event.target.value.split(",")
+          : event.target.value
+      );
     },
     [onFilters]
   );
@@ -69,9 +86,41 @@ export default function LineTableToolbar({
             width: { xs: 1, md: 200 },
           }}
         >
+          <InputLabel>状態</InputLabel>
+
+          <Select
+            multiple
+            value={filters.status}
+            onChange={handleFilterStatus}
+            input={<OutlinedInput label="状態" />}
+            renderValue={(selected) =>
+              selected.map((value) => value).join(", ")
+            }
+            sx={{ textTransform: "capitalize" }}
+          >
+            {statusOptions.map((option) => (
+              <MenuItem key={option.label} value={option.label}>
+                <Checkbox
+                  disableRipple
+                  size="small"
+                  checked={filters.status.includes(option.label)}
+                />
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl
+          sx={{
+            flexShrink: 0,
+            width: { xs: 1, md: 200 },
+          }}
+        >
           <InputLabel>鉄道事業者</InputLabel>
 
           <Select
+            multiple
             value={filters.trainCompany}
             onChange={handleFilterTrainCompany}
             input={<OutlinedInput label="鉄道事業者" />}
@@ -81,11 +130,11 @@ export default function LineTableToolbar({
             sx={{ textTransform: "capitalize" }}
           >
             {trainCompanies.map((c) => (
-              <MenuItem key={c.id} value={c.id}>
+              <MenuItem key={c.name} value={c.name}>
                 <Checkbox
                   disableRipple
                   size="small"
-                  checked={filters.trainCompany.includes(c.id)}
+                  checked={filters.trainCompany.includes(c.name)}
                 />
                 {c.name}
               </MenuItem>

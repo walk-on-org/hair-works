@@ -23,13 +23,13 @@ class LineController extends Controller
                 'lines.name',
                 'lines.permalink',
                 'lines.train_company_id',
-                'train_companies.name as train_compnay_name',
+                'train_companies.name as train_company_name',
                 'lines.status',
                 'lines.sort',
             )
             ->get();
         foreach ($lines as $l) {
-            $l['status_name'] = Line::STATUS[$l->line];
+            $l->status_name = Line::STATUS[$l->status];
         }
         return response()->json(['lines' => $lines]);
     }
@@ -45,7 +45,7 @@ class LineController extends Controller
                 throw new ModelNotFoundException();
             }
             $line['train_company_name'] = $line->trainCompany->name;
-            $line['status_name'] = Line::STATUS[$l->status];
+            $line['status_name'] = Line::STATUS[$line->status];
             return response()->json(['line' => $line]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Line not found'], 404);
@@ -59,6 +59,7 @@ class LineController extends Controller
     {
         try {
             $data = $request->validate([
+                'id' => 'numeric|unique:lines,id',
                 'name' => 'required|string',
                 'permalink' => 'required|string',
                 'train_company_id' => 'numeric',
@@ -66,8 +67,16 @@ class LineController extends Controller
                 'sort' => 'numeric',
             ]);
 
+            // ID重複チェック
+            /*$same_id_line_count = DB::table('lines')
+                ->where('lines.id', '=', $data['id'])
+                ->count();
+            if ($same_id_line_count > 0) {
+                throw new Exception('既に登録済みの路線IDが入力されております。');
+            }*/
+            
             // 鉄道事業者マスタ存在チェック
-            $train_company = TrainCompany::find($data['train_compnay_id']);
+            $train_company = TrainCompany::find($data['train_company_id']);
             if (!$train_company) {
                 throw new ModelNotFoundException();
             }
@@ -88,6 +97,7 @@ class LineController extends Controller
     {
         try {
             $data = $request->validate([
+                'id' => 'numeric|unique:lines,id,' . $id . ',id',
                 'name' => 'required|string',
                 'permalink' => 'required|string',
                 'train_company_id' => 'numeric',
@@ -95,8 +105,11 @@ class LineController extends Controller
                 'sort' => 'numeric',
             ]);
             
+            // ID重複チェック
+            // TODO
+
             // 鉄道事業者マスタ存在チェック
-            $train_company = TrainCompany::find($data['train_compnay_id']);
+            $train_company = TrainCompany::find($data['train_company_id']);
             if (!$train_company) {
                 throw new ModelNotFoundException();
             }

@@ -28,6 +28,11 @@ export default function LineTableFiltersResult({
   results,
   ...other
 }: Props) {
+  const handleRemoveStatus = (inputValue: string) => {
+    const newValue = filters.status.filter((item) => item !== inputValue);
+    onFilters("status", newValue);
+  };
+
   const handleRemoveTrainCompany = (inputValue: string) => {
     const newValue = filters.trainCompany.filter((item) => item !== inputValue);
     onFilters("trainCompany", newValue);
@@ -49,6 +54,19 @@ export default function LineTableFiltersResult({
         flexWrap="wrap"
         alignItems="center"
       >
+        {!!filters.status.length && (
+          <Block label="状態:">
+            {filters.status.map((item) => (
+              <Chip
+                key={item}
+                label={item}
+                size="small"
+                onDelete={() => handleRemoveStatus(item)}
+              />
+            ))}
+          </Block>
+        )}
+
         {!!filters.trainCompany.length && (
           <Block label="鉄道事業者:">
             {filters.trainCompany.map((item) => (

@@ -16,7 +16,7 @@ class TrainCompanyController extends Controller
     {
         $train_companies = TrainCompany::all();
         foreach ($train_companies as $c) {
-            $c['status_name'] = TrainCompany::STATUS[$c->stats];
+            $c['status_name'] = TrainCompany::STATUS[$c->status];
         }
         return response()->json(['train_companies' => $train_companies]);
     }

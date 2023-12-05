@@ -281,7 +281,7 @@ function applyFilter({
 
   if (prefecture.length) {
     inputData = inputData.filter((city) =>
-      prefecture.includes(city.prefecture_id)
+      prefecture.includes(city.prefecture_name)
     );
   }
 

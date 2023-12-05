@@ -87,11 +87,11 @@ export default function EmploymentTableToolbar({
             sx={{ textTransform: "capitalize" }}
           >
             {statusOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
+              <MenuItem key={option.label} value={option.label}>
                 <Checkbox
                   disableRipple
                   size="small"
-                  checked={filters.status.includes(option.value)}
+                  checked={filters.status.includes(option.label)}
                 />
                 {option.label}
               </MenuItem>

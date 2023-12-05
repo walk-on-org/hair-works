@@ -13,4 +13,9 @@ class JobCategory extends Model
         'permalink',
         'status',
     ];
+
+    const STATUS = [
+        1 => '有効',
+        0 => '無効',
+    ];
 }

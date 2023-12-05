@@ -77,6 +77,15 @@ export default function LineDetailView({ id }: Props) {
         <Stack spacing={3} sx={{ p: 3 }}>
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
+              路線ID
+            </Typography>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {line.id}
+            </Typography>
+          </Stack>
+
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
               路線名
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -109,7 +118,7 @@ export default function LineDetailView({ id }: Props) {
             <Label
               variant="soft"
               color={
-                (line.status == "1" && "info") ||
+                (line.status == "0" && "info") ||
                 (line.status == "1" && "default") ||
                 "warning"
               }

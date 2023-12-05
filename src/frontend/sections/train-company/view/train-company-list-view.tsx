@@ -281,10 +281,9 @@ function applyFilter({
     );
   }
 
-  // TODO 確認
   if (status.length) {
     inputData = inputData.filter((trainCompany) =>
-      status.includes(trainCompany.status)
+      status.includes(trainCompany.status_name)
     );
   }
 

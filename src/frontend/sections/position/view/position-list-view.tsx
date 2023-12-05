@@ -279,10 +279,9 @@ function applyFilter({
     );
   }
 
-  // TODO 確認
   if (status.length) {
     inputData = inputData.filter((position) =>
-      status.includes(position.status)
+      status.includes(position.status_name)
     );
   }
 

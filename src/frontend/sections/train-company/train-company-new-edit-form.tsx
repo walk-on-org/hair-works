@@ -48,7 +48,7 @@ export default function TrainCompanyNewEditForm({
     () => ({
       name: currentTrainCompany?.name || "",
       name_r: currentTrainCompany?.name_r || "",
-      status: currentTrainCompany?.status || "",
+      status: String(currentTrainCompany?.status) || "",
       sort: currentTrainCompany?.sort || 0,
     }),
     [currentTrainCompany]
@@ -113,7 +113,7 @@ export default function TrainCompanyNewEditForm({
           <Stack spacing={3} sx={{ p: 3 }}>
             <RHFTextField name="name" label="鉄道事業者名" />
 
-            <RHFTextField name="name_r" label="鉄道事業者名" />
+            <RHFTextField name="name_r" label="鉄道事業者名（略称）" />
 
             <RHFSelect native name="status" label="状態">
               <option value=""></option>
