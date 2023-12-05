@@ -85,4 +85,10 @@ export const endpoints = {
     create: "/api/stations/create",
     update: (id: string) => `/api/stations/update/${id}`,
   },
+  holiday: {
+    list: "/api/holidays",
+    detail: (id: string) => `/api/holidays/${id}`,
+    create: "/api/holidays/create",
+    update: (id: string) => `/api/holidays/update/${id}`,
+  },
 };

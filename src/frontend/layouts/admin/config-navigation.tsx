@@ -119,6 +119,11 @@ export function useNavData() {
             title: "駅",
             path: paths.admin.station.root,
           },
+          // 休日
+          {
+            title: "休日",
+            path: paths.admin.holiday.root,
+          },
         ],
       },
     ],

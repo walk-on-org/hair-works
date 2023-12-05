@@ -11,6 +11,7 @@ use App\Http\Controllers\CityController;
 use App\Http\Controllers\TrainCompanyController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\StationController;
+use App\Http\Controllers\HolidayController;
 
 /*
 |--------------------------------------------------------------------------
@@ -73,4 +74,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/stations/{id}', [StationController::class, 'show']);
     Route::post('/stations/create', [StationController::class, 'create']);
     Route::patch('/stations/update/{id}', [StationController::class, 'update']);
+    // 休日
+    Route::get('/holidays', [HolidayController::class, 'index']);
+    Route::get('/holidays/{id}', [HolidayController::class, 'show']);
+    Route::post('/holidays/create', [HolidayController::class, 'create']);
+    Route::patch('/holidays/update/{id}', [HolidayController::class, 'update']);
 });
