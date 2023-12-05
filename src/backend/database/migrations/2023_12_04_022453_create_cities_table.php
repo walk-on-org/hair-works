@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('permalink');
             $table->integer('prefecture_id')->unsigned();
-            $table->integer('government_city_id')->unsigned();
+            $table->integer('government_city_id')->unsigned()->nullable();
             $table->timestamps();
 
             $table->foreign('prefecture_id')->references('id')->on('prefectures');

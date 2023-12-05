@@ -55,21 +55,13 @@ class GovernmentCityController extends Controller
             $data = $request->validate([
                 'name' => 'required|string',
                 'permalink' => 'required|string',
-                'prefecture_id' => 'numeric',
+                'prefecture_id' => 'numeric|exists:prefectures,id',
             ]);
-
-            // 都道府県マスタ存在チェック
-            $prefecture = Prefecture::find($data['prefecture_id']);
-            if (!$prefecture) {
-                throw new ModelNotFoundException();
-            }
 
             GovernmentCity::create($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'PrefectureId Not Found'], 422);
         }
     }
 
@@ -82,22 +74,14 @@ class GovernmentCityController extends Controller
             $data = $request->validate([
                 'name' => 'required|string',
                 'permalink' => 'required|string',
-                'prefecture_id' => 'numeric',
+                'prefecture_id' => 'numeric|exists:prefectures,id',
             ]);
-
-            // 都道府県マスタ存在チェック
-            $prefecture = Prefecture::find($data['prefecture_id']);
-            if (!$prefecture) {
-                throw new ModelNotFoundException();
-            }
 
             $government_city = GovernmentCity::findOrFail($id);
             $government_city->update($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'PrefectureId Not Found'], 422);
         }
     }
 }

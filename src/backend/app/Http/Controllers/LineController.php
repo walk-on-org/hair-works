@@ -62,7 +62,7 @@ class LineController extends Controller
                 'id' => 'numeric|unique:lines,id',
                 'name' => 'required|string',
                 'permalink' => 'required|string',
-                'train_company_id' => 'numeric',
+                'train_company_id' => 'numeric|exists:train_companies,id',
                 'status' => 'numeric|regex:/^[0-2]{1}$/',
                 'sort' => 'numeric',
             ]);
@@ -77,8 +77,6 @@ class LineController extends Controller
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'TrainCompanyId Not Found'], 422);
         }
     }
 
@@ -92,7 +90,7 @@ class LineController extends Controller
                 'id' => 'numeric|unique:lines,id,' . $id . ',id',
                 'name' => 'required|string',
                 'permalink' => 'required|string',
-                'train_company_id' => 'numeric',
+                'train_company_id' => 'numeric|exists:train_companies,id',
                 'status' => 'numeric|regex:/^[0-2]{1}$/',
                 'sort' => 'numeric',
             ]);
@@ -108,8 +106,6 @@ class LineController extends Controller
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'TrainCompanyId Not Found'], 422);
         }
     }
 }
