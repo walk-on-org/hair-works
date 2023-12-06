@@ -104,5 +104,11 @@ export const paths = {
       edit: (id: string) =>
         `${ROOTS.ADMIN}/settings/lp_job_categories/${id}/edit`,
     },
+    plan: {
+      root: `${ROOTS.ADMIN}/settings/plans`,
+      new: `${ROOTS.ADMIN}/settings/plans/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/plans/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/settings/plans/${id}/edit`,
+    },
   },
 };

@@ -15,6 +15,7 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\CommitmentTermController;
 use App\Http\Controllers\QualificationController;
 use App\Http\Controllers\LpJobCategoryController;
+use App\Http\Controllers\PlanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -97,4 +98,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/lp_job_categories/{id}', [LpJobCategoryController::class, 'show']);
     Route::post('/lp_job_categories/create', [LpJobCategoryController::class, 'create']);
     Route::patch('/lp_job_categories/update/{id}', [LpJobCategoryController::class, 'update']);
+    // プラン
+    Route::get('/plans', [PlanController::class, 'index']);
+    Route::get('/plans/{id}', [PlanController::class, 'show']);
+    Route::post('/plans/create', [PlanController::class, 'create']);
+    Route::patch('/plans/update/{id}', [PlanController::class, 'update']);
 });

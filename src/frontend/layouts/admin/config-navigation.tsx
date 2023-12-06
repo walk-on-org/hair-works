@@ -139,6 +139,11 @@ export function useNavData() {
             title: "LP職種",
             path: paths.admin.lpJobCategory.root,
           },
+          // プラン
+          {
+            title: "プラン",
+            path: paths.admin.plan.root,
+          },
         ],
       },
     ],
