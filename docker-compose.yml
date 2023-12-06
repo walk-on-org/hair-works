@@ -58,5 +58,7 @@ services:
     # srcディレクトリ内のファイルをコンテナ内の~/app配下にマウント
     volumes:
       - ./src/frontend:/app
+    environment:
+      - WATCHPACK_POLLING=true
     command: sh -c "npm run dev"
     tty: true
