@@ -58,10 +58,10 @@ export default function StationNewEditForm({
       .moreThan(0, "ソート順は0より大きい値で入力してください。"),
     lat: Yup.number()
       .required("緯度を入力してください。")
-      .moreThan(0, "ソート順は0より大きい値で入力してください。"),
+      .moreThan(0, "緯度は0より大きい値で入力してください。"),
     lng: Yup.number()
       .required("経度を入力してください。")
-      .moreThan(0, "ソート順は0より大きい値で入力してください。"),
+      .moreThan(0, "経度は0より大きい値で入力してください。"),
   });
 
   const defaultValues = useMemo(

@@ -97,4 +97,10 @@ export const endpoints = {
     create: "/api/commitment_terms/create",
     update: (id: string) => `/api/commitment_terms/update/${id}`,
   },
+  qualification: {
+    list: "/api/qualifications",
+    detail: (id: string) => `/api/qualifications/${id}`,
+    create: "/api/qualifications/create",
+    update: (id: string) => `/api/qualifications/update/${id}`,
+  },
 };

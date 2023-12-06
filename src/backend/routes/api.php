@@ -13,6 +13,7 @@ use App\Http\Controllers\LineController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\CommitmentTermController;
+use App\Http\Controllers\QualificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -85,4 +86,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/commitment_terms/{id}', [CommitmentTermController::class, 'show']);
     Route::post('/commitment_terms/create', [CommitmentTermController::class, 'create']);
     Route::patch('/commitment_terms/update/{id}', [CommitmentTermController::class, 'update']);
+    // 資格
+    Route::get('/qualifications', [QualificationController::class, 'index']);
+    Route::get('/qualifications/{id}', [QualificationController::class, 'show']);
+    Route::post('/qualifications/create', [QualificationController::class, 'create']);
+    Route::patch('/qualifications/update/{id}', [QualificationController::class, 'update']);
 });

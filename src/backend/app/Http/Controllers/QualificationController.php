@@ -2,54 +2,54 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Holiday;
+use App\Models\Qualification;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
-class HolidayController extends Controller
+class QualificationController extends Controller
 {
     /**
-     * 休日マスタ一覧取得
+     * 資格マスタ一覧取得
      */
     public function index()
     {
-        $holidays = Holiday::all();
-        foreach ($holidays as $h) {
-            $h['status_name'] = Holiday::STATUS[$h->status];
+        $qualifications = Qualification::all();
+        foreach ($qualifications as $q) {
+            $q['status_name'] = Qualification::STATUS[$q->status];
         }
-        return response()->json(['holidays' => $holidays]);
+        return response()->json(['qualifications' => $qualifications]);
     }
 
     /**
-     * 休日マスタ取得
+     * 資格マスタ取得
      */
     public function show($id)
     {
         try {
-            $holiday = Holiday::find($id);
-            if (!$holiday) {
+            $qualification = Qualification::find($id);
+            if (!$qualification) {
                 throw new ModelNotFoundException();
             }
-            $holiday['status_name'] = Holiday::STATUS[$holiday->status];
-            return response()->json(['holiday' => $holiday]);
+            $qualification['status_name'] = Qualification::STATUS[$qualification->status];
+            return response()->json(['qualification' => $qualification]);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Holiday not found'], 404);
+            return response()->json(['error' => 'Qualification not found'], 404);
         }
     }
 
     /**
-     * 休日マスタ登録
+     * 資格マスタ登録
      */
     public function create(Request $request)
     {
         try {
             $data = $request->validate([
                 'name' => 'required|string',
-                'permalink' => 'required|string',
                 'status' => 'required',
+                'sort' => 'numeric',
             ]);
-            Holiday::create($data);
+            Qualification::create($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -57,18 +57,18 @@ class HolidayController extends Controller
     }
 
     /**
-     * 休日マスタ更新
+     * 資格マスタ更新
      */
     public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
                 'name' => 'required|string',
-                'permalink' => 'required|string',
                 'status' => 'required',
+                'sort' => 'numeric',
             ]);
-            $holiday = Holiday::findOrFail($id);
-            $holiday->update($data);
+            $qualification = Qualification::findOrFail($id);
+            $qualification->update($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);

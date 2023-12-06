@@ -91,5 +91,11 @@ export const paths = {
       edit: (id: string) =>
         `${ROOTS.ADMIN}/settings/commitment_terms/${id}/edit`,
     },
+    qualification: {
+      root: `${ROOTS.ADMIN}/settings/qualifications`,
+      new: `${ROOTS.ADMIN}/settings/qualifications/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/qualifications/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/settings/qualifications/${id}/edit`,
+    },
   },
 };

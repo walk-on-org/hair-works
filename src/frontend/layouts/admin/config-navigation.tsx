@@ -129,6 +129,11 @@ export function useNavData() {
             title: "こだわり条件",
             path: paths.admin.commitmentTerm.root,
           },
+          // 保有資格
+          {
+            title: "保有資格",
+            path: paths.admin.qualification.root,
+          },
         ],
       },
     ],
