@@ -97,5 +97,12 @@ export const paths = {
       detail: (id: string) => `${ROOTS.ADMIN}/settings/qualifications/${id}`,
       edit: (id: string) => `${ROOTS.ADMIN}/settings/qualifications/${id}/edit`,
     },
+    lpJobCategory: {
+      root: `${ROOTS.ADMIN}/settings/lp_job_categories`,
+      new: `${ROOTS.ADMIN}/settings/lp_job_categories/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/lp_job_categories/${id}`,
+      edit: (id: string) =>
+        `${ROOTS.ADMIN}/settings/lp_job_categories/${id}/edit`,
+    },
   },
 };

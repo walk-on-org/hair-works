@@ -134,6 +134,11 @@ export function useNavData() {
             title: "保有資格",
             path: paths.admin.qualification.root,
           },
+          // LP職種
+          {
+            title: "LP職種",
+            path: paths.admin.lpJobCategory.root,
+          },
         ],
       },
     ],

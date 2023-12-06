@@ -14,6 +14,7 @@ use App\Http\Controllers\StationController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\CommitmentTermController;
 use App\Http\Controllers\QualificationController;
+use App\Http\Controllers\LpJobCategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -91,4 +92,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/qualifications/{id}', [QualificationController::class, 'show']);
     Route::post('/qualifications/create', [QualificationController::class, 'create']);
     Route::patch('/qualifications/update/{id}', [QualificationController::class, 'update']);
+    // LP職種
+    Route::get('/lp_job_categories', [LpJobCategoryController::class, 'index']);
+    Route::get('/lp_job_categories/{id}', [LpJobCategoryController::class, 'show']);
+    Route::post('/lp_job_categories/create', [LpJobCategoryController::class, 'create']);
+    Route::patch('/lp_job_categories/update/{id}', [LpJobCategoryController::class, 'update']);
 });

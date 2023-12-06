@@ -103,4 +103,10 @@ export const endpoints = {
     create: "/api/qualifications/create",
     update: (id: string) => `/api/qualifications/update/${id}`,
   },
+  lpJobCategory: {
+    list: "/api/lp_job_categories",
+    detail: (id: string) => `/api/lp_job_categories/${id}`,
+    create: "/api/lp_job_categories/create",
+    update: (id: string) => `/api/lp_job_categories/update/${id}`,
+  },
 };
