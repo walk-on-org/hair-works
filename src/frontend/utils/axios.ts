@@ -127,4 +127,10 @@ export const endpoints = {
     create: "/api/national_holidays/create",
     update: (id: string) => `/api/national_holidays/update/${id}`,
   },
+  adKeyword: {
+    list: "/api/ad_keywords",
+    detail: (id: string) => `/api/ad_keywords/${id}`,
+    create: "/api/ad_keywords/create",
+    update: (id: string) => `/api/ad_keywords/update/${id}`,
+  },
 };

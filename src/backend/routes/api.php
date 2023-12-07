@@ -18,6 +18,7 @@ use App\Http\Controllers\LpJobCategoryController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\HtmlAddContentController;
 use App\Http\Controllers\NationalHolidayController;
+use App\Http\Controllers\AdKeywordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -115,4 +116,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/national_holidays/{id}', [NationalHolidayController::class, 'show']);
     Route::post('/national_holidays/create', [NationalHolidayController::class, 'create']);
     Route::patch('/national_holidays/update/{id}', [NationalHolidayController::class, 'update']);
+    // 広告キーワード
+    Route::get('/ad_keywords', [AdKeywordController::class, 'index']);
+    Route::get('/ad_keywords/{id}', [AdKeywordController::class, 'show']);
+    Route::post('/ad_keywords/create', [AdKeywordController::class, 'create']);
+    Route::patch('/ad_keywords/update/{id}', [AdKeywordController::class, 'update']);
 });

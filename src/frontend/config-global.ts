@@ -27,3 +27,9 @@ export const COMMITMENT_TERM_CATEGORY = [
   { value: "4", label: "店舗の特徴" },
   { value: "5", label: "在籍スタッフ" },
 ];
+
+export const AD_KEYWORD_MATCH_TYPE = [
+  { value: "1", label: "部分一致" },
+  { value: "2", label: "フレーズ一致" },
+  { value: "3", label: "完全一致" },
+];

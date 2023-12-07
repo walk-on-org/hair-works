@@ -155,6 +155,11 @@ export function useNavData() {
             title: "祝日",
             path: paths.admin.nationalHoliday.root,
           },
+          // 広告キーワード
+          {
+            title: "広告キーワード",
+            path: paths.admin.adKeyword.root,
+          },
         ],
       },
     ],

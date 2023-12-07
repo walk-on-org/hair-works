@@ -124,5 +124,11 @@ export const paths = {
       edit: (id: string) =>
         `${ROOTS.ADMIN}/settings/national_holidays/${id}/edit`,
     },
+    adKeyword: {
+      root: `${ROOTS.ADMIN}/settings/ad_keywords`,
+      new: `${ROOTS.ADMIN}/settings/ad_keywords/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/ad_keywords/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/settings/ad_keywords/${id}/edit`,
+    },
   },
 };
