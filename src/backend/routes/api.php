@@ -19,6 +19,7 @@ use App\Http\Controllers\PlanController;
 use App\Http\Controllers\HtmlAddContentController;
 use App\Http\Controllers\NationalHolidayController;
 use App\Http\Controllers\AdKeywordController;
+use App\Http\Controllers\CustomLpController;
 
 /*
 |--------------------------------------------------------------------------
@@ -121,4 +122,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/ad_keywords/{id}', [AdKeywordController::class, 'show']);
     Route::post('/ad_keywords/create', [AdKeywordController::class, 'create']);
     Route::patch('/ad_keywords/update/{id}', [AdKeywordController::class, 'update']);
+    // 専用LP設定
+    Route::get('/custom_lps', [CustomLpController::class, 'index']);
+    Route::get('/custom_lps/{id}', [CustomLpController::class, 'show']);
+    Route::post('/custom_lps/create', [CustomLpController::class, 'create']);
+    Route::patch('/custom_lps/update/{id}', [CustomLpController::class, 'update']);
 });

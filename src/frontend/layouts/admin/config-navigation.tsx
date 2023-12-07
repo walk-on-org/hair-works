@@ -160,6 +160,11 @@ export function useNavData() {
             title: "広告キーワード",
             path: paths.admin.adKeyword.root,
           },
+          // 専用LP設定
+          {
+            title: "専用LP設定",
+            path: paths.admin.customLp.root,
+          },
         ],
       },
     ],

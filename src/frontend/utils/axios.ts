@@ -133,4 +133,10 @@ export const endpoints = {
     create: "/api/ad_keywords/create",
     update: (id: string) => `/api/ad_keywords/update/${id}`,
   },
+  customLp: {
+    list: "/api/custom_lps",
+    detail: (id: string) => `/api/custom_lps/${id}`,
+    create: "/api/custom_lps/create",
+    update: (id: string) => `/api/custom_lps/update/${id}`,
+  },
 };

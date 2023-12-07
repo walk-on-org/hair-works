@@ -9,6 +9,12 @@ export const TRAIN_STATUS_OPTIONS = [
   { value: "2", label: "廃止" },
 ];
 
+export const ARTICLE_STATUS_OPTIONS = [
+  { value: "0", label: "準備中" },
+  { value: "1", label: "公開中" },
+  { value: "2", label: "停止中" },
+];
+
 export const REGION_OPTIONS = [
   { value: "1", label: "北海道・東北" },
   { value: "2", label: "関東" },

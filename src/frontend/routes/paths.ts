@@ -130,5 +130,11 @@ export const paths = {
       detail: (id: string) => `${ROOTS.ADMIN}/settings/ad_keywords/${id}`,
       edit: (id: string) => `${ROOTS.ADMIN}/settings/ad_keywords/${id}/edit`,
     },
+    customLp: {
+      root: `${ROOTS.ADMIN}/settings/custom_lps`,
+      new: `${ROOTS.ADMIN}/settings/custom_lps/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/custom_lps/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/settings/custom_lps/${id}/edit`,
+    },
   },
 };

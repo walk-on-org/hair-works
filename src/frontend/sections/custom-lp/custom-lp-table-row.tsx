@@ -9,26 +9,26 @@ import Label from "@/components/label";
 import Iconify from "@/components/iconify";
 import CustomPopover, { usePopover } from "@/components/custom-popover";
 
-import { ITrainCompanyItem } from "@/types/train-company";
+import { ICustomLpItem } from "@/types/custom-lp";
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  row: ITrainCompanyItem;
+  row: ICustomLpItem;
   selected: boolean;
   onEditRow: VoidFunction;
   onViewRow: VoidFunction;
   onSelectRow: VoidFunction;
 };
 
-export default function TrainCompanyTableRow({
+export default function CustomLpTableRow({
   row,
   selected,
   onSelectRow,
   onEditRow,
   onViewRow,
 }: Props) {
-  const { id, name, name_r, status, status_name, sort } = row;
+  const { id, title, permalink, status, status_name } = row;
   const popover = usePopover();
 
   return (
@@ -48,26 +48,24 @@ export default function TrainCompanyTableRow({
             onClick={onViewRow}
             sx={{ cursor: "pointer" }}
           >
-            {name}
+            {title}
           </Link>
         </TableCell>
 
-        <TableCell>{name_r}</TableCell>
+        <TableCell>{permalink}</TableCell>
 
         <TableCell>
           <Label
             variant="soft"
             color={
-              (status == "0" && "info") ||
-              (status == "1" && "default") ||
+              (status == "0" && "default") ||
+              (status == "1" && "info") ||
               "warning"
             }
           >
             {status_name}
           </Label>
         </TableCell>
-
-        <TableCell>{sort}</TableCell>
 
         <TableCell align="right">
           <IconButton
