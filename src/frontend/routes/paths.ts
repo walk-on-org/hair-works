@@ -117,5 +117,12 @@ export const paths = {
       edit: (id: string) =>
         `${ROOTS.ADMIN}/settings/html_add_contents/${id}/edit`,
     },
+    nationalHoliday: {
+      root: `${ROOTS.ADMIN}/settings/national_holidays`,
+      new: `${ROOTS.ADMIN}/settings/national_holidays/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/national_holidays/${id}`,
+      edit: (id: string) =>
+        `${ROOTS.ADMIN}/settings/national_holidays/${id}/edit`,
+    },
   },
 };

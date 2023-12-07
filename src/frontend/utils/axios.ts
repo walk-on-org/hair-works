@@ -121,4 +121,10 @@ export const endpoints = {
     create: "/api/html_add_contents/create",
     update: (id: string) => `/api/html_add_contents/update/${id}`,
   },
+  nationalHoliday: {
+    list: "/api/national_holidays",
+    detail: (id: string) => `/api/national_holidays/${id}`,
+    create: "/api/national_holidays/create",
+    update: (id: string) => `/api/national_holidays/update/${id}`,
+  },
 };

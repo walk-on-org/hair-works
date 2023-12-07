@@ -8,6 +8,7 @@ import ProgressBar from "@/components/progress-bar";
 import { MotionLazy } from "@/components/animate/motion-lazy";
 import SnackbarProvider from "@/components/snackbar/snackbar-provider";
 import { SettingsDrawer, SettingsProvider } from "@/components/settings";
+import { LocalizationProvider } from "@/locales";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -22,26 +23,28 @@ export default function RootLayout({
   return (
     <html lang="ja" className={primaryFont.className}>
       <body>
-        <SettingsProvider
-          defaultSettings={{
-            themeMode: "light", // 'light' | 'dark'
-            themeDirection: "ltr", //  'rtl' | 'ltr'
-            themeContrast: "default", // 'default' | 'bold'
-            themeLayout: "vertical", // 'vertical' | 'horizontal' | 'mini'
-            themeColorPresets: "default", // 'default' | 'cyan' | 'purple' | 'blue' | 'orange' | 'red'
-            themeStretch: false,
-          }}
-        >
-          <ThemeProvider>
-            <MotionLazy>
-              <SnackbarProvider>
-                <SettingsDrawer />
-                <ProgressBar />
-                {children}
-              </SnackbarProvider>
-            </MotionLazy>
-          </ThemeProvider>
-        </SettingsProvider>
+        <LocalizationProvider>
+          <SettingsProvider
+            defaultSettings={{
+              themeMode: "light", // 'light' | 'dark'
+              themeDirection: "ltr", //  'rtl' | 'ltr'
+              themeContrast: "default", // 'default' | 'bold'
+              themeLayout: "vertical", // 'vertical' | 'horizontal' | 'mini'
+              themeColorPresets: "default", // 'default' | 'cyan' | 'purple' | 'blue' | 'orange' | 'red'
+              themeStretch: false,
+            }}
+          >
+            <ThemeProvider>
+              <MotionLazy>
+                <SnackbarProvider>
+                  <SettingsDrawer />
+                  <ProgressBar />
+                  {children}
+                </SnackbarProvider>
+              </MotionLazy>
+            </ThemeProvider>
+          </SettingsProvider>
+        </LocalizationProvider>
       </body>
     </html>
   );

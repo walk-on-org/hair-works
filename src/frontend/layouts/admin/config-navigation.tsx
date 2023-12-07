@@ -150,6 +150,11 @@ export function useNavData() {
             path: paths.admin.htmlAddContent.root,
             icon: ICONS.file,
           },
+          // 祝日
+          {
+            title: "祝日",
+            path: paths.admin.nationalHoliday.root,
+          },
         ],
       },
     ],

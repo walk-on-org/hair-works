@@ -17,6 +17,7 @@ use App\Http\Controllers\QualificationController;
 use App\Http\Controllers\LpJobCategoryController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\HtmlAddContentController;
+use App\Http\Controllers\NationalHolidayController;
 
 /*
 |--------------------------------------------------------------------------
@@ -109,4 +110,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/html_add_contents/{id}', [HtmlAddContentController::class, 'show']);
     Route::post('/html_add_contents/create', [HtmlAddContentController::class, 'create']);
     Route::patch('/html_add_contents/update/{id}', [HtmlAddContentController::class, 'update']);
+    // 祝日
+    Route::get('/national_holidays', [NationalHolidayController::class, 'index']);
+    Route::get('/national_holidays/{id}', [NationalHolidayController::class, 'show']);
+    Route::post('/national_holidays/create', [NationalHolidayController::class, 'create']);
+    Route::patch('/national_holidays/update/{id}', [NationalHolidayController::class, 'update']);
 });
