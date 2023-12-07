@@ -144,6 +144,12 @@ export function useNavData() {
             title: "プラン",
             path: paths.admin.plan.root,
           },
+          // HTML追加コンテンツ
+          {
+            title: "HTML追加コンテンツ",
+            path: paths.admin.htmlAddContent.root,
+            icon: ICONS.file,
+          },
         ],
       },
     ],

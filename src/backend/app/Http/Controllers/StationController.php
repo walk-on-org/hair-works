@@ -13,9 +13,9 @@ class StationController extends Controller
     /**
      * 駅マスタ一覧取得
      */
-    public function index()
+    public function index(Request $request)
     {
-        $stations = DB::table('stations')
+        $query = DB::table('stations')
             ->join('lines', 'stations.line_id', '=', 'lines.id')
             ->join('prefectures', 'stations.prefecture_id', '=', 'prefectures.id')
             ->join('cities', 'stations.city_id', '=', 'cities.id')
@@ -34,8 +34,12 @@ class StationController extends Controller
                 'stations.sort',
                 'stations.lat',
                 'stations.lng',
-            )
-            ->get();
+            );
+        if ($request->prefecture_id) {
+            $query = $query->where('stations.prefecture_id', $request->prefecture_id)
+                ->orderBy('stations.sort', 'asc');
+        }
+        $stations = $query->get();
         foreach ($stations as $s) {
             $s->status_name = Station::STATUS[$s->status];
         }

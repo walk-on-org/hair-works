@@ -39,4 +39,8 @@ class Station extends Model
     public function city() {
         return $this->belongsTo('App\Models\City');
     }
+
+    public function htmlAddContents() {
+        return $this->hasMany('App\Models\HtmlAddContent');
+    }
 }

@@ -45,3 +45,26 @@ export function useGetStation(stationId: string) {
 
   return memoizedValue;
 }
+
+// ----------------------------------------------------------------------
+
+export function useSearchStations(prefecture_id: string) {
+  const URL = prefecture_id
+    ? [endpoints.station.list, { params: { prefecture_id } }]
+    : "";
+
+  const { data, isLoading, error, isValidating } = useSWR(URL, fetcher);
+
+  const memoizedValue = useMemo(
+    () => ({
+      stations: (data?.stations as IStationItem[]) || [],
+      stationsLoading: isLoading,
+      stationsError: error,
+      stationsValidating: isValidating,
+      stationsEmpty: !isLoading && !data?.stations.length,
+    }),
+    [data?.stations, error, isLoading, isValidating]
+  );
+
+  return memoizedValue;
+}

@@ -21,4 +21,8 @@ class GovernmentCity extends Model
     public function cities() {
         return $this->hasMany('App\Models\City');
     }
+    
+    public function htmlAddContents() {
+        return $this->hasMany('App\Models\HtmlAddContent');
+    }
 }

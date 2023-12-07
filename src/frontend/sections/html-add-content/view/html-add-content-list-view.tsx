@@ -14,7 +14,7 @@ import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
 
-import { useGetCities } from "@/api/city";
+import { useGetHtmlAddContents } from "@/api/html-add-content";
 import { useGetPrefectures } from "@/api/prefecture";
 
 import Iconify from "@/components/iconify";
@@ -34,49 +34,51 @@ import {
 } from "@/components/table";
 
 import {
-  ICityItem,
-  ICityTableFilters,
-  ICityTableFilterValue,
-} from "@/types/city";
+  IHtmlAddContentItem,
+  IHtmlAddContentTableFilters,
+  IHtmlAddContentTableFilterValue,
+} from "@/types/html-add-content";
 
-import CityTableRow from "../city-table-row";
-import CityTableToolbar from "../city-table-toolbar";
-import CityTableFiltersResult from "../city-table-filters-result";
+import HtmlAddContentTableRow from "../html-add-content-table-row";
+import HtmlAddContentTableToolbar from "../html-add-content-table-toolbar";
+import HtmlAddContentTableFiltersResult from "../html-add-content-table-filters-result";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: "id", label: "市区町村ID", width: 160 },
-  { id: "name", label: "市区町村名" },
-  { id: "permalink", label: "パーマリンク", width: 160 },
+  { id: "id", label: "コンテンツID", width: 160 },
   { id: "prefecture", label: "都道府県", width: 120 },
   { id: "government_city", label: "政令指定都市", width: 120 },
+  { id: "city", label: "市区町村", width: 120 },
+  { id: "station", label: "駅", width: 120 },
+  { id: "display_average_salary", label: "平均給与表示フラグ", width: 110 },
+  { id: "display_feature", label: "特徴表示フラグ", width: 110 },
   { id: "", width: 88 },
 ];
 
-const defaultFilters: ICityTableFilters = {
-  name: "",
+const defaultFilters: IHtmlAddContentTableFilters = {
   prefecture: [],
 };
 
 // ----------------------------------------------------------------------
 
-export default function CityListView() {
+export default function HtmlAddContentListView() {
   const router = useRouter();
   const table = useTable();
   const settings = useSettingsContext();
-  const [tableData, setTableData] = useState<ICityItem[]>([]);
+  const [tableData, setTableData] = useState<IHtmlAddContentItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
 
-  // 市区町村データ取得
-  const { cities, citiesLoading, citiesEmpty } = useGetCities();
+  // HTML追加コンテンツデータ取得
+  const { htmlAddContents, htmlAddContentsLoading, htmlAddContentsEmpty } =
+    useGetHtmlAddContents();
   const { prefectures } = useGetPrefectures();
 
   useEffect(() => {
-    if (cities.length) {
-      setTableData(cities);
+    if (htmlAddContents.length) {
+      setTableData(htmlAddContents);
     }
-  }, [cities]);
+  }, [htmlAddContents]);
 
   const dataFiltered = applyFilter({
     inputData: tableData,
@@ -88,10 +90,10 @@ export default function CityListView() {
 
   const canReset = !isEqual(defaultFilters, filters);
 
-  const notFound = (!dataFiltered.length && canReset) || citiesEmpty;
+  const notFound = (!dataFiltered.length && canReset) || htmlAddContentsEmpty;
 
   const handleFilters = useCallback(
-    (name: string, value: ICityTableFilterValue) => {
+    (name: string, value: IHtmlAddContentTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,
@@ -103,14 +105,14 @@ export default function CityListView() {
 
   const handleEditRow = useCallback(
     (id: string) => {
-      router.push(paths.admin.city.edit(id));
+      router.push(paths.admin.htmlAddContent.edit(id));
     },
     [router]
   );
 
   const handleViewRow = useCallback(
     (id: string) => {
-      router.push(paths.admin.city.detail(id));
+      router.push(paths.admin.htmlAddContent.detail(id));
     },
     [router]
   );
@@ -123,37 +125,37 @@ export default function CityListView() {
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
         <CustomBreadcrumbs
-          heading="市区町村マスタ"
+          heading="HTML追加コンテンツ"
           links={[
             { name: "ダッシュボード", href: paths.admin.dashboard },
             {
-              name: "市区町村マスタ",
-              href: paths.admin.city.root,
+              name: "HTML追加コンテンツ",
+              href: paths.admin.htmlAddContent.root,
             },
             { name: "一覧" },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.admin.city.new}
+              href={paths.admin.htmlAddContent.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              市区町村マスタを作成
+              HTML追加コンテンツを作成
             </Button>
           }
           sx={{ mb: { xs: 3, md: 5 } }}
         />
 
         <Card>
-          <CityTableToolbar
+          <HtmlAddContentTableToolbar
             filters={filters}
             onFilters={handleFilters}
             prefectures={prefectures}
           />
 
           {canReset && (
-            <CityTableFiltersResult
+            <HtmlAddContentTableFiltersResult
               filters={filters}
               onFilters={handleFilters}
               //
@@ -198,7 +200,7 @@ export default function CityListView() {
                 />
 
                 <TableBody>
-                  {citiesLoading ? (
+                  {htmlAddContentsLoading ? (
                     [...Array(table.rowsPerPage)].map((i, index) => (
                       <TableSkeleton key={index} sx={{ height: denseHeight }} />
                     ))
@@ -210,7 +212,7 @@ export default function CityListView() {
                           table.page * table.rowsPerPage + table.rowsPerPage
                         )
                         .map((row) => (
-                          <CityTableRow
+                          <HtmlAddContentTableRow
                             key={row.id}
                             row={row}
                             selected={table.selected.includes(row.id)}
@@ -257,11 +259,11 @@ function applyFilter({
   comparator,
   filters,
 }: {
-  inputData: ICityItem[];
+  inputData: IHtmlAddContentItem[];
   comparator: (a: any, b: any) => number;
-  filters: ICityTableFilters;
+  filters: IHtmlAddContentTableFilters;
 }) {
-  const { name, prefecture } = filters;
+  const { prefecture } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
@@ -273,15 +275,9 @@ function applyFilter({
 
   inputData = stabilizedThis.map((el) => el[0]);
 
-  if (name) {
-    inputData = inputData.filter(
-      (city) => city.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
   if (prefecture.length) {
-    inputData = inputData.filter((city) =>
-      prefecture.includes(city.prefecture_name)
+    inputData = inputData.filter((htmlAddContent) =>
+      prefecture.includes(htmlAddContent.prefecture_name)
     );
   }
 

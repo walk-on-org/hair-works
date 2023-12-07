@@ -26,4 +26,8 @@ class City extends Model
     public function stations() {
         return $this->hasMany('App\Models\Station');
     }
+
+    public function htmlAddContents() {
+        return $this->hasMany('App\Models\HtmlAddContent');
+    }
 }

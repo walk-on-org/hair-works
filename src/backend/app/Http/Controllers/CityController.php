@@ -15,9 +15,10 @@ class CityController extends Controller
     /**
      * 市区町村マスタ一覧取得
      */
-    public function index()
+    public function index(Request $request)
     {
-        $cities = DB::table('cities')
+
+        $query = DB::table('cities')
             ->join('prefectures', 'cities.prefecture_id', '=', 'prefectures.id')
             ->leftJoin('government_cities', 'cities.government_city_id', '=', 'government_cities.id')
             ->select(
@@ -28,8 +29,12 @@ class CityController extends Controller
                 'prefectures.name as prefecture_name',
                 'cities.government_city_id',
                 'government_cities.name as government_city_name',
-            )
-            ->get();
+            );
+        if ($request->prefecture_id) {
+            $query = $query->where('cities.prefecture_id', $request->prefecture_id)
+                ->orderBy('cities.id', 'asc');
+        }
+        $cities = $query->get();
         return response()->json(['cities' => $cities]);
     }
 

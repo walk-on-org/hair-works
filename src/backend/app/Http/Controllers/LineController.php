@@ -66,12 +66,6 @@ class LineController extends Controller
                 'status' => 'numeric|regex:/^[0-2]{1}$/',
                 'sort' => 'numeric',
             ]);
-            
-            // 鉄道事業者マスタ存在チェック
-            $train_company = TrainCompany::find($data['train_company_id']);
-            if (!$train_company) {
-                throw new ModelNotFoundException();
-            }
 
             Line::create($data);
             return response()->json(['result' => 'ok']);
@@ -94,12 +88,6 @@ class LineController extends Controller
                 'status' => 'numeric|regex:/^[0-2]{1}$/',
                 'sort' => 'numeric',
             ]);
-            
-            // 鉄道事業者マスタ存在チェック
-            $train_company = TrainCompany::find($data['train_company_id']);
-            if (!$train_company) {
-                throw new ModelNotFoundException();
-            }
 
             $line = Line::findOrFail($id);
             $line->update($data);

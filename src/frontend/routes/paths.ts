@@ -110,5 +110,12 @@ export const paths = {
       detail: (id: string) => `${ROOTS.ADMIN}/settings/plans/${id}`,
       edit: (id: string) => `${ROOTS.ADMIN}/settings/plans/${id}/edit`,
     },
+    htmlAddContent: {
+      root: `${ROOTS.ADMIN}/settings/html_add_contents`,
+      new: `${ROOTS.ADMIN}/settings/html_add_contents/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/settings/html_add_contents/${id}`,
+      edit: (id: string) =>
+        `${ROOTS.ADMIN}/settings/html_add_contents/${id}/edit`,
+    },
   },
 };

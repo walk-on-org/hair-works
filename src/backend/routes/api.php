@@ -16,6 +16,7 @@ use App\Http\Controllers\CommitmentTermController;
 use App\Http\Controllers\QualificationController;
 use App\Http\Controllers\LpJobCategoryController;
 use App\Http\Controllers\PlanController;
+use App\Http\Controllers\HtmlAddContentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -103,4 +104,9 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/plans/{id}', [PlanController::class, 'show']);
     Route::post('/plans/create', [PlanController::class, 'create']);
     Route::patch('/plans/update/{id}', [PlanController::class, 'update']);
+    // HTML追加コンテンツ
+    Route::get('/html_add_contents', [HtmlAddContentController::class, 'index']);
+    Route::get('/html_add_contents/{id}', [HtmlAddContentController::class, 'show']);
+    Route::post('/html_add_contents/create', [HtmlAddContentController::class, 'create']);
+    Route::patch('/html_add_contents/update/{id}', [HtmlAddContentController::class, 'update']);
 });

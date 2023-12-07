@@ -115,4 +115,10 @@ export const endpoints = {
     create: "/api/plans/create",
     update: (id: string) => `/api/plans/update/${id}`,
   },
+  htmlAddContent: {
+    list: "/api/html_add_contents",
+    detail: (id: string) => `/api/html_add_contents/${id}`,
+    create: "/api/html_add_contents/create",
+    update: (id: string) => `/api/html_add_contents/update/${id}`,
+  },
 };

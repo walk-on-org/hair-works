@@ -45,3 +45,26 @@ export function useGetCity(cityId: string) {
 
   return memoizedValue;
 }
+
+// ----------------------------------------------------------------------
+
+export function useSearchCities(prefecture_id: string) {
+  const URL = prefecture_id
+    ? [endpoints.city.list, { params: { prefecture_id } }]
+    : "";
+
+  const { data, isLoading, error, isValidating } = useSWR(URL, fetcher);
+
+  const memoizedValue = useMemo(
+    () => ({
+      cities: (data?.cities as ICityItem[]) || [],
+      citiesLoading: isLoading,
+      citiesError: error,
+      citiesValidating: isValidating,
+      citiesEmpty: !isLoading && !data?.cities.length,
+    }),
+    [data?.cities, error, isLoading, isValidating]
+  );
+
+  return memoizedValue;
+}
