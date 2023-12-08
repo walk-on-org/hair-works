@@ -8,6 +8,8 @@ import Stack from "@mui/material/Stack";
 import Grid from "@mui/material/Unstable_Grid2";
 import Typography from "@mui/material/Typography";
 import LoadingButton from "@mui/lab/LoadingButton";
+import MenuItem from "@mui/material/MenuItem";
+import Divider from "@mui/material/Divider";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
@@ -25,8 +27,6 @@ import FormProvider, {
 import { IHtmlAddContentItem } from "@/types/html-add-content";
 import { IPrefectureItem } from "@/types/prefecture";
 import { IGovernmentCityItem } from "@/types/government-city";
-import { ICityItem } from "@/types/city";
-import { IStationItem } from "@/types/station";
 import axios, { endpoints } from "@/utils/axios";
 import { useSearchCities } from "@/api/city";
 import { useSearchStations } from "@/api/station";
@@ -52,9 +52,9 @@ export default function HtmlAddContentNewEditForm({
 
   const NewHtmlAddContentSchema = Yup.object().shape({
     prefecture_id: Yup.string().required("都道府県を入力してください。"),
-    government_city_id: Yup.string(),
-    city_id: Yup.string(),
-    station_id: Yup.string(),
+    government_city_id: Yup.string().nullable(),
+    city_id: Yup.string().nullable(),
+    station_id: Yup.string().nullable(),
     display_average_salary: Yup.boolean(),
     display_feature: Yup.boolean(),
     feature: Yup.string(),
@@ -84,9 +84,12 @@ export default function HtmlAddContentNewEditForm({
 
   const {
     reset,
+    watch,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
+
+  const values = watch();
 
   useEffect(() => {
     if (currentHtmlAddContent) {
@@ -144,26 +147,17 @@ export default function HtmlAddContentNewEditForm({
   );
   const { cities: searchCities } = useSearchCities(selectPrefectureId);
   const { stations: searchStations } = useSearchStations(selectPrefectureId);
-  /*useEffect(() => {
+  useEffect(() => {
     // 都道府県が変更された場合
-    //setSearchKey(`prefecture_id=${prefectureId}`);
-    //useSearchCities(`prefecture_id=${prefectureId}`);
-  }, [prefectureId, searchCities]);*/
+    setSelectPrefectureId(values.prefecture_id);
+  }, [values.prefecture_id]);
 
   const renderDetails = (
     <>
       <Grid xs={12}>
         <Card>
           <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFSelect
-              native
-              name="prefecture_id"
-              label="都道府県"
-              onChange={(event) => {
-                // TODO onChangeを設定すると、都道府県が選択状態にならない
-                setSelectPrefectureId(event.target.value);
-              }}
-            >
+            <RHFSelect native name="prefecture_id" label="都道府県">
               <option value=""></option>
               {prefectures.map((prefecture) => (
                 <option key={prefecture.id} value={prefecture.id}>
@@ -181,49 +175,47 @@ export default function HtmlAddContentNewEditForm({
               ))}
             </RHFSelect>
 
-            <RHFAutocomplete
+            <RHFSelect
+              fullWidth
               name="city_id"
               label="市区町村"
-              options={searchCities.map((city) => city.name)}
-              getOptionLabel={(option) => option}
-              renderOption={(props, option) => {
-                const { id, name } = searchCities.filter(
-                  (city) => city.name === option
-                )[0];
+              InputLabelProps={{ shrink: true }}
+              PaperPropsSx={{ textTransform: "capitalize" }}
+            >
+              <MenuItem
+                value=""
+                sx={{ fontStyle: "italic", color: "text.secondary" }}
+              >
+                None
+              </MenuItem>
+              <Divider sx={{ borderStyle: "dashed" }} />
+              {searchCities.map((city) => (
+                <MenuItem key={city.name} value={city.id}>
+                  {city.name}
+                </MenuItem>
+              ))}
+            </RHFSelect>
 
-                if (!name) {
-                  return null;
-                }
-
-                return (
-                  <li {...props} key={name}>
-                    {name}
-                  </li>
-                );
-              }}
-            />
-
-            <RHFAutocomplete
+            <RHFSelect
+              fullWidth
               name="station_id"
               label="駅"
-              options={searchStations.map((station) => station.name)}
-              getOptionLabel={(option) => option}
-              renderOption={(props, option) => {
-                const { id, name } = searchStations.filter(
-                  (station) => station.name === option
-                )[0];
-
-                if (!name) {
-                  return null;
-                }
-
-                return (
-                  <li {...props} key={name}>
-                    {name}
-                  </li>
-                );
-              }}
-            />
+              InputLabelProps={{ shrink: true }}
+              PaperPropsSx={{ textTransform: "capitalize" }}
+            >
+              <MenuItem
+                value=""
+                sx={{ fontStyle: "italic", color: "text.secondary" }}
+              >
+                None
+              </MenuItem>
+              <Divider sx={{ borderStyle: "dashed" }} />
+              {searchStations.map((station) => (
+                <MenuItem key={station.name} value={station.id}>
+                  {station.name}
+                </MenuItem>
+              ))}
+            </RHFSelect>
 
             <RHFSwitch
               name="display_average_salary"

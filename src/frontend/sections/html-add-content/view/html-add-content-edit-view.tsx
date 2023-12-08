@@ -34,7 +34,7 @@ export default function HtmlAddContentEditView({ id }: Props) {
           { name: "ダッシュボード", href: paths.admin.dashboard },
           {
             name: "HTML追加コンテンツ",
-            href: paths.admin.city.root,
+            href: paths.admin.htmlAddContent.root,
           },
           { name: `# ${currentHtmlAddContent?.id}` },
         ]}
