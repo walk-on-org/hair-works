@@ -100,9 +100,8 @@ export default function CustomLpNewEditForm({ currentCustomLp }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentCustomLp) {
-        res = await axios.patch(endpoints.customLp.update(currentCustomLp.id), {
+        await axios.patch(endpoints.customLp.update(currentCustomLp.id), {
           title: data.title,
           permalink: data.permalink,
           logo: data.logo,
@@ -112,7 +111,7 @@ export default function CustomLpNewEditForm({ currentCustomLp }: Props) {
           status: Number(data.status),
         });
       } else {
-        res = await axios.post(endpoints.customLp.create, {
+        await axios.post(endpoints.customLp.create, {
           title: data.title,
           permalink: data.permalink,
           logo: data.logo,
@@ -122,14 +121,11 @@ export default function CustomLpNewEditForm({ currentCustomLp }: Props) {
           status: Number(data.status),
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(currentCustomLp ? "更新しました！" : "作成しました！");
       router.push(paths.admin.customLp.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

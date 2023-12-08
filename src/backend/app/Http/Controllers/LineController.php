@@ -96,4 +96,43 @@ class LineController extends Controller
             return response()->json(['error' => $e->errors()], 422);
         }
     }
+
+    /**
+     * 路線マスタ削除
+     */
+    public function destroy(Request $request, $id)
+    {
+        try {
+            $line = Line::find($id);
+            if (!$line) {
+                throw new ModelNotFoundException();
+            }
+            $line->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Line not found'], 404);
+        }
+    }
+
+    /**
+     * 路線マスタ複数削除
+     */
+    public function destroyMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+            
+            // 削除
+            $deleted_count = Line::whereIn('id', $ids)
+                ->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more lines not found'], 404);
+        }
+    }
 }

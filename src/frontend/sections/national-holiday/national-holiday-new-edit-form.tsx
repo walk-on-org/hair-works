@@ -71,9 +71,8 @@ export default function NationalHolidayNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentNationalHoliday) {
-        res = await axios.patch(
+        await axios.patch(
           endpoints.nationalHoliday.update(currentNationalHoliday.id),
           {
             name: data.name,
@@ -86,7 +85,7 @@ export default function NationalHolidayNewEditForm({
           }
         );
       } else {
-        res = await axios.post(endpoints.nationalHoliday.create, {
+        await axios.post(endpoints.nationalHoliday.create, {
           name: data.name,
           date:
             data.date.getFullYear() +
@@ -96,16 +95,13 @@ export default function NationalHolidayNewEditForm({
             ("00" + data.date.getDate()).slice(-2),
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(
         currentNationalHoliday ? "更新しました！" : "作成しました！"
       );
       router.push(paths.admin.nationalHoliday.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

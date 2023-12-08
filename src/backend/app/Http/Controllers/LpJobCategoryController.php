@@ -72,4 +72,43 @@ class LpJobCategoryController extends Controller
             return response()->json(['error' => $e->errors()], 422);
         }
     }
+
+    /**
+     * LP職種マスタ削除
+     */
+    public function destroy(Request $request, $id)
+    {
+        try {
+            $lp_job_category = LpJobCategory::find($id);
+            if (!$lp_job_category) {
+                throw new ModelNotFoundException();
+            }
+            $lp_job_category->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'LpJobCategory not found'], 404);
+        }
+    }
+
+    /**
+     * LP職種マスタ複数削除
+     */
+    public function destroyMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+            
+            // 削除
+            $deleted_count = LpJobCategory::whereIn('id', $ids)
+                ->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more lp job categories not found'], 404);
+        }
+    }
 }

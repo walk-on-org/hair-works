@@ -74,4 +74,43 @@ class JobCategoryController extends Controller
             return response()->json(['error' => $e->errors()], 422);
         }
     }
+
+    /**
+     * 職種マスタ削除
+     */
+    public function destroy(Request $request, $id)
+    {
+        try {
+            $job_category = JobCategory::find($id);
+            if (!$job_category) {
+                throw new ModelNotFoundException();
+            }
+            $job_category->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Job category not found'], 404);
+        }
+    }
+
+    /**
+     * 職種マスタ複数削除
+     */
+    public function destroyMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+            
+            // 削除
+            $deleted_count = JobCategory::whereIn('id', $ids)
+                ->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more job categories not found'], 404);
+        }
+    }
 }

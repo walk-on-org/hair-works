@@ -42,89 +42,125 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/job_categories/{id}', [JobCategoryController::class, 'show']);
     Route::post('/job_categories/create', [JobCategoryController::class, 'create']);
     Route::patch('/job_categories/update/{id}' , [JobCategoryController::class, 'update']);
+    Route::post('/job_categories/destroy/{id}' , [JobCategoryController::class, 'destroy']);
+    Route::post('/job_categories/destroy_multiple' , [JobCategoryController::class, 'destroyMultiple']);
     # 役職/役割
     Route::get('/positions', [PositionController::class, 'index']);
     Route::get('/positions/{id}', [PositionController::class, 'show']);
     Route::post('/positions/create', [PositionController::class, 'create']);
     Route::patch('/positions/update/{id}' , [PositionController::class, 'update']);
+    Route::post('/positions/destroy/{id}', [PositionController::class, 'destroy']);
+    Route::post('/positions/destroy_multiple', [PositionController::class, 'destroyMultiple']);
     // 雇用形態
     Route::get('/employments', [EmploymentController::class, 'index']);
     Route::get('/employments/{id}', [EmploymentController::class, 'show']);
     Route::post('/employments/create', [EmploymentController::class, 'create']);
     Route::patch('/employments/update/{id}' , [EmploymentController::class, 'update']);
+    Route::post('/employments/destroy/{id}', [EmploymentController::class, 'destroy']);
+    Route::post('/employments/destroy_multiple', [EmploymentController::class, 'destroyMultiple']);
     // 都道府県
     Route::get('/prefectures', [PrefectureController::class, 'index']);
     Route::get('/prefectures/{id}', [PrefectureController::class, 'show']);
     Route::post('/prefectures/create', [PrefectureController::class, 'create']);
     Route::patch('/prefectures/update/{id}' , [PrefectureController::class, 'update']);
+    Route::post('/prefectures/destroy/{id}', [PrefectureController::class, 'destroy']);
+    Route::post('/prefectures/destroy_multiple', [PrefectureController::class, 'destroyMultiple']);
     // 政令指定都市
     Route::get('/government_cities', [GovernmentCityController::class, 'index']);
     Route::get('/government_cities/{id}', [GovernmentCityController::class, 'show']);
     Route::post('/government_cities/create', [GovernmentCityController::class, 'create']);
     Route::patch('/government_cities/update/{id}', [GovernmentCityController::class, 'update']);
+    Route::post('/government_cities/destroy/{id}', [GovernmentCityController::class, 'destroy']);
+    Route::post('/government_cities/destroy_multiple', [GovernmentCityController::class, 'destroyMultiple']);
     // 市区町村
     Route::get('/cities', [CityController::class, 'index']);
     Route::get('/cities/{id}', [CityController::class, 'show']);
     Route::post('/cities/create', [CityController::class, 'create']);
     Route::patch('/cities/update/{id}', [CityController::class, 'update']);
+    Route::post('/cities/destroy/{id}', [CityController::class, 'destroy']);
+    Route::post('/cities/destroy_multiple', [CityController::class, 'destroyMultiple']);
     // 鉄道事業者
     Route::get('/train_companies', [TrainCompanyController::class, 'index']);
     Route::get('/train_companies/{id}', [TrainCompanyController::class, 'show']);
     Route::post('/train_companies/create', [TrainCompanyController::class, 'create']);
     Route::patch('/train_companies/update/{id}', [TrainCompanyController::class, 'update']);
+    Route::post('/train_companies/destroy/{id}', [TrainCompanyController::class, 'destroy']);
+    Route::post('/train_companies/destroy_multiple', [TrainCompanyController::class, 'destroyMultiple']);
     // 路線
     Route::get('/lines', [LineController::class, 'index']);
     Route::get('/lines/{id}', [LineController::class, 'show']);
     Route::post('/lines/create', [LineController::class, 'create']);
     Route::patch('/lines/update/{id}', [LineController::class, 'update']);
+    Route::post('/lines/destroy/{id}', [LineController::class, 'destroy']);
+    Route::post('/lines/destroy_multiple', [LineController::class, 'destroyMultiple']);
     // 駅
     Route::get('/stations', [StationController::class, 'index']);
     Route::get('/stations/{id}', [StationController::class, 'show']);
     Route::post('/stations/create', [StationController::class, 'create']);
     Route::patch('/stations/update/{id}', [StationController::class, 'update']);
+    Route::post('/stations/destroy/{id}', [StationController::class, 'destroy']);
+    Route::post('/stations/destroy_multiple', [StationController::class, 'destroyMultiple']);
     // 休日
     Route::get('/holidays', [HolidayController::class, 'index']);
     Route::get('/holidays/{id}', [HolidayController::class, 'show']);
     Route::post('/holidays/create', [HolidayController::class, 'create']);
     Route::patch('/holidays/update/{id}', [HolidayController::class, 'update']);
+    Route::post('/holidays/destroy/{id}', [HolidayController::class, 'destroy']);
+    Route::post('/holidays/destroy_multiple', [HolidayController::class, 'destroyMultiple']);
     // こだわり条件
     Route::get('/commitment_terms', [CommitmentTermController::class, 'index']);
     Route::get('/commitment_terms/{id}', [CommitmentTermController::class, 'show']);
     Route::post('/commitment_terms/create', [CommitmentTermController::class, 'create']);
     Route::patch('/commitment_terms/update/{id}', [CommitmentTermController::class, 'update']);
+    Route::post('/commitment_terms/destroy/{id}', [CommitmentTermController::class, 'destroy']);
+    Route::post('/commitment_terms/destroy_multiple', [CommitmentTermController::class, 'destroyMultiple']);
     // 資格
     Route::get('/qualifications', [QualificationController::class, 'index']);
     Route::get('/qualifications/{id}', [QualificationController::class, 'show']);
     Route::post('/qualifications/create', [QualificationController::class, 'create']);
     Route::patch('/qualifications/update/{id}', [QualificationController::class, 'update']);
+    Route::post('/qualifications/destroy/{id}', [QualificationController::class, 'destroy']);
+    Route::post('/qualifications/destroy_multiple', [QualificationController::class, 'destroyMultiple']);
     // LP職種
     Route::get('/lp_job_categories', [LpJobCategoryController::class, 'index']);
     Route::get('/lp_job_categories/{id}', [LpJobCategoryController::class, 'show']);
     Route::post('/lp_job_categories/create', [LpJobCategoryController::class, 'create']);
     Route::patch('/lp_job_categories/update/{id}', [LpJobCategoryController::class, 'update']);
+    Route::post('/lp_job_categories/destroy/{id}', [LpJobCategoryController::class, 'destroy']);
+    Route::post('/lp_job_categories/destroy_multiple', [LpJobCategoryController::class, 'destroyMultiple']);
     // プラン
     Route::get('/plans', [PlanController::class, 'index']);
     Route::get('/plans/{id}', [PlanController::class, 'show']);
     Route::post('/plans/create', [PlanController::class, 'create']);
     Route::patch('/plans/update/{id}', [PlanController::class, 'update']);
+    Route::post('/plans/destroy/{id}', [PlanController::class, 'destroy']);
+    Route::post('/plans/destroy_multiple', [PlanController::class, 'destroyMultiple']);
     // HTML追加コンテンツ
     Route::get('/html_add_contents', [HtmlAddContentController::class, 'index']);
     Route::get('/html_add_contents/{id}', [HtmlAddContentController::class, 'show']);
     Route::post('/html_add_contents/create', [HtmlAddContentController::class, 'create']);
     Route::patch('/html_add_contents/update/{id}', [HtmlAddContentController::class, 'update']);
+    Route::post('/html_add_contents/destroy/{id}', [HtmlAddContentController::class, 'destroy']);
+    Route::post('/html_add_contents/destroy_multiple', [HtmlAddContentController::class, 'destroyMultiple']);
     // 祝日
     Route::get('/national_holidays', [NationalHolidayController::class, 'index']);
     Route::get('/national_holidays/{id}', [NationalHolidayController::class, 'show']);
     Route::post('/national_holidays/create', [NationalHolidayController::class, 'create']);
     Route::patch('/national_holidays/update/{id}', [NationalHolidayController::class, 'update']);
+    Route::post('/national_holidays/destroy/{id}', [NationalHolidayController::class, 'destroy']);
+    Route::post('/national_holidays/destroy_multiple', [NationalHolidayController::class, 'destroyMultiple']);
     // 広告キーワード
     Route::get('/ad_keywords', [AdKeywordController::class, 'index']);
     Route::get('/ad_keywords/{id}', [AdKeywordController::class, 'show']);
     Route::post('/ad_keywords/create', [AdKeywordController::class, 'create']);
     Route::patch('/ad_keywords/update/{id}', [AdKeywordController::class, 'update']);
+    Route::post('/ad_keywords/destroy/{id}', [AdKeywordController::class, 'destroy']);
+    Route::post('/ad_keywords/destroy_multiple', [AdKeywordController::class, 'destroyMultiple']);
     // 専用LP設定
     Route::get('/custom_lps', [CustomLpController::class, 'index']);
     Route::get('/custom_lps/{id}', [CustomLpController::class, 'show']);
     Route::post('/custom_lps/create', [CustomLpController::class, 'create']);
     Route::patch('/custom_lps/update/{id}', [CustomLpController::class, 'update']);
+    Route::post('/custom_lps/destroy/{id}', [CustomLpController::class, 'destroy']);
+    Route::post('/custom_lps/destroy_multiple', [CustomLpController::class, 'destroyMultiple']);
 });

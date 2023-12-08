@@ -80,9 +80,8 @@ export default function LineNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentLine) {
-        res = await axios.patch(endpoints.line.update(currentLine.id), {
+        await axios.patch(endpoints.line.update(currentLine.id), {
           id: Number(data.id),
           name: data.name,
           permalink: data.permalink,
@@ -91,7 +90,7 @@ export default function LineNewEditForm({
           sort: data.sort,
         });
       } else {
-        res = await axios.post(endpoints.line.create, {
+        await axios.post(endpoints.line.create, {
           id: Number(data.id),
           name: data.name,
           permalink: data.permalink,
@@ -100,14 +99,11 @@ export default function LineNewEditForm({
           sort: data.sort,
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(currentLine ? "更新しました！" : "作成しました！");
       router.push(paths.admin.line.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

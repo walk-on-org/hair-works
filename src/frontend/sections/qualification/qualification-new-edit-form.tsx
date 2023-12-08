@@ -70,9 +70,8 @@ export default function QualificationNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentQualification) {
-        res = await axios.patch(
+        await axios.patch(
           endpoints.qualification.update(currentQualification.id),
           {
             name: data.name,
@@ -81,15 +80,11 @@ export default function QualificationNewEditForm({
           }
         );
       } else {
-        res = await axios.post(endpoints.qualification.create, {
+        await axios.post(endpoints.qualification.create, {
           name: data.name,
           status: data.status ? 1 : 0,
           sort: data.sort,
         });
-      }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
       }
       reset();
       enqueueSnackbar(
@@ -97,6 +92,7 @@ export default function QualificationNewEditForm({
       );
       router.push(paths.admin.qualification.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

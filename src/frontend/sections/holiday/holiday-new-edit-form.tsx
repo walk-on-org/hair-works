@@ -66,28 +66,24 @@ export default function HolidayNewEditForm({ currentHoliday }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentHoliday) {
-        res = await axios.patch(endpoints.holiday.update(currentHoliday.id), {
+        await axios.patch(endpoints.holiday.update(currentHoliday.id), {
           name: data.name,
           permalink: data.permalink,
           status: data.status ? 1 : 0,
         });
       } else {
-        res = await axios.post(endpoints.holiday.create, {
+        await axios.post(endpoints.holiday.create, {
           name: data.name,
           permalink: data.permalink,
           status: data.status ? 1 : 0,
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(currentHoliday ? "更新しました！" : "作成しました！");
       router.push(paths.admin.holiday.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

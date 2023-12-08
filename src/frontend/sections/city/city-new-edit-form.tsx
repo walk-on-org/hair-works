@@ -76,9 +76,8 @@ export default function CityNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentCity) {
-        res = await axios.patch(endpoints.city.update(currentCity.id), {
+        await axios.patch(endpoints.city.update(currentCity.id), {
           name: data.name,
           permalink: data.permalink,
           prefecture_id: Number(data.prefecture_id),
@@ -87,7 +86,7 @@ export default function CityNewEditForm({
             : "",
         });
       } else {
-        res = await axios.post(endpoints.city.create, {
+        await axios.post(endpoints.city.create, {
           name: data.name,
           permalink: data.permalink,
           prefecture_id: Number(data.prefecture_id),
@@ -96,14 +95,11 @@ export default function CityNewEditForm({
             : "",
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(currentCity ? "更新しました！" : "作成しました！");
       router.push(paths.admin.city.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

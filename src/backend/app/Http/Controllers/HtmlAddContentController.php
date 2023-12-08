@@ -158,4 +158,43 @@ class HtmlAddContentController extends Controller
             return response()->json(['error' => $e->errors()], 422);
         }
     }
+
+    /**
+     * HTML追加コンテンツ削除
+     */
+    public function destroy(Request $request, $id)
+    {
+        try {
+            $html_add_content = HtmlAddContent::find($id);
+            if (!$html_add_content) {
+                throw new ModelNotFoundException();
+            }
+            $html_add_content->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'HtmlAddContent not found'], 404);
+        }
+    }
+
+    /**
+     * HTML追加コンテンツ複数削除
+     */
+    public function destroyMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+            
+            // 削除
+            $deleted_count = HtmlAddContent::whereIn('id', $ids)
+                ->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more html add contents not found'], 404);
+        }
+    }
 }

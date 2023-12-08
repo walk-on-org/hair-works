@@ -70,30 +70,26 @@ export default function PlanNewEditForm({ currentPlan }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentPlan) {
-        res = await axios.patch(endpoints.plan.update(currentPlan.id), {
+        await axios.patch(endpoints.plan.update(currentPlan.id), {
           name: data.name,
           term: data.term,
           amount: data.amount,
           status: data.status ? 1 : 0,
         });
       } else {
-        res = await axios.post(endpoints.plan.create, {
+        await axios.post(endpoints.plan.create, {
           name: data.name,
           term: data.term,
           amount: data.amount,
           status: data.status ? 1 : 0,
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(currentPlan ? "更新しました！" : "作成しました！");
       router.push(paths.admin.plan.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

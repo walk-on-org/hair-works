@@ -78,4 +78,43 @@ class PrefectureController extends Controller
             return response()->json(['error' => $e->errors()], 422);
         }
     }
+
+    /**
+     * 都道府県マスタ削除
+     */
+    public function destroy(Request $request, $id)
+    {
+        try {
+            $prefecture = Prefecture::find($id);
+            if (!$prefecture) {
+                throw new ModelNotFoundException();
+            }
+            $prefecture->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Prefecture not found'], 404);
+        }
+    }
+
+    /**
+     * 都道府県マスタ複数削除
+     */
+    public function destroyMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+            
+            // 削除
+            $deleted_count = Prefecture::whereIn('id', $ids)
+                ->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more prefectures not found'], 404);
+        }
+    }
 }

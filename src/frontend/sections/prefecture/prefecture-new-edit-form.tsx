@@ -74,20 +74,16 @@ export default function PrefectureNewEditForm({ currentPrefecture }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentPrefecture) {
-        res = await axios.patch(
-          endpoints.prefecture.update(currentPrefecture.id),
-          {
-            name: data.name,
-            name_kana: data.name_kana,
-            permalink: data.permalink,
-            minimum_wage: data.minimum_wage,
-            region: Number(data.region),
-          }
-        );
+        await axios.patch(endpoints.prefecture.update(currentPrefecture.id), {
+          name: data.name,
+          name_kana: data.name_kana,
+          permalink: data.permalink,
+          minimum_wage: data.minimum_wage,
+          region: Number(data.region),
+        });
       } else {
-        res = await axios.post(endpoints.prefecture.create, {
+        await axios.post(endpoints.prefecture.create, {
           name: data.name,
           name_kana: data.name_kana,
           permalink: data.permalink,
@@ -95,14 +91,11 @@ export default function PrefectureNewEditForm({ currentPrefecture }: Props) {
           region: Number(data.region),
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(currentPrefecture ? "更新しました！" : "作成しました！");
       router.push(paths.admin.prefecture.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

@@ -71,9 +71,8 @@ export default function GovernmentCityNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentGovernmentCity) {
-        res = await axios.patch(
+        await axios.patch(
           endpoints.governmentCity.update(currentGovernmentCity.id),
           {
             name: data.name,
@@ -82,15 +81,11 @@ export default function GovernmentCityNewEditForm({
           }
         );
       } else {
-        res = await axios.post(endpoints.governmentCity.create, {
+        await axios.post(endpoints.governmentCity.create, {
           name: data.name,
           permalink: data.permalink,
           prefecture_id: Number(data.prefecture_id),
         });
-      }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
       }
       reset();
       enqueueSnackbar(
@@ -98,6 +93,7 @@ export default function GovernmentCityNewEditForm({
       );
       router.push(paths.admin.governmentCity.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

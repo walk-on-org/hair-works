@@ -19,7 +19,6 @@ import { useResponsive } from "@/hooks/use-responsive";
 import { useSnackbar } from "@/components/snackbar";
 import FormProvider, {
   RHFSelect,
-  RHFAutocomplete,
   RHFSwitch,
   RHFEditor,
 } from "@/components/hook-form";
@@ -99,9 +98,8 @@ export default function HtmlAddContentNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentHtmlAddContent) {
-        res = await axios.patch(
+        await axios.patch(
           endpoints.htmlAddContent.update(currentHtmlAddContent.id),
           {
             prefecture_id: Number(data.prefecture_id),
@@ -116,7 +114,7 @@ export default function HtmlAddContentNewEditForm({
           }
         );
       } else {
-        res = await axios.post(endpoints.htmlAddContent.create, {
+        await axios.post(endpoints.htmlAddContent.create, {
           prefecture_id: Number(data.prefecture_id),
           government_city_id: data.government_city_id
             ? Number(data.government_city_id)
@@ -128,16 +126,13 @@ export default function HtmlAddContentNewEditForm({
           feature: data.feature,
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(
         currentHtmlAddContent ? "更新しました！" : "作成しました！"
       );
       router.push(paths.admin.htmlAddContent.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

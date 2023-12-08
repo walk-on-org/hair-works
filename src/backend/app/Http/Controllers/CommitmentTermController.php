@@ -82,4 +82,43 @@ class CommitmentTermController extends Controller
             return response()->json(['error' => $e->errors()], 422);
         }
     }
+
+    /**
+     * こだわり条件マスタ削除
+     */
+    public function destroy(Request $request, $id)
+    {
+        try {
+            $commitment_term = CommitmentTerm::find($id);
+            if (!$commitment_term) {
+                throw new ModelNotFoundException();
+            }
+            $commitment_term->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'CommitmentTerm not found'], 404);
+        }
+    }
+
+    /**
+     * こだわり条件マスタ複数削除
+     */
+    public function destroyMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+            
+            // 削除
+            $deleted_count = CommitmentTerm::whereIn('id', $ids)
+                ->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more commitment terms not found'], 404);
+        }
+    }
 }

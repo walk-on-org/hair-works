@@ -66,31 +66,24 @@ export default function JobCategoryNewEditForm({ currentJobCategory }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentJobCategory) {
-        res = await axios.patch(
-          endpoints.jobCategory.update(currentJobCategory.id),
-          {
-            name: data.name,
-            permalink: data.permalink,
-            status: data.status ? 1 : 0,
-          }
-        );
+        await axios.patch(endpoints.jobCategory.update(currentJobCategory.id), {
+          name: data.name,
+          permalink: data.permalink,
+          status: data.status ? 1 : 0,
+        });
       } else {
-        res = await axios.post(endpoints.jobCategory.create, {
+        await axios.post(endpoints.jobCategory.create, {
           name: data.name,
           permalink: data.permalink,
           status: data.status ? 1 : 0,
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(currentJobCategory ? "更新しました！" : "作成しました！");
       router.push(paths.admin.jobCategory.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

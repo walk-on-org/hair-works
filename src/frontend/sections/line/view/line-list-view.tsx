@@ -5,20 +5,24 @@ import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
+import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
+import Tooltip from "@mui/material/Tooltip";
 import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
+import IconButton from "@mui/material/IconButton";
 import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
-
+import { useBoolean } from "@/hooks/use-boolean";
 import { useGetLines } from "@/api/line";
 import { useGetTrainCompanies } from "@/api/train-company";
 
 import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
+import { ConfirmDialog } from "@/components/custom-dialog";
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import {
@@ -32,6 +36,7 @@ import {
   TableSelectedAction,
   TablePaginationCustom,
 } from "@/components/table";
+import { useSnackbar } from "@/components/snackbar";
 
 import {
   ILineItem,
@@ -43,6 +48,7 @@ import LineTableRow from "../line-table-row";
 import LineTableToolbar from "../line-table-toolbar";
 import LineTableFiltersResult from "../line-table-filters-result";
 import { TRAIN_STATUS_OPTIONS } from "@/config-global";
+import axios, { endpoints } from "@/utils/axios";
 
 // ----------------------------------------------------------------------
 
@@ -66,10 +72,12 @@ const defaultFilters: ILineTableFilters = {
 
 export default function LineListView() {
   const router = useRouter();
-  const table = useTable();
+  const table = useTable({ defaultOrderBy: "id" });
+  const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<ILineItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
+  const { enqueueSnackbar } = useSnackbar();
 
   // 路線データ取得
   const { lines, linesLoading, linesEmpty } = useGetLines();
@@ -87,6 +95,11 @@ export default function LineListView() {
     filters,
   });
 
+  const dataInPage = dataFiltered.slice(
+    table.page * table.rowsPerPage,
+    table.page * table.rowsPerPage + table.rowsPerPage
+  );
+
   const denseHeight = table.dense ? 60 : 80;
 
   const canReset = !isEqual(defaultFilters, filters);
@@ -103,6 +116,45 @@ export default function LineListView() {
     },
     [table]
   );
+
+  const handleDeleteRow = useCallback(
+    async (id: string) => {
+      try {
+        await axios.post(endpoints.line.destroy(id));
+
+        const deleteRow = tableData.filter((row) => row.id !== id);
+        setTableData(deleteRow);
+        table.onUpdatePageDeleteRow(dataInPage.length);
+        enqueueSnackbar("削除しました！");
+      } catch (error) {
+        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+        console.error(error);
+      }
+    },
+    [dataInPage.length, table, tableData]
+  );
+
+  const handleDeleteRows = useCallback(async () => {
+    try {
+      await axios.post(endpoints.line.destroyMultiple, {
+        ids: table.selected,
+      });
+
+      const deleteRows = tableData.filter(
+        (row) => !table.selected.includes(row.id)
+      );
+      setTableData(deleteRows);
+      table.onUpdatePageDeleteRows({
+        totalRows: tableData.length,
+        totalRowsInPage: dataInPage.length,
+        totalRowsFiltered: dataFiltered.length,
+      });
+      enqueueSnackbar("削除しました！");
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.log(error);
+    }
+  }, [dataFiltered.length, dataInPage.length, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -179,6 +231,15 @@ export default function LineListView() {
                   tableData.map((row) => row.id)
                 )
               }
+              action={
+                <Stack direction="row">
+                  <Tooltip title="削除">
+                    <IconButton color="primary" onClick={confirm.onTrue}>
+                      <Iconify icon="solar:trash-bin-trash-bold" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              }
             />
 
             <Scrollbar>
@@ -221,6 +282,7 @@ export default function LineListView() {
                             onSelectRow={() => table.onSelectRow(row.id)}
                             onEditRow={() => handleEditRow(row.id)}
                             onViewRow={() => handleViewRow(row.id)}
+                            onDeleteRow={() => handleDeleteRow(row.id)}
                           />
                         ))}
                     </>
@@ -250,6 +312,30 @@ export default function LineListView() {
           />
         </Card>
       </Container>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="削除"
+        content={
+          <>
+            <strong> {table.selected.length} </strong>
+            件の路線データを削除しますが、よろしいでしょうか?
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handleDeleteRows();
+              confirm.onFalse();
+            }}
+          >
+            削除
+          </Button>
+        }
+      />
     </>
   );
 }

@@ -78,9 +78,8 @@ export default function CommitmentTermNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentCommitmentTerm) {
-        res = await axios.patch(
+        await axios.patch(
           endpoints.commitmentTerm.update(currentCommitmentTerm.id),
           {
             name: data.name,
@@ -91,7 +90,7 @@ export default function CommitmentTermNewEditForm({
           }
         );
       } else {
-        res = await axios.post(endpoints.commitmentTerm.create, {
+        await axios.post(endpoints.commitmentTerm.create, {
           name: data.name,
           permalink: data.permalink,
           category: Number(data.category),
@@ -99,16 +98,13 @@ export default function CommitmentTermNewEditForm({
           status: data.status ? 1 : 0,
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(
         currentCommitmentTerm ? "更新しました！" : "作成しました！"
       );
       router.push(paths.admin.commitmentTerm.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

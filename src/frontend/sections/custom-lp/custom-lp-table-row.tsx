@@ -1,12 +1,16 @@
 import Link from "@mui/material/Link";
+import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import TableRow from "@mui/material/TableRow";
 import Checkbox from "@mui/material/Checkbox";
 import TableCell from "@mui/material/TableCell";
 import IconButton from "@mui/material/IconButton";
 
+import { useBoolean } from "@/hooks/use-boolean";
+
 import Label from "@/components/label";
 import Iconify from "@/components/iconify";
+import { ConfirmDialog } from "@/components/custom-dialog";
 import CustomPopover, { usePopover } from "@/components/custom-popover";
 
 import { ICustomLpItem } from "@/types/custom-lp";
@@ -19,6 +23,7 @@ type Props = {
   onEditRow: VoidFunction;
   onViewRow: VoidFunction;
   onSelectRow: VoidFunction;
+  onDeleteRow: VoidFunction;
 };
 
 export default function CustomLpTableRow({
@@ -27,8 +32,10 @@ export default function CustomLpTableRow({
   onSelectRow,
   onEditRow,
   onViewRow,
+  onDeleteRow,
 }: Props) {
   const { id, title, permalink, status, status_name } = row;
+  const confirm = useBoolean();
   const popover = usePopover();
 
   return (
@@ -102,7 +109,30 @@ export default function CustomLpTableRow({
           <Iconify icon="solar:pen-bold" />
           編集
         </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            confirm.onTrue();
+            popover.onClose();
+          }}
+          sx={{ color: "error.main" }}
+        >
+          <Iconify icon="solar:trash-bin-trash-bold" />
+          削除
+        </MenuItem>
       </CustomPopover>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="削除"
+        content="削除してよろしいでしょうか?"
+        action={
+          <Button variant="contained" color="error" onClick={onDeleteRow}>
+            削除
+          </Button>
+        }
+      />
     </>
   );
 }

@@ -120,4 +120,43 @@ class StationController extends Controller
             return response()->json(['error' => $e->errors()], 422);
         }
     }
+
+    /**
+     * 駅マスタ削除
+     */
+    public function destroy(Request $request, $id)
+    {
+        try {
+            $station = Station::find($id);
+            if (!$station) {
+                throw new ModelNotFoundException();
+            }
+            $station->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Station not found'], 404);
+        }
+    }
+
+    /**
+     * 駅マスタ複数削除
+     */
+    public function destroyMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+            
+            // 削除
+            $deleted_count = Station::whereIn('id', $ids)
+                ->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more stations not found'], 404);
+        }
+    }
 }

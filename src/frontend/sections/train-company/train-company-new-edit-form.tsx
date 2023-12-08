@@ -73,9 +73,8 @@ export default function TrainCompanyNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentTrainCompany) {
-        res = await axios.patch(
+        await axios.patch(
           endpoints.trainCompany.update(currentTrainCompany.id),
           {
             name: data.name,
@@ -85,16 +84,12 @@ export default function TrainCompanyNewEditForm({
           }
         );
       } else {
-        res = await axios.post(endpoints.trainCompany.create, {
+        await axios.post(endpoints.trainCompany.create, {
           name: data.name,
           name_r: data.name_r,
           status: Number(data.status),
           sort: data.sort,
         });
-      }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
       }
       reset();
       enqueueSnackbar(
@@ -102,6 +97,7 @@ export default function TrainCompanyNewEditForm({
       );
       router.push(paths.admin.trainCompany.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

@@ -5,19 +5,23 @@ import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
+import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
+import Tooltip from "@mui/material/Tooltip";
 import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
+import IconButton from "@mui/material/IconButton";
 import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
-
+import { useBoolean } from "@/hooks/use-boolean";
 import { useGetCommitmentTerms } from "@/api/commitment-term";
 
 import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
+import { ConfirmDialog } from "@/components/custom-dialog";
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import {
@@ -31,6 +35,7 @@ import {
   TableSelectedAction,
   TablePaginationCustom,
 } from "@/components/table";
+import { useSnackbar } from "@/components/snackbar";
 
 import {
   ICommitmentTermItem,
@@ -42,6 +47,7 @@ import CommitmentTermTableRow from "../commitment-term-table-row";
 import CommitmentTermTableToolbar from "../commitment-term-table-toolbar";
 import CommitmentTermTableFiltersResult from "../commitment-term-table-filters-result";
 import { STATUS_OPTIONS } from "@/config-global";
+import axios, { endpoints } from "@/utils/axios";
 
 // ----------------------------------------------------------------------
 
@@ -64,10 +70,12 @@ const defaultFilters: ICommitmentTermTableFilters = {
 
 export default function CommitmentTermListView() {
   const router = useRouter();
-  const table = useTable();
+  const table = useTable({ defaultOrderBy: "id" });
+  const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<ICommitmentTermItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
+  const { enqueueSnackbar } = useSnackbar();
 
   // こだわり条件データ取得
   const { commitmentTerms, commitmentTermsLoading, commitmentTermsEmpty } =
@@ -85,6 +93,11 @@ export default function CommitmentTermListView() {
     filters,
   });
 
+  const dataInPage = dataFiltered.slice(
+    table.page * table.rowsPerPage,
+    table.page * table.rowsPerPage + table.rowsPerPage
+  );
+
   const denseHeight = table.dense ? 60 : 80;
 
   const canReset = !isEqual(defaultFilters, filters);
@@ -101,6 +114,45 @@ export default function CommitmentTermListView() {
     },
     [table]
   );
+
+  const handleDeleteRow = useCallback(
+    async (id: string) => {
+      try {
+        await axios.post(endpoints.commitmentTerm.destroy(id));
+
+        const deleteRow = tableData.filter((row) => row.id !== id);
+        setTableData(deleteRow);
+        table.onUpdatePageDeleteRow(dataInPage.length);
+        enqueueSnackbar("削除しました！");
+      } catch (error) {
+        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+        console.error(error);
+      }
+    },
+    [dataInPage.length, table, tableData]
+  );
+
+  const handleDeleteRows = useCallback(async () => {
+    try {
+      await axios.post(endpoints.commitmentTerm.destroyMultiple, {
+        ids: table.selected,
+      });
+
+      const deleteRows = tableData.filter(
+        (row) => !table.selected.includes(row.id)
+      );
+      setTableData(deleteRows);
+      table.onUpdatePageDeleteRows({
+        totalRows: tableData.length,
+        totalRowsInPage: dataInPage.length,
+        totalRowsFiltered: dataFiltered.length,
+      });
+      enqueueSnackbar("削除しました！");
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.log(error);
+    }
+  }, [dataFiltered.length, dataInPage.length, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -177,6 +229,15 @@ export default function CommitmentTermListView() {
                   tableData.map((row) => row.id)
                 )
               }
+              action={
+                <Stack direction="row">
+                  <Tooltip title="削除">
+                    <IconButton color="primary" onClick={confirm.onTrue}>
+                      <Iconify icon="solar:trash-bin-trash-bold" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              }
             />
 
             <Scrollbar>
@@ -219,6 +280,7 @@ export default function CommitmentTermListView() {
                             onSelectRow={() => table.onSelectRow(row.id)}
                             onEditRow={() => handleEditRow(row.id)}
                             onViewRow={() => handleViewRow(row.id)}
+                            onDeleteRow={() => handleDeleteRow(row.id)}
                           />
                         ))}
                     </>
@@ -248,6 +310,30 @@ export default function CommitmentTermListView() {
           />
         </Card>
       </Container>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="削除"
+        content={
+          <>
+            <strong> {table.selected.length} </strong>
+            件のこだわり条件データを削除しますが、よろしいでしょうか?
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handleDeleteRows();
+              confirm.onFalse();
+            }}
+          >
+            削除
+          </Button>
+        }
+      />
     </>
   );
 }

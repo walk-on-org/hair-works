@@ -1,11 +1,15 @@
+import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import TableRow from "@mui/material/TableRow";
 import Checkbox from "@mui/material/Checkbox";
 import TableCell from "@mui/material/TableCell";
 import IconButton from "@mui/material/IconButton";
 
+import { useBoolean } from "@/hooks/use-boolean";
+
 import Label from "@/components/label";
 import Iconify from "@/components/iconify";
+import { ConfirmDialog } from "@/components/custom-dialog";
 import CustomPopover, { usePopover } from "@/components/custom-popover";
 
 import { IHtmlAddContentItem } from "@/types/html-add-content";
@@ -18,6 +22,7 @@ type Props = {
   onEditRow: VoidFunction;
   onViewRow: VoidFunction;
   onSelectRow: VoidFunction;
+  onDeleteRow: VoidFunction;
 };
 
 export default function HtmlAddContentTableRow({
@@ -26,6 +31,7 @@ export default function HtmlAddContentTableRow({
   onSelectRow,
   onEditRow,
   onViewRow,
+  onDeleteRow,
 }: Props) {
   const {
     id,
@@ -38,6 +44,7 @@ export default function HtmlAddContentTableRow({
     display_feature,
     display_feature_name,
   } = row;
+  const confirm = useBoolean();
   const popover = usePopover();
 
   return (
@@ -110,7 +117,30 @@ export default function HtmlAddContentTableRow({
           <Iconify icon="solar:pen-bold" />
           編集
         </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            confirm.onTrue();
+            popover.onClose();
+          }}
+          sx={{ color: "error.main" }}
+        >
+          <Iconify icon="solar:trash-bin-trash-bold" />
+          削除
+        </MenuItem>
       </CustomPopover>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="削除"
+        content="削除してよろしいでしょうか?"
+        action={
+          <Button variant="contained" color="error" onClick={onDeleteRow}>
+            削除
+          </Button>
+        }
+      />
     </>
   );
 }

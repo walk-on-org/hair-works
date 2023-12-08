@@ -75,22 +75,18 @@ export default function AdKeywordNewEditForm({ currentAdKeyword }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentAdKeyword) {
-        res = await axios.patch(
-          endpoints.adKeyword.update(currentAdKeyword.id),
-          {
-            utm_source: data.utm_source,
-            utm_medium: data.utm_medium,
-            utm_campaign: data.utm_campaign,
-            keyword_id: data.keyword_id,
-            ad_group: data.ad_group,
-            keyword: data.keyword,
-            match_type: Number(data.match_type),
-          }
-        );
+        await axios.patch(endpoints.adKeyword.update(currentAdKeyword.id), {
+          utm_source: data.utm_source,
+          utm_medium: data.utm_medium,
+          utm_campaign: data.utm_campaign,
+          keyword_id: data.keyword_id,
+          ad_group: data.ad_group,
+          keyword: data.keyword,
+          match_type: Number(data.match_type),
+        });
       } else {
-        res = await axios.post(endpoints.adKeyword.create, {
+        await axios.post(endpoints.adKeyword.create, {
           utm_source: data.utm_source,
           utm_medium: data.utm_medium,
           utm_campaign: data.utm_campaign,
@@ -100,14 +96,11 @@ export default function AdKeywordNewEditForm({ currentAdKeyword }: Props) {
           match_type: Number(data.match_type),
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(currentAdKeyword ? "更新しました！" : "作成しました！");
       router.push(paths.admin.adKeyword.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

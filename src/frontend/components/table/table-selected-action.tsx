@@ -65,7 +65,7 @@ export default function TableSelectedAction({
           }),
         }}
       >
-        {numSelected} selected
+        {numSelected} 件 選択中
       </Typography>
 
       {action && action}

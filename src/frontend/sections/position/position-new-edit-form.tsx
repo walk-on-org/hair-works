@@ -66,28 +66,24 @@ export default function PositionNewEditForm({ currentPosition }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentPosition) {
-        res = await axios.patch(endpoints.position.update(currentPosition.id), {
+        await axios.patch(endpoints.position.update(currentPosition.id), {
           name: data.name,
           permalink: data.permalink,
           status: data.status ? 1 : 0,
         });
       } else {
-        res = await axios.post(endpoints.position.create, {
+        await axios.post(endpoints.position.create, {
           name: data.name,
           permalink: data.permalink,
           status: data.status ? 1 : 0,
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(currentPosition ? "更新しました！" : "作成しました！");
       router.push(paths.admin.position.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

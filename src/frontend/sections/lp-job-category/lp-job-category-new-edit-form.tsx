@@ -66,9 +66,8 @@ export default function LpJobCategoryNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentLpJobCategory) {
-        res = await axios.patch(
+        await axios.patch(
           endpoints.lpJobCategory.update(currentLpJobCategory.id),
           {
             name: data.name,
@@ -76,14 +75,10 @@ export default function LpJobCategoryNewEditForm({
           }
         );
       } else {
-        res = await axios.post(endpoints.lpJobCategory.create, {
+        await axios.post(endpoints.lpJobCategory.create, {
           name: data.name,
           status: data.status ? 1 : 0,
         });
-      }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
       }
       reset();
       enqueueSnackbar(
@@ -91,6 +86,7 @@ export default function LpJobCategoryNewEditForm({
       );
       router.push(paths.admin.lpJobCategory.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

@@ -5,20 +5,24 @@ import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
+import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
+import Tooltip from "@mui/material/Tooltip";
 import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
+import IconButton from "@mui/material/IconButton";
 import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
-
+import { useBoolean } from "@/hooks/use-boolean";
 import { useGetCities } from "@/api/city";
 import { useGetPrefectures } from "@/api/prefecture";
 
 import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
+import { ConfirmDialog } from "@/components/custom-dialog";
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import {
@@ -32,6 +36,7 @@ import {
   TableSelectedAction,
   TablePaginationCustom,
 } from "@/components/table";
+import { useSnackbar } from "@/components/snackbar";
 
 import {
   ICityItem,
@@ -42,6 +47,7 @@ import {
 import CityTableRow from "../city-table-row";
 import CityTableToolbar from "../city-table-toolbar";
 import CityTableFiltersResult from "../city-table-filters-result";
+import axios, { endpoints } from "@/utils/axios";
 
 // ----------------------------------------------------------------------
 
@@ -63,10 +69,12 @@ const defaultFilters: ICityTableFilters = {
 
 export default function CityListView() {
   const router = useRouter();
-  const table = useTable();
+  const table = useTable({ defaultOrderBy: "id" });
+  const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<ICityItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
+  const { enqueueSnackbar } = useSnackbar();
 
   // 市区町村データ取得
   const { cities, citiesLoading, citiesEmpty } = useGetCities();
@@ -84,6 +92,11 @@ export default function CityListView() {
     filters,
   });
 
+  const dataInPage = dataFiltered.slice(
+    table.page * table.rowsPerPage,
+    table.page * table.rowsPerPage + table.rowsPerPage
+  );
+
   const denseHeight = table.dense ? 60 : 80;
 
   const canReset = !isEqual(defaultFilters, filters);
@@ -100,6 +113,45 @@ export default function CityListView() {
     },
     [table]
   );
+
+  const handleDeleteRow = useCallback(
+    async (id: string) => {
+      try {
+        await axios.post(endpoints.city.destroy(id));
+
+        const deleteRow = tableData.filter((row) => row.id !== id);
+        setTableData(deleteRow);
+        table.onUpdatePageDeleteRow(dataInPage.length);
+        enqueueSnackbar("削除しました！");
+      } catch (error) {
+        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+        console.error(error);
+      }
+    },
+    [dataInPage.length, table, tableData]
+  );
+
+  const handleDeleteRows = useCallback(async () => {
+    try {
+      await axios.post(endpoints.city.destroyMultiple, {
+        ids: table.selected,
+      });
+
+      const deleteRows = tableData.filter(
+        (row) => !table.selected.includes(row.id)
+      );
+      setTableData(deleteRows);
+      table.onUpdatePageDeleteRows({
+        totalRows: tableData.length,
+        totalRowsInPage: dataInPage.length,
+        totalRowsFiltered: dataFiltered.length,
+      });
+      enqueueSnackbar("削除しました！");
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.log(error);
+    }
+  }, [dataFiltered.length, dataInPage.length, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -175,6 +227,15 @@ export default function CityListView() {
                   tableData.map((row) => row.id)
                 )
               }
+              action={
+                <Stack direction="row">
+                  <Tooltip title="削除">
+                    <IconButton color="primary" onClick={confirm.onTrue}>
+                      <Iconify icon="solar:trash-bin-trash-bold" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              }
             />
 
             <Scrollbar>
@@ -217,6 +278,7 @@ export default function CityListView() {
                             onSelectRow={() => table.onSelectRow(row.id)}
                             onEditRow={() => handleEditRow(row.id)}
                             onViewRow={() => handleViewRow(row.id)}
+                            onDeleteRow={() => handleDeleteRow(row.id)}
                           />
                         ))}
                     </>
@@ -246,6 +308,30 @@ export default function CityListView() {
           />
         </Card>
       </Container>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="削除"
+        content={
+          <>
+            <strong> {table.selected.length} </strong>
+            件の市区町村データを削除しますが、よろしいでしょうか?
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handleDeleteRows();
+              confirm.onFalse();
+            }}
+          >
+            削除
+          </Button>
+        }
+      />
     </>
   );
 }

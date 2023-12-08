@@ -100,9 +100,8 @@ export default function StationNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      let res;
       if (currentStation) {
-        res = await axios.patch(endpoints.station.update(currentStation.id), {
+        await axios.patch(endpoints.station.update(currentStation.id), {
           id: Number(data.id),
           name: data.name,
           permalink: data.permalink,
@@ -116,7 +115,7 @@ export default function StationNewEditForm({
           lng: data.lng,
         });
       } else {
-        res = await axios.post(endpoints.station.create, {
+        await axios.post(endpoints.station.create, {
           id: Number(data.id),
           name: data.name,
           permalink: data.permalink,
@@ -130,14 +129,11 @@ export default function StationNewEditForm({
           lng: data.lng,
         });
       }
-      if (res.status !== 200) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        return;
-      }
       reset();
       enqueueSnackbar(currentStation ? "更新しました！" : "作成しました！");
       router.push(paths.admin.station.root);
     } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.error(error);
     }
   });

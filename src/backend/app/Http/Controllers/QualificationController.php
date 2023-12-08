@@ -74,4 +74,43 @@ class QualificationController extends Controller
             return response()->json(['error' => $e->errors()], 422);
         }
     }
+
+    /**
+     * 資格マスタ削除
+     */
+    public function destroy(Request $request, $id)
+    {
+        try {
+            $qualification = Qualification::find($id);
+            if (!$qualification) {
+                throw new ModelNotFoundException();
+            }
+            $qualification->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Qualification not found'], 404);
+        }
+    }
+
+    /**
+     * 資格マスタ複数削除
+     */
+    public function destroyMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+            
+            // 削除
+            $deleted_count = Qualification::whereIn('id', $ids)
+                ->delete();
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more qualifications not found'], 404);
+        }
+    }
 }
