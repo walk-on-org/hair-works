@@ -44,6 +44,10 @@
     - 以下コマンドを実行する
       `docker-compose run -w /app --rm node npm install`
 
+- 画像アップロードして、画像が見えない場合
+  - PHP のサーバーに入り、以下コマンドを実行
+    `php artisan storage:link`
+
 ## データベース変更
 
 1. Docker コンテナに入り、migration ファイルを作成するコマンドを実行

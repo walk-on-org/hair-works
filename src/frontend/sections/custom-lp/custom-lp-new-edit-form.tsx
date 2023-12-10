@@ -99,27 +99,44 @@ export default function CustomLpNewEditForm({ currentCustomLp }: Props) {
   }, [setValue]);
 
   const onSubmit = handleSubmit(async (data) => {
+    console.log(data);
     try {
       if (currentCustomLp) {
-        await axios.patch(endpoints.customLp.update(currentCustomLp.id), {
-          title: data.title,
-          permalink: data.permalink,
-          logo: data.logo,
-          point1: data.point1,
-          point2: data.point2,
-          point3: data.point3,
-          status: Number(data.status),
-        });
+        await axios.patch(
+          endpoints.customLp.update(currentCustomLp.id),
+          {
+            title: data.title,
+            permalink: data.permalink,
+            logo: data.logo,
+            point1: data.point1,
+            point2: data.point2,
+            point3: data.point3,
+            status: Number(data.status),
+          },
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
       } else {
-        await axios.post(endpoints.customLp.create, {
-          title: data.title,
-          permalink: data.permalink,
-          logo: data.logo,
-          point1: data.point1,
-          point2: data.point2,
-          point3: data.point3,
-          status: Number(data.status),
-        });
+        await axios.post(
+          endpoints.customLp.create,
+          {
+            title: data.title,
+            permalink: data.permalink,
+            logo: data.logo,
+            point1: data.point1,
+            point2: data.point2,
+            point3: data.point3,
+            status: Number(data.status),
+          },
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
       }
       reset();
       enqueueSnackbar(currentCustomLp ? "更新しました！" : "作成しました！");

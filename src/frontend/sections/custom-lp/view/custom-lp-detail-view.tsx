@@ -12,6 +12,7 @@ import { RouterLink } from "@/routes/components";
 import { useGetCustomLp } from "@/api/custom-lp";
 
 import Label from "@/components/label";
+import Image from "@/components/image";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import Iconify from "@/components/iconify";
 import EmptyContent from "@/components/empty-content";
@@ -140,9 +141,7 @@ export default function CustomLpDetailView({ id }: Props) {
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               ロゴ
             </Typography>
-            <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {customLp.logo}
-            </Typography>
+            <Image src={customLp.logo} />
           </Stack>
         </Stack>
       </Card>

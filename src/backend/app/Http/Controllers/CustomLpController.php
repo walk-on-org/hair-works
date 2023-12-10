@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class CustomLpController extends Controller
 {
@@ -33,6 +34,9 @@ class CustomLpController extends Controller
                 throw new ModelNotFoundException();
             }
             $custom_lp['status_name'] = CustomLp::STATUS[$custom_lp->status];
+            if ($custom_lp->logo) {
+                $custom_lp->logo = config('uploadimage.custom_lp_logo_path') . $custom_lp->id . '/' . $custom_lp->logo;
+            }
             return response()->json(['custom_lp' => $custom_lp]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Line not found'], 404);
@@ -45,8 +49,6 @@ class CustomLpController extends Controller
     public function create(Request $request)
     {
         try {
-            // TODO 画像アップロード処理を追加
-            Log::info($request);
             $data = $request->validate([
                 'title' => 'required|string',
                 'permalink' => 'required|string',
@@ -54,8 +56,20 @@ class CustomLpController extends Controller
                 'point2' => 'required|string',
                 'point3' => 'required|string',
                 'status' => 'numeric|regex:/^[0-2]{1}$/',
+                'logo' => 'nullable|file|mimes:jpeg,jpg,png,webp',
             ]);
-            CustomLp::create($data);
+
+            if ($request->hasFile('logo')) {
+                $uploaded_file = $request->file('logo');
+                $filename = time() . '_' . $uploaded_file->getClientOriginalName();
+                $data['logo'] = $filename;
+            }
+
+            $custom_lp = CustomLp::create($data);
+            if ($request->hasFile('logo')) {
+                $uploaded_file->storeAs(config('uploadimage.custom_lp_logo_storage') . $custom_lp->id, $filename);
+            }
+
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -68,7 +82,6 @@ class CustomLpController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            Log::info($request);
             $data = $request->validate([
                 'title' => 'required|string',
                 'permalink' => 'required|string',
@@ -76,8 +89,21 @@ class CustomLpController extends Controller
                 'point2' => 'required|string',
                 'point3' => 'required|string',
                 'status' => 'numeric|regex:/^[0-2]{1}$/',
+                'logo' => 'nullable|file|mimes:jpeg,jpg,png,webp',
             ]);
+            
             $custom_lp = CustomLp::findOrFail($id);
+            if ($request->hasFile('logo')) {
+                $uploaded_file = $request->file('logo');
+                $filename = time() . '_' . $uploaded_file->getClientOriginalName();
+                $uploaded_file->storeAs(config('uploadimage.custom_lp_logo_storage') . $custom_lp->id, $filename);
+
+                // 以前のファイルがあれば削除
+                if ($custom_lp->logo) {
+                    Storage::delete(config('uploadimage.custom_lp_logo_storage') . $custom_lp->id . $custom_lp->logo);
+                }
+                $data['logo'] = $filename;
+            }
             $custom_lp->update($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
