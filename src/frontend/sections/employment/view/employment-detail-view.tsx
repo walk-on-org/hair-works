@@ -5,6 +5,12 @@ import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
+import Table from "@mui/material/Table";
+import TableRow from "@mui/material/TableRow";
+import TableHead from "@mui/material/TableHead";
+import TableCell from "@mui/material/TableCell";
+import TableBody from "@mui/material/TableBody";
+import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
 import { RouterLink } from "@/routes/components";
@@ -15,6 +21,7 @@ import Label from "@/components/label";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import Iconify from "@/components/iconify";
 import EmptyContent from "@/components/empty-content";
+import Scrollbar from "@/components/scrollbar";
 import { useSettingsContext } from "@/components/settings";
 
 import EmploymentDetailToolbar from "../employment-detail-toolbar";
@@ -105,6 +112,44 @@ export default function EmploymentDetailView({ id }: Props) {
               {employment.status_name}
             </Label>
           </Stack>
+
+          <Typography variant="subtitle2">気になるポイント</Typography>
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>役職/役割</TableCell>
+
+                    <TableCell>こだわり条件</TableCell>
+
+                    <TableCell>タイトル</TableCell>
+
+                    <TableCell>詳細</TableCell>
+
+                    <TableCell>ソート順</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {employment.employment_concern_points.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{row.position_name}</TableCell>
+
+                      <TableCell>{row.commitment_term_name}</TableCell>
+
+                      <TableCell>{row.title}</TableCell>
+
+                      <TableCell sx={{ whiteSpace: "pre-wrap" }}>
+                        {row.description}
+                      </TableCell>
+
+                      <TableCell>{row.sort}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
         </Stack>
       </Card>
     </>

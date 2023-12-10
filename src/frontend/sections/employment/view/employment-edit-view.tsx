@@ -5,6 +5,8 @@ import Container from "@mui/material/Container";
 import { paths } from "@/routes/paths";
 
 import { useGetEmployment } from "@/api/employment";
+import { useGetPositions } from "@/api/position";
+import { useGetCommitmentTerms } from "@/api/commitment-term";
 
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
@@ -21,6 +23,8 @@ export default function EmploymentEditView({ id }: Props) {
   const settings = useSettingsContext();
 
   const { employment: currentEmployment } = useGetEmployment(id);
+  const { positions } = useGetPositions();
+  const { commitmentTerms } = useGetCommitmentTerms();
 
   return (
     <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -39,7 +43,11 @@ export default function EmploymentEditView({ id }: Props) {
         }}
       />
 
-      <EmploymentNewEditForm currentEmployment={currentEmployment} />
+      <EmploymentNewEditForm
+        currentEmployment={currentEmployment}
+        positions={positions}
+        commitmentTerms={commitmentTerms}
+      />
     </Container>
   );
 }

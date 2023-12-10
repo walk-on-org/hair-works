@@ -18,4 +18,8 @@ class Employment extends Model
         1 => '有効',
         0 => '無効',
     ];
+
+    public function employmentConcernPoints() {
+        return $this->hasMany('App\Models\EmploymentConcernPoint');
+    }
 }
