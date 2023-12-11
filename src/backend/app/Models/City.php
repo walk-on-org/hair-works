@@ -30,4 +30,8 @@ class City extends Model
     public function htmlAddContents() {
         return $this->hasMany('App\Models\HtmlAddContent');
     }
+
+    public function corporations() {
+        return $this->hasMany('App\Models\Corporation');
+    }
 }

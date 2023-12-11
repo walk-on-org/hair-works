@@ -20,6 +20,7 @@ use App\Http\Controllers\HtmlAddContentController;
 use App\Http\Controllers\NationalHolidayController;
 use App\Http\Controllers\AdKeywordController;
 use App\Http\Controllers\CustomLpController;
+use App\Http\Controllers\CorporationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -163,4 +164,12 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::patch('/custom_lps/update/{id}', [CustomLpController::class, 'update']);
     Route::post('/custom_lps/destroy/{id}', [CustomLpController::class, 'destroy']);
     Route::post('/custom_lps/destroy_multiple', [CustomLpController::class, 'destroyMultiple']);
+
+    // 法人
+    Route::get('/corporations', [CorporationController::class, 'index']);
+    Route::get('/corporations/{id}', [CorporationController::class, 'show']);
+    Route::post('/corporations/create', [CorporationController::class, 'create']);
+    Route::patch('/corporations/update/{id}', [CorporationController::class, 'update']);
+    Route::post('/corporations/destroy/{id}', [CorporationController::class, 'destroy']);
+    Route::post('/corporations/destroy_multiple', [CorporationController::class, 'destroyMultiple']);
 });

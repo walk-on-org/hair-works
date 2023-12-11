@@ -63,7 +63,7 @@ export function useNavData() {
           },
           {
             title: "法人",
-            path: paths.admin.corporations,
+            path: paths.admin.corporation.root,
             icon: ICONS.ecommerce,
           },
         ],

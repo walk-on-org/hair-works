@@ -1,3 +1,5 @@
+import { string } from "yup";
+
 const ROOTS = {
   ADMIN: "/admin",
 };
@@ -21,7 +23,12 @@ export const paths = {
   admin: {
     root: ROOTS.ADMIN,
     dashboard: `${ROOTS.ADMIN}/dashboard`,
-    corporations: `${ROOTS.ADMIN}/corporations`,
+    corporation: {
+      root: `${ROOTS.ADMIN}/corporations`,
+      new: `${ROOTS.ADMIN}/corporations/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/corporations/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/corporations/${id}/edit`,
+    },
     jobCategory: {
       root: `${ROOTS.ADMIN}/settings/job_categories`,
       new: `${ROOTS.ADMIN}/settings/job_categories/new`,

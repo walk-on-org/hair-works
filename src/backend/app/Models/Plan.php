@@ -19,4 +19,8 @@ class Plan extends Model
         1 => '有効',
         0 => '無効',
     ];
+
+    public function contracts() {
+        return $this->hasMany('App\Models\Contract');
+    }
 }

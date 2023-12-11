@@ -175,4 +175,13 @@ export const endpoints = {
     destroy: (id: string) => `/api/custom_lps/destroy/${id}`,
     destroyMultiple: "/api/custom_lps/destroy_multiple",
   },
+
+  corporation: {
+    list: "/api/corporations",
+    detail: (id: string) => `/api/corporations/${id}`,
+    create: "/api/corporations/create",
+    update: (id: string) => `/api/corporations/update/${id}`,
+    destroy: (id: string) => `/api/corporations/destroy/${id}`,
+    destroyMultiple: "/api/corporations/destroy_multiple",
+  },
 };
