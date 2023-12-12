@@ -21,6 +21,12 @@ export type ICorporationItem = {
   higher_display_name: string;
   owner_image: string;
   owner_message: string;
+  contracts: IContractItem[];
+  plan_id: string;
+  plan_name: string;
+  start_date: Date | null;
+  end_plan_date: Date | null;
+  end_date: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -29,4 +35,15 @@ export type ICorporationTableFilterValue = string;
 
 export type ICorporationTableFilters = {
   name: string;
+};
+
+export type IContractItem = {
+  id: string;
+  plan_id: string;
+  plan_name: string;
+  start_date: Date | null;
+  end_plan_date: Date | null;
+  end_date: Date | null;
+  expire: string;
+  expire_name: string;
 };

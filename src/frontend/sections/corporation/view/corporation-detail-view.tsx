@@ -24,6 +24,8 @@ import EmptyContent from "@/components/empty-content";
 import Scrollbar from "@/components/scrollbar";
 import { useSettingsContext } from "@/components/settings";
 
+import { fDate } from "@/utils/format-time";
+
 import CorporationDetailToolbar from "../corporation-detail-toolbar";
 import { CorporationDetailSkeleton } from "../corporation-skelton";
 
@@ -223,6 +225,49 @@ export default function CorporationDetailView({ id }: Props) {
               {corporation.higher_display_name}
             </Label>
           </Stack>
+
+          <Typography variant="subtitle2">契約プラン</Typography>
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>プラン</TableCell>
+
+                    <TableCell>掲載開始日</TableCell>
+
+                    <TableCell>掲載終了日</TableCell>
+
+                    <TableCell>掲載停止日</TableCell>
+
+                    <TableCell>満了</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {corporation.contracts.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{row.plan_name}</TableCell>
+
+                      <TableCell>
+                        {row.start_date && fDate(row.start_date, "yyyy/MM/dd")}
+                      </TableCell>
+
+                      <TableCell>
+                        {row.end_plan_date &&
+                          fDate(row.end_plan_date, "yyyy/MM/dd")}
+                      </TableCell>
+
+                      <TableCell>
+                        {row.end_date && fDate(row.end_date, "yyyy/MM/dd")}
+                      </TableCell>
+
+                      <TableCell>{row.expire_name}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
         </Stack>
       </Card>
     </>

@@ -17,6 +17,11 @@ class Contract extends Model
         'expire',
     ];
 
+    const EXPIRE = [
+        0 => 'いいえ',
+        1 => 'はい',
+    ];
+
     public function corporation() {
         return $this->belongsTo('App\Models\Corporation');
     }

@@ -6,6 +6,7 @@ import { paths } from "@/routes/paths";
 
 import { useGetPrefectures } from "@/api/prefecture";
 import { useGetCities } from "@/api/city";
+import { useGetPlans } from "@/api/plan";
 
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
@@ -19,6 +20,7 @@ export default function CorporationCreateView() {
 
   const { prefectures } = useGetPrefectures();
   const { cities } = useGetCities();
+  const { plans } = useGetPlans();
 
   return (
     <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -37,7 +39,11 @@ export default function CorporationCreateView() {
         }}
       />
 
-      <CorporationNewEditForm prefectures={prefectures} cities={cities} />
+      <CorporationNewEditForm
+        prefectures={prefectures}
+        cities={cities}
+        plans={plans}
+      />
     </Container>
   );
 }

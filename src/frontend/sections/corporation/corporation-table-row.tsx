@@ -14,6 +14,7 @@ import { ConfirmDialog } from "@/components/custom-dialog";
 import CustomPopover, { usePopover } from "@/components/custom-popover";
 
 import { ICorporationItem } from "@/types/corporation";
+import { fDate } from "@/utils/format-time";
 
 // ----------------------------------------------------------------------
 
@@ -43,6 +44,10 @@ export default function CorporationTableRow({
     tel,
     higher_display,
     higher_display_name,
+    plan_name,
+    start_date,
+    end_plan_date,
+    end_date,
   } = row;
   const confirm = useBoolean();
   const popover = usePopover();
@@ -78,13 +83,15 @@ export default function CorporationTableRow({
 
         <TableCell>TODO</TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{plan_name}</TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{start_date && fDate(start_date, "yyyy/MM/dd")}</TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>
+          {end_plan_date && fDate(end_plan_date, "yyyy/MM/dd")}
+        </TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{end_date && fDate(end_date, "yyyy/MM/dd")}</TableCell>
 
         <TableCell>
           <Label

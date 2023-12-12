@@ -29,6 +29,7 @@ import FormProvider, {
 import { ICorporationItem } from "@/types/corporation";
 import { IPrefectureItem } from "@/types/prefecture";
 import { ICityItem } from "@/types/city";
+import { IPlanItem } from "@/types/plan";
 import axios, { endpoints } from "@/utils/axios";
 
 // ----------------------------------------------------------------------
@@ -37,12 +38,14 @@ type Props = {
   currentCorporation?: ICorporationItem;
   prefectures: IPrefectureItem[];
   cities: ICityItem[];
+  plans: IPlanItem[];
 };
 
 export default function CorporationNewEditForm({
   currentCorporation,
   prefectures,
   cities,
+  plans,
 }: Props) {
   const router = useRouter();
 
@@ -78,6 +81,14 @@ export default function CorporationNewEditForm({
     drug_maker: Yup.string(),
     homepage: Yup.string().url("正しい形式でURLを入力してください。"),
     higher_display: Yup.boolean(),
+    contracts: Yup.array().of(
+      Yup.object().shape({
+        id: Yup.string(),
+        plan_id: Yup.string().required("プランを入力してください。"),
+        start_date: Yup.mixed<any>().nullable(),
+        end_plan_date: Yup.mixed<any>().nullable(),
+      })
+    ),
   });
 
   const defaultValues = useMemo(
@@ -99,6 +110,7 @@ export default function CorporationNewEditForm({
       homepage: currentCorporation?.homepage || "",
       higher_display:
         currentCorporation?.higher_display == "1" ? true : false || false,
+      contracts: currentCorporation?.contracts || [],
     }),
     [currentCorporation]
   );
@@ -121,6 +133,23 @@ export default function CorporationNewEditForm({
     }
   }, [currentCorporation, defaultValues, reset]);
 
+  // 契約情報
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "contracts",
+  });
+  const handleContractAdd = () => {
+    append({
+      id: "",
+      plan_id: "",
+      start_date: null,
+      end_plan_date: null,
+    });
+  };
+  const handleContractRemove = (index: number) => {
+    remove(index);
+  };
+
   const onSubmit = handleSubmit(async (data) => {
     try {
       if (currentCorporation) {
@@ -140,6 +169,7 @@ export default function CorporationNewEditForm({
           drug_maker: data.drug_maker,
           homepage: data.homepage,
           higher_display: data.higher_display ? 1 : 0,
+          contracts: data.contracts,
         });
       } else {
         await axios.post(endpoints.corporation.create, {
@@ -158,6 +188,7 @@ export default function CorporationNewEditForm({
           drug_maker: data.drug_maker,
           homepage: data.homepage,
           higher_display: data.higher_display ? 1 : 0,
+          contracts: data.contracts,
         });
       }
       reset();
@@ -256,6 +287,96 @@ export default function CorporationNewEditForm({
               sx={{ m: 0 }}
             />
           </Stack>
+
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ color: "text.disabled", mb: 3 }}>
+              契約プラン:
+            </Typography>
+            <Stack
+              divider={<Divider flexItem sx={{ borderStyle: "dashed" }} />}
+              spacing={3}
+            >
+              {fields.map((item, index) => (
+                <Stack key={item.id} alignItems="flex-end" spacing={1.5}>
+                  <Stack
+                    direction={{ xs: "column", md: "row" }}
+                    spacing={2}
+                    sx={{ width: 1 }}
+                  >
+                    <RHFSelect
+                      name={`contracts[${index}].plan_id`}
+                      size="small"
+                      label="プラン"
+                      InputLabelProps={{ shrink: true }}
+                      sx={{
+                        maxWidth: { md: 160 },
+                      }}
+                    >
+                      <MenuItem
+                        value=""
+                        sx={{ fontStyle: "italic", color: "text.secondary" }}
+                      >
+                        None
+                      </MenuItem>
+                      <Divider sx={{ borderStyle: "dashed" }} />
+                      {plans.map((plan) => (
+                        <MenuItem key={plan.id} value={plan.id}>
+                          {plan.name}
+                        </MenuItem>
+                      ))}
+                    </RHFSelect>
+
+                    <RHFTextField
+                      size="small"
+                      name={`contracts[${index}].start_date`}
+                      label="掲載開始日"
+                      InputLabelProps={{ shrink: true }}
+                      type="date"
+                      disabled={item.start_date == null ? true : false}
+                    />
+
+                    <RHFTextField
+                      size="small"
+                      name={`contracts[${index}].end_plan_date`}
+                      label="掲載終了日"
+                      InputLabelProps={{ shrink: true }}
+                      type="date"
+                      disabled={item.end_plan_date == null ? true : false}
+                    />
+                  </Stack>
+
+                  {item.id == "" && (
+                    <Button
+                      size="small"
+                      color="error"
+                      startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+                      onClick={() => handleContractRemove(index)}
+                    >
+                      削除
+                    </Button>
+                  )}
+                </Stack>
+              ))}
+            </Stack>
+
+            <Divider sx={{ my: 3, borderStyle: "dashed" }} />
+
+            <Stack
+              spacing={3}
+              direction={{ xs: "column", md: "row" }}
+              alignItems={{ xs: "flex-end", md: "center" }}
+            >
+              <Button
+                size="small"
+                color="primary"
+                startIcon={<Iconify icon="mingcute:add-line" />}
+                onClick={handleContractAdd}
+                sx={{ flexShrink: 0 }}
+              >
+                契約プランを追加
+              </Button>
+            </Stack>
+          </Box>
         </Card>
       </Grid>
     </>
