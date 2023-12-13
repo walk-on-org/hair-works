@@ -4,23 +4,20 @@ import Stack, { StackProps } from "@mui/material/Stack";
 
 import Iconify from "@/components/iconify";
 
-import {
-  ICorporationTableFilters,
-  ICorporationTableFilterValue,
-} from "@/types/corporation";
+import { IOfficeTableFilters, IOfficeTableFilterValue } from "@/types/office";
 
 // ----------------------------------------------------------------------
 
 type Props = StackProps & {
-  filters: ICorporationTableFilters;
-  onFilters: (name: string, value: ICorporationTableFilterValue) => void;
+  filters: IOfficeTableFilters;
+  onFilters: (name: string, value: IOfficeTableFilterValue) => void;
   //
   onResetFilters: VoidFunction;
   //
   results: number;
 };
 
-export default function CorporationTableFiltersResult({
+export default function OfficeTableFiltersResult({
   filters,
   onFilters,
   //

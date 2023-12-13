@@ -13,41 +13,39 @@ import Iconify from "@/components/iconify";
 import { ConfirmDialog } from "@/components/custom-dialog";
 import CustomPopover, { usePopover } from "@/components/custom-popover";
 
-import { ICorporationItem } from "@/types/corporation";
+import { IOfficeItem } from "@/types/office";
 import { fDate } from "@/utils/format-time";
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  row: ICorporationItem;
+  row: IOfficeItem;
   selected: boolean;
   onEditRow: VoidFunction;
   onViewRow: VoidFunction;
+  onCorporationViewRow: VoidFunction;
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
 };
 
-export default function CorporationTableRow({
+export default function OfficeTableRow({
   row,
   selected,
   onSelectRow,
   onEditRow,
   onViewRow,
+  onCorporationViewRow,
   onDeleteRow,
 }: Props) {
   const {
     id,
     name,
+    corporation_id,
+    corporation_name,
     prefecture_name,
     city_name,
     address,
     tel,
-    higher_display,
-    higher_display_name,
-    plan_name,
-    start_date,
-    end_plan_date,
-    end_date,
   } = row;
   const confirm = useBoolean();
   const popover = usePopover();
@@ -62,39 +60,30 @@ export default function CorporationTableRow({
         <TableCell>{id}</TableCell>
 
         <TableCell>
+          <Link
+            noWrap
+            onClick={onCorporationViewRow}
+            sx={{ cursor: "pointer" }}
+          >
+            {corporation_name}
+          </Link>
+        </TableCell>
+
+        <TableCell>
           <Link noWrap onClick={onViewRow} sx={{ cursor: "pointer" }}>
             {name}
           </Link>
         </TableCell>
 
-        <TableCell>{prefecture_name + city_name + address}</TableCell>
+        <TableCell>{prefecture_name}</TableCell>
+
+        <TableCell>{city_name}</TableCell>
+
+        <TableCell>{address}</TableCell>
 
         <TableCell>{tel}</TableCell>
 
         <TableCell>TODO</TableCell>
-
-        <TableCell>TODO</TableCell>
-
-        <TableCell>TODO</TableCell>
-
-        <TableCell>{plan_name}</TableCell>
-
-        <TableCell>{start_date && fDate(start_date, "yyyy/MM/dd")}</TableCell>
-
-        <TableCell>
-          {end_plan_date && fDate(end_plan_date, "yyyy/MM/dd")}
-        </TableCell>
-
-        <TableCell>{end_date && fDate(end_date, "yyyy/MM/dd")}</TableCell>
-
-        <TableCell>
-          <Label
-            variant="soft"
-            color={(higher_display == "1" && "info") || "default"}
-          >
-            {higher_display_name}
-          </Label>
-        </TableCell>
 
         <TableCell align="right">
           <IconButton

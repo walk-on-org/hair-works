@@ -184,4 +184,12 @@ export const endpoints = {
     destroy: (id: string) => `/api/corporations/destroy/${id}`,
     destroyMultiple: "/api/corporations/destroy_multiple",
   },
+  office: {
+    list: "/api/offices",
+    detail: (id: string) => `/api/offices/${id}`,
+    create: "/api/offices/create",
+    update: (id: string) => `/api/offices/update/${id}`,
+    destroy: (id: string) => `/api/offices/destroy/${id}`,
+    destroyMultiple: "/api/offices/destroy_multiple",
+  },
 };

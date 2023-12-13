@@ -39,3 +39,10 @@ export const AD_KEYWORD_MATCH_TYPE = [
   { value: "2", label: "フレーズ一致" },
   { value: "3", label: "完全一致" },
 ];
+
+export const PASSIVE_SMOKING = [
+  { value: "1", label: "屋内禁煙（屋外に喫煙場所設置あり）" },
+  { value: "2", label: "敷地内禁煙" },
+  { value: "3", label: "受動喫煙対策あり（敷地内完全禁煙）" },
+  { value: "4", label: "全面禁煙" },
+];

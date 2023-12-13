@@ -6,19 +6,23 @@ import InputAdornment from "@mui/material/InputAdornment";
 
 import Iconify from "@/components/iconify";
 
-import {
-  ICorporationTableFilters,
-  ICorporationTableFilterValue,
-} from "@/types/corporation";
+import { IOfficeTableFilters, IOfficeTableFilterValue } from "@/types/office";
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  filters: ICorporationTableFilters;
-  onFilters: (name: string, value: ICorporationTableFilterValue) => void;
+  filters: IOfficeTableFilters;
+  onFilters: (name: string, value: IOfficeTableFilterValue) => void;
 };
 
-export default function CorporationTableToolbar({ filters, onFilters }: Props) {
+export default function OfficeTableToolbar({ filters, onFilters }: Props) {
+  const handleFilterCorporationName = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      onFilters("corporation_name", event.target.value);
+    },
+    [onFilters]
+  );
+
   const handleFilterName = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       onFilters("name", event.target.value);
@@ -49,9 +53,26 @@ export default function CorporationTableToolbar({ filters, onFilters }: Props) {
         >
           <TextField
             fullWidth
+            value={filters.corporation_name}
+            onChange={handleFilterCorporationName}
+            placeholder="法人名より探す"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Iconify
+                    icon="eva:search-fill"
+                    sx={{ color: "text.disabled" }}
+                  />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <TextField
+            fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="法人名より探す"
+            placeholder="事業所名より探す"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

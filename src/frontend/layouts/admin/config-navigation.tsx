@@ -66,6 +66,11 @@ export function useNavData() {
             path: paths.admin.corporation.root,
             icon: ICONS.ecommerce,
           },
+          {
+            title: "事業所",
+            path: paths.admin.office.root,
+            icon: ICONS.ecommerce,
+          },
         ],
       },
 

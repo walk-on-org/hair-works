@@ -44,6 +44,8 @@ class OfficeController extends Controller
                 'offices.cut_unit_price',
                 'offices.customer_unit_price',
                 'offices.passive_smoking',
+                'offices.external_url',
+                'offices.sns_url',
             )
             ->get();
         foreach ($offices as $o) {
@@ -140,6 +142,8 @@ class OfficeController extends Controller
                 'cut_unit_price' => 'nullable|numeric',
                 'customer_unit_price' => 'nullable|numeric',
                 'passive_smoking' => 'numeric|regex:/^[1-4]{1}$/',
+                'external_url' => '',
+                'sns_url' => '',
                 'office_accesses' => 'nullable|array',
                 'office_accesses.*.line_id' => 'numeric|exists:lines,id',
                 'office_accesses.*.station_id' => 'numeric|exists:stations,id',
@@ -162,12 +166,12 @@ class OfficeController extends Controller
                 // 事業所登録
                 $office = Office::create($data);
                 // 事業所アクセス登録
-                if ($data['office_accesses'] && is_array($data['office_accesses'])) {
+                if (isset($data['office_accesses']) && is_array($data['office_accesses'])) {
                     $office->officeAccesses->createMany($data['office_accesses']);
                 }
 
                 // 事業所客層登録
-                if ($data['office_clienteles'] && is_array($data['office_clienteles'])) {
+                if (isset($data['office_clienteles']) && is_array($data['office_clienteles'])) {
                     $office->officeClienteles->createMany($data['office_clienteles']);
                 }
 
@@ -210,6 +214,8 @@ class OfficeController extends Controller
                 'cut_unit_price' => 'nullable|numeric',
                 'customer_unit_price' => 'nullable|numeric',
                 'passive_smoking' => 'numeric|regex:/^[1-4]{1}$/',
+                'external_url' => '',
+                'sns_url' => '',
                 'office_accesses' => 'nullable|array',
                 'office_accesses.*.id' => '',
                 'office_accesses.*.line_id' => 'numeric|exists:lines,id',
@@ -237,7 +243,7 @@ class OfficeController extends Controller
                 $office->update($data);
 
                 // 事業所アクセス
-                if ($data['office_accesses'] && is_array($data['office_accesses'])) {
+                if (isset($data['office_accesses']) && is_array($data['office_accesses'])) {
                     // 入力があったID以外は削除
                     $ids = array_column($data['office_accesses'], 'id');
                     if (count($ids) > 0) {
@@ -271,7 +277,7 @@ class OfficeController extends Controller
                 }
 
                 // 事業所客層
-                if ($data['office_clienteles'] && is_array($data['office_clienteles'])) {
+                if (isset($data['office_clienteles']) && is_array($data['office_clienteles'])) {
                     // 入力があったID以外は削除
                     $ids = array_column($data['office_clienteles'], 'id');
                     if (count($ids) > 0) {

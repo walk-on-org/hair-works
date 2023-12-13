@@ -166,7 +166,7 @@ class CorporationController extends Controller
                 // 法人登録
                 $corporation = Corporation::create($data);
                 // 契約登録
-                if ($data['contracts'] && is_array($data['contracts'])) {
+                if (isset($data['contracts']) && is_array($data['contracts'])) {
                     $corporation->contracts->createMany($data['contracts']);
                 }
                 // 求人一括設定画像登録
@@ -227,7 +227,7 @@ class CorporationController extends Controller
                 $corporation->update($data);
 
                 // 契約
-                if ($data['contracts'] && is_array($data['contracts'])) {
+                if (isset($data['contracts']) && is_array($data['contracts'])) {
                     foreach ($data['contracts'] as $contract) {
                         if (isset($contract['id']) && !empty($contract['id'])) {
                             // 登録済みのデータは更新

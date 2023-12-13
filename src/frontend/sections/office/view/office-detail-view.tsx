@@ -15,7 +15,7 @@ import TableContainer from "@mui/material/TableContainer";
 import { paths } from "@/routes/paths";
 import { RouterLink } from "@/routes/components";
 
-import { useGetCorporation } from "@/api/corporation";
+import { useGetOffice } from "@/api/office";
 
 import Label from "@/components/label";
 import Image from "@/components/image";
@@ -27,8 +27,9 @@ import { useSettingsContext } from "@/components/settings";
 
 import { fDate } from "@/utils/format-time";
 
-import CorporationDetailToolbar from "../corporation-detail-toolbar";
-import { CorporationDetailSkeleton } from "../corporation-skelton";
+import OfficeDetailToolbar from "../office-detail-toolbar";
+import { OfficeDetailSkeleton } from "../office-skelton";
+import { Link } from "@mui/material";
 
 // ----------------------------------------------------------------------
 
@@ -36,22 +37,21 @@ type Props = {
   id: string;
 };
 
-export default function CorporationDetailView({ id }: Props) {
-  const { corporation, corporationLoading, corporationError } =
-    useGetCorporation(id);
+export default function OfficeDetailView({ id }: Props) {
+  const { office, officeLoading, officeError } = useGetOffice(id);
 
   const settings = useSettingsContext();
 
-  const renderSkeleton = <CorporationDetailSkeleton />;
+  const renderSkeleton = <OfficeDetailSkeleton />;
 
   const renderError = (
     <EmptyContent
       filled
-      title={`${corporationError?.message}`}
+      title={`${officeError?.message}`}
       action={
         <Button
           component={RouterLink}
-          href={paths.admin.corporation.root}
+          href={paths.admin.office.root}
           startIcon={<Iconify icon="eva:arrow-ios-back-fill" width={16} />}
           sx={{ mt: 3 }}
         >
@@ -62,58 +62,55 @@ export default function CorporationDetailView({ id }: Props) {
     />
   );
 
-  const renderCorporation = corporation && (
+  const renderOffice = office && (
     <>
       <CustomBreadcrumbs
-        heading="法人詳細"
+        heading="事業所詳細"
         links={[
           { name: "ダッシュボード", href: paths.admin.dashboard },
           {
-            name: "法人",
-            href: paths.admin.corporation.root,
+            name: "事業所",
+            href: paths.admin.office.root,
           },
-          { name: corporation?.name },
+          { name: office?.name },
         ]}
         sx={{
           mb: { xs: 3, md: 5 },
         }}
       />
 
-      <CorporationDetailToolbar
-        backLink={paths.admin.corporation.root}
-        editLink={paths.admin.corporation.edit(`${corporation?.id}`)}
+      <OfficeDetailToolbar
+        backLink={paths.admin.office.root}
+        editLink={paths.admin.office.edit(`${office?.id}`)}
       />
 
       <Card>
         <Stack spacing={3} sx={{ p: 3 }}>
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              法人ID
+              事業所ID
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.id}
+              {office.id}
             </Typography>
           </Stack>
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              法人名
+              事業所名
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.name}
+              {office.name}
             </Typography>
           </Stack>
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              法人名非公開
+              法人
             </Typography>
-            <Label
-              variant="soft"
-              color={(corporation.name_private == "1" && "info") || "default"}
-            >
-              {corporation.name_private_name}
-            </Label>
+            <Link href={paths.admin.corporation.detail(office.corporation_id)}>
+              {office.corporation_name}
+            </Link>
           </Stack>
 
           <Stack direction="row">
@@ -121,7 +118,7 @@ export default function CorporationDetailView({ id }: Props) {
               郵便番号
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.postcode}
+              {office.postcode}
             </Typography>
           </Stack>
 
@@ -130,7 +127,7 @@ export default function CorporationDetailView({ id }: Props) {
               都道府県
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.prefecture_name}
+              {office.prefecture_name}
             </Typography>
           </Stack>
 
@@ -139,7 +136,7 @@ export default function CorporationDetailView({ id }: Props) {
               市区町村
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.city_name}
+              {office.city_name}
             </Typography>
           </Stack>
 
@@ -148,7 +145,7 @@ export default function CorporationDetailView({ id }: Props) {
               住所
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.address}
+              {office.address}
             </Typography>
           </Stack>
 
@@ -157,7 +154,7 @@ export default function CorporationDetailView({ id }: Props) {
               電話番号
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.tel}
+              {office.tel}
             </Typography>
           </Stack>
 
@@ -166,170 +163,126 @@ export default function CorporationDetailView({ id }: Props) {
               FAX番号
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.fax}
+              {office.fax}
             </Typography>
           </Stack>
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              サロン数（店舗）
+              開店・リニューアル日
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.salon_num}
+              {fDate(office.open_date, "yyyy/MM/dd")}
             </Typography>
           </Stack>
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              社員数（人）
+              営業時間
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.employee_num}
+              {office.business_time}
             </Typography>
           </Stack>
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              年商
+              定休日
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.yearly_turnover}
+              {office.regular_holiday}
             </Typography>
           </Stack>
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              スタッフ平均年齢
+              坪数
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.average_age}
+              {office.floor_space}
             </Typography>
           </Stack>
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              主な薬剤メーカー
+              セット面
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.drug_maker}
+              {office.seat_num}
             </Typography>
           </Stack>
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              会社ホームページ
+              シャンプー台
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {corporation.homepage}
+              {office.shampoo_stand}
             </Typography>
           </Stack>
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
-              優先表示（PICKUPやおすすめなど）
+              スタッフ
             </Typography>
-            <Label
-              variant="soft"
-              color={(corporation.higher_display == "1" && "info") || "default"}
-            >
-              {corporation.higher_display_name}
-            </Label>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {office.staff}
+            </Typography>
           </Stack>
 
-          <Typography variant="subtitle2">契約プラン</Typography>
-          <TableContainer sx={{ overflow: "unset" }}>
-            <Scrollbar>
-              <Table sx={{ minWidth: 960 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>プラン</TableCell>
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
+              新規客割合
+            </Typography>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {office.new_customer_ratio}
+            </Typography>
+          </Stack>
 
-                    <TableCell>掲載開始日</TableCell>
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
+              標準カット単価
+            </Typography>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {office.cut_unit_price}
+            </Typography>
+          </Stack>
 
-                    <TableCell>掲載終了日</TableCell>
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
+              顧客単価
+            </Typography>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {office.customer_unit_price}
+            </Typography>
+          </Stack>
 
-                    <TableCell>掲載停止日</TableCell>
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
+              受動喫煙対策
+            </Typography>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {office.passive_smoking_name}
+            </Typography>
+          </Stack>
 
-                    <TableCell>満了</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {corporation.contracts.map((row, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{row.plan_name}</TableCell>
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
+              サロンURL
+            </Typography>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {office.external_url}
+            </Typography>
+          </Stack>
 
-                      <TableCell>
-                        {row.start_date && fDate(row.start_date, "yyyy/MM/dd")}
-                      </TableCell>
-
-                      <TableCell>
-                        {row.end_plan_date &&
-                          fDate(row.end_plan_date, "yyyy/MM/dd")}
-                      </TableCell>
-
-                      <TableCell>
-                        {row.end_date && fDate(row.end_date, "yyyy/MM/dd")}
-                      </TableCell>
-
-                      <TableCell>{row.expire_name}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Scrollbar>
-          </TableContainer>
-
-          {/*<Typography variant="subtitle2">求人一括設定画像</Typography>
-          <TableContainer sx={{ overflow: "unset" }}>
-            <Scrollbar>
-              <Table sx={{ minWidth: 960 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>画像</TableCell>
-
-                    <TableCell>画像説明</TableCell>
-
-                    <TableCell>ソート順</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {corporation.corporation_images.map((row, index) => (
-                    <TableRow key={index}>
-                      <Image src={row.image} />
-
-                      <TableCell>{row.alttext}</TableCell>
-
-                      <TableCell>{row.sort}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Scrollbar>
-          </TableContainer>
-
-          <Typography variant="subtitle2">特徴</Typography>
-          <TableContainer sx={{ overflow: "unset" }}>
-            <Scrollbar>
-              <Table sx={{ minWidth: 960 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>画像</TableCell>
-
-                    <TableCell>特徴</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {corporation.corporation_features.map((row, index) => (
-                    <TableRow key={index}>
-                      <Image src={row.image} />
-
-                      <TableCell>{row.feature}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Scrollbar>
-                  </TableContainer>*/}
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
+              SNSリンク
+            </Typography>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {office.sns_url}
+            </Typography>
+          </Stack>
         </Stack>
       </Card>
     </>
@@ -337,11 +290,11 @@ export default function CorporationDetailView({ id }: Props) {
 
   return (
     <Container maxWidth={settings.themeStretch ? false : "lg"}>
-      {corporationLoading && renderSkeleton}
+      {officeLoading && renderSkeleton}
 
-      {corporationError && renderError}
+      {officeError && renderError}
 
-      {corporation && renderCorporation}
+      {office && renderOffice}
     </Container>
   );
 }

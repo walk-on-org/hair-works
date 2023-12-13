@@ -74,7 +74,7 @@ class EmploymentController extends Controller
 
             DB::transaction(function () use ($data) {
                 $employment = Employment::create($data);
-                if ($data['employment_concern_points'] && is_array($data['employment_concern_points'])) {
+                if (isset($data['employment_concern_points']) && is_array($data['employment_concern_points'])) {
                     $employment->employmentConcernPoints()->createMany($data['employment_concern_points']);
                 }
             });
@@ -109,7 +109,7 @@ class EmploymentController extends Controller
                 $employment->update($data);
 
                 // 気になるポイント
-                if ($data['employment_concern_points'] && is_array($data['employment_concern_points'])) {
+                if (isset($data['employment_concern_points']) && is_array($data['employment_concern_points'])) {
                     // 入力があったID以外は削除
                     $ids = array_column($data['employment_concern_points'], 'id');
                     if (count($ids) > 0) {
