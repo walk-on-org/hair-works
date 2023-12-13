@@ -21,6 +21,7 @@ use App\Http\Controllers\NationalHolidayController;
 use App\Http\Controllers\AdKeywordController;
 use App\Http\Controllers\CustomLpController;
 use App\Http\Controllers\CorporationController;
+use App\Http\Controllers\OfficeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -172,4 +173,11 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::post('/corporations/update/{id}', [CorporationController::class, 'update']);
     Route::post('/corporations/destroy/{id}', [CorporationController::class, 'destroy']);
     Route::post('/corporations/destroy_multiple', [CorporationController::class, 'destroyMultiple']);
+    // 事業所
+    Route::get('/offices', [OfficeController::class, 'index']);
+    Route::get('/offices/{id}', [OfficeController::class, 'show']);
+    Route::post('/offices/create', [OfficeController::class, 'create']);
+    Route::post('/offices/update/{id}', [OfficeController::class, 'update']);
+    Route::post('/offices/destroy/{id}', [OfficeController::class, 'destroy']);
+    Route::post('/offices/destroy_multiple', [OfficeController::class, 'destroyMultiple']);
 });

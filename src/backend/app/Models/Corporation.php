@@ -60,4 +60,8 @@ class Corporation extends Model
     public function contracts() {
         return $this->hasMany('App\Models\Contract');
     }
+
+    public function offices() {
+        return $this->hasMany('App\Models\Office');
+    }
 }

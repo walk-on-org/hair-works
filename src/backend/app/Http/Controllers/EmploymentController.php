@@ -109,7 +109,6 @@ class EmploymentController extends Controller
                 $employment->update($data);
 
                 // 気になるポイント
-                Log::debug($data['employment_concern_points']);
                 if ($data['employment_concern_points'] && is_array($data['employment_concern_points'])) {
                     // 入力があったID以外は削除
                     $ids = array_column($data['employment_concern_points'], 'id');

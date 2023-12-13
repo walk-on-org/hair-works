@@ -46,4 +46,8 @@ class Prefecture extends Model
     public function corporations() {
         return $this->hasMany('App\Models\Corporation');
     }
+
+    public function offices() {
+        return $this->hasMany('App\Models\Office');
+    }
 }

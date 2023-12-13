@@ -43,4 +43,8 @@ class Station extends Model
     public function htmlAddContents() {
         return $this->hasMany('App\Models\HtmlAddContent');
     }
+
+    public function officeAccesses() {
+        return $this->hasMany('App\Models\OfficeAccess');
+    }
 }

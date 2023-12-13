@@ -267,7 +267,7 @@ class CorporationController extends Controller
             if (!$corporation) {
                 throw new ModelNotFoundException();
             }
-            DB::transaction(function () use ($employment) {
+            DB::transaction(function () use ($corporation) {
                 // 法人削除
                 // 関連データは削除しない
                 $corporation->delete();
@@ -289,7 +289,7 @@ class CorporationController extends Controller
                 throw new \InvalidArgumentException('Invalid or missing IDs parameter');
             }
             
-            DB::transaction(function () use ($employment) {
+            DB::transaction(function () use ($ids) {
                 // 法人削除
                 // 関連データは削除しない
                 $deleted_count = Corporation::whereIn('id', $ids)->delete();

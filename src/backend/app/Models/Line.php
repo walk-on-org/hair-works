@@ -30,4 +30,8 @@ class Line extends Model
     public function stations() {
         return $this->hasMany('App\Models\Station');
     }
+
+    public function officeAccesses() {
+        return $this->hasMany('App\Models\OfficeAccess');
+    }
 }
