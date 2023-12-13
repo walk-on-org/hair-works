@@ -56,6 +56,7 @@ export default function EmploymentNewEditForm({
     status: Yup.boolean(),
     employment_concern_points: Yup.array().of(
       Yup.object().shape({
+        id: Yup.string(),
         position_id: Yup.string(),
         commitment_term_id: Yup.string(),
         title: Yup.string().required("タイトルを入力してください。"),
@@ -166,7 +167,7 @@ export default function EmploymentNewEditForm({
                     sx={{ width: 1 }}
                   >
                     <RHFSelect
-                      name={`employment_concern_points[${index}].position_id`}
+                      name={`employment_concern_points.${index}.position_id`}
                       size="small"
                       label="役職/役割"
                       InputLabelProps={{ shrink: true }}
@@ -189,7 +190,7 @@ export default function EmploymentNewEditForm({
                     </RHFSelect>
 
                     <RHFSelect
-                      name={`employment_concern_points[${index}].commitment_term_id`}
+                      name={`employment_concern_points.${index}.commitment_term_id`}
                       size="small"
                       label="こだわり条件"
                       InputLabelProps={{ shrink: true }}
@@ -216,14 +217,14 @@ export default function EmploymentNewEditForm({
 
                     <RHFTextField
                       size="small"
-                      name={`employment_concern_points[${index}].title`}
+                      name={`employment_concern_points.${index}.title`}
                       label="タイトル"
                       InputLabelProps={{ shrink: true }}
                     />
 
                     <RHFTextField
                       size="small"
-                      name={`employment_concern_points[${index}].sort`}
+                      name={`employment_concern_points.${index}.sort`}
                       label="ソート順"
                       InputLabelProps={{ shrink: true }}
                       type="number"
@@ -238,7 +239,7 @@ export default function EmploymentNewEditForm({
                   >
                     <RHFTextField
                       size="small"
-                      name={`employment_concern_points[${index}].description`}
+                      name={`employment_concern_points.${index}.description`}
                       label="詳細"
                       InputLabelProps={{ shrink: true }}
                       multiline

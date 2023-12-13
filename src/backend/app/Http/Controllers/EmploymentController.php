@@ -96,16 +96,51 @@ class EmploymentController extends Controller
                 'permalink' => 'required|string',
                 'status' => 'required',
                 'employment_concern_points' => 'nullable|array',
+                'employment_concern_points.*.id' => '',
+                'employment_concern_points.*.position_id' => '',
+                'employment_concern_points.*.commitment_term_id' => '',
+                'employment_concern_points.*.title' => 'required|string',
+                'employment_concern_points.*.description' => 'required|string',
+                'employment_concern_points.*.sort' => 'numeric',
             ]);
 
             DB::transaction(function () use ($data, $id) {
                 $employment = Employment::findOrFail($id);
                 $employment->update($data);
 
-                // 気になるポイントは一度削除して、再度作成
-                $employment->employmentConcernPoints()->delete();
+                // 気になるポイント
+                Log::debug($data['employment_concern_points']);
                 if ($data['employment_concern_points'] && is_array($data['employment_concern_points'])) {
-                    $employment->employmentConcernPoints()->createMany($data['employment_concern_points']);
+                    // 入力があったID以外は削除
+                    $ids = array_column($data['employment_concern_points'], 'id');
+                    if (count($ids) > 0) {
+                        EmploymentConcernPoint::where('employment_id', $id)
+                            ->whereNotIn('id', $ids)
+                            ->delete();
+                    } else {
+                        $employment->employmentConcernPoints()->delete();
+                    }
+                    
+                    // 入力があったデータは登録or更新
+                    foreach ($data['employment_concern_points'] as $point) {
+                        if (isset($point['id']) && !empty($point['id'])) {
+                            // 登録済みのデータは更新
+                            EmploymentConcernPoint::where('id', $point['id'])
+                                ->update([
+                                    'position_id' => $point['position_id'],
+                                    'commitment_term_id' => $point['commitment_term_id'],
+                                    'title' => $point['title'],
+                                    'description' => $point['description'],
+                                    'sort' => $point['sort'],
+                                ]);
+                        } else {
+                            // 未登録データは登録
+                            $employment->employmentConcernPoints()->create($point);
+                        }
+                    }
+                } else {
+                    // 入力がない場合は削除
+                    $employment->employmentConcernPoints()->delete();
                 }
             });
             
@@ -126,8 +161,6 @@ class EmploymentController extends Controller
                 throw new ModelNotFoundException();
             }
             DB::transaction(function () use ($employment) {
-                // 雇用形態気になるポイント削除
-                $employment->employmentConcernPoints()->delete();
                 // 雇用形態削除
                 $employment->delete();
             });
@@ -149,9 +182,6 @@ class EmploymentController extends Controller
             }
             
             DB::transaction(function () use ($ids) {
-                // 雇用形態気になるポイント削除
-                EmploymentConcernPoint::whereIn('employment_id', $ids)
-                    ->delete();
                 // 雇用形態削除
                 $deleted_count = Employment::whereIn('id', $ids)
                     ->delete();
