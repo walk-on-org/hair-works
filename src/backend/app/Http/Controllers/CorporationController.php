@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Corporation;
 use App\Models\Contract;
+use App\Models\CorporationImage;
+use App\Models\CorporationFeature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -105,9 +107,17 @@ class CorporationController extends Controller
             }
             $corporation['contracts'] = $contracts;
 
-            // 法人一括設定画像
+            // 求人一括設定画像
+            $corporation['corporation_images'] = $corporation->corporationImages();
+            foreach ($corporation['corporation_images'] as $corporation_image) {
+                $corporation_image['image'] = config('uploadimage.corporation_image_path') . $corporation->id . '/' . $corporation_image->image;
+            }
 
             // 法人特徴
+            $corporation['corporation_features'] = $corporation->corporationFeatures();
+            foreach ($corporation['corporation_features'] as $corporation_feature) {
+                $corporation_feature['image'] = config('uploadimage.corporation_feature_path') . $corporation->id . '/' . $corporation_feature->image;
+            }
 
             return response()->json(['corporation' => $corporation]);
         } catch (ModelNotFoundException $e) {
@@ -140,13 +150,30 @@ class CorporationController extends Controller
                 'owner_image' => '',
                 'owner_message' => '',
                 'contracts' => 'nullable|array',
+                'contracts.*.plan_id' => 'numeric|exists:plans,id',
+                'contracts.*.start_date' => '',
+                'contracts.*.end_plan_date' => '',
+                'corporation_images' => 'nullable|array',
+                'corporation_images.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'corporation_images.*.alttext' => '',
+                'corporation_images.*.sort' => 'number',
+                'corporation_features' => 'nullable|array',
+                'corporation_features.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'corporation_features.*.feature' => 'required|string',
             ]);
 
             DB::transaction(function () use ($data) {
+                // 法人登録
                 $corporation = Corporation::create($data);
+                // 契約登録
                 if ($data['contracts'] && is_array($data['contracts'])) {
                     $corporation->contracts->createMany($data['contracts']);
                 }
+                // 求人一括設定画像登録
+                // TODO
+
+                // 法人特徴登録
+                // TODO
             });
             
             return response()->json(['result' => 'ok']);
@@ -180,6 +207,19 @@ class CorporationController extends Controller
                 'owner_image' => '',
                 'owner_message' => '',
                 'contracts' => 'nullable|array',
+                'contracts.*.id' => '',
+                'contracts.*.plan_id' => 'numeric|exists:plans,id',
+                'contracts.*.start_date' => '',
+                'contracts.*.end_plan_date' => '',
+                'corporation_images' => 'nullable|array',
+                'corporation_images.*.id' => '',
+                'corporation_images.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'corporation_images.*.alttext' => '',
+                'corporation_images.*.sort' => 'number',
+                'corporation_features' => 'nullable|array',
+                'corporation_features.*.id' => '',
+                'corporation_features.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'corporation_features.*.feature' => 'required|string',
             ]);
 
             DB::transaction(function () use ($data, $id) {
@@ -189,13 +229,13 @@ class CorporationController extends Controller
                 // 契約
                 if ($data['contracts'] && is_array($data['contracts'])) {
                     foreach ($data['contracts'] as $contract) {
-                        if ($contract['id']) {
+                        if (isset($contract['id']) && !empty($contract['id'])) {
                             // 登録済みのデータは更新
                             Contract::where('id', $contract['id'])
                                 ->update([
                                     'plan_id' => $contract['plan_id'],
-                                    'start_date' => $contract['start_date'],
-                                    'end_plan_date' => $contract['end_plan_date'],
+                                    'start_date' => (isset($contract['start_date']) && !empty($contract['start_date'])) ? $contract['start_date'] : null,
+                                    'end_plan_date' => (isset($contract['end_plan_date']) && !empty($contract['end_plan_date'])) ? $contract['end_plan_date'] : null,
                                 ]);
                         } else {
                             // 未登録データは登録
@@ -203,6 +243,12 @@ class CorporationController extends Controller
                         }
                     }
                 }
+
+                // 求人一括設定画像
+                // TODO
+
+                // 法人特徴
+                // TODO
             });
             
             return response()->json(['result' => 'ok']);
@@ -222,9 +268,8 @@ class CorporationController extends Controller
                 throw new ModelNotFoundException();
             }
             DB::transaction(function () use ($employment) {
-                // 契約削除
-                $corporation->contracts()->delete();
                 // 法人削除
+                // 関連データは削除しない
                 $corporation->delete();
             });
             return response()->json(['result' => 'ok']);
@@ -245,12 +290,9 @@ class CorporationController extends Controller
             }
             
             DB::transaction(function () use ($employment) {
-                // 契約削除
-                Contract::whereIn('corporation_id', $ids)
-                    ->delete();
                 // 法人削除
-                $deleted_count = Corporation::whereIn('id', $ids)
-                    ->delete();
+                // 関連データは削除しない
+                $deleted_count = Corporation::whereIn('id', $ids)->delete();
             });
             return response()->json(['result' => 'ok']);
         } catch (\InvalidArgumentException $e) {

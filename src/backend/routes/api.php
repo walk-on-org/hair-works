@@ -161,7 +161,7 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/custom_lps', [CustomLpController::class, 'index']);
     Route::get('/custom_lps/{id}', [CustomLpController::class, 'show']);
     Route::post('/custom_lps/create', [CustomLpController::class, 'create']);
-    Route::patch('/custom_lps/update/{id}', [CustomLpController::class, 'update']);
+    Route::post('/custom_lps/update/{id}', [CustomLpController::class, 'update']);
     Route::post('/custom_lps/destroy/{id}', [CustomLpController::class, 'destroy']);
     Route::post('/custom_lps/destroy_multiple', [CustomLpController::class, 'destroyMultiple']);
 
@@ -169,7 +169,7 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/corporations', [CorporationController::class, 'index']);
     Route::get('/corporations/{id}', [CorporationController::class, 'show']);
     Route::post('/corporations/create', [CorporationController::class, 'create']);
-    Route::patch('/corporations/update/{id}', [CorporationController::class, 'update']);
+    Route::post('/corporations/update/{id}', [CorporationController::class, 'update']);
     Route::post('/corporations/destroy/{id}', [CorporationController::class, 'destroy']);
     Route::post('/corporations/destroy_multiple', [CorporationController::class, 'destroyMultiple']);
 });

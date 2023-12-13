@@ -102,7 +102,7 @@ export default function CustomLpNewEditForm({ currentCustomLp }: Props) {
     console.log(data);
     try {
       if (currentCustomLp) {
-        await axios.patch(
+        await axios.post(
           endpoints.customLp.update(currentCustomLp.id),
           {
             title: data.title,

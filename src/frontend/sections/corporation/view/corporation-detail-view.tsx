@@ -18,6 +18,7 @@ import { RouterLink } from "@/routes/components";
 import { useGetCorporation } from "@/api/corporation";
 
 import Label from "@/components/label";
+import Image from "@/components/image";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import Iconify from "@/components/iconify";
 import EmptyContent from "@/components/empty-content";
@@ -268,6 +269,58 @@ export default function CorporationDetailView({ id }: Props) {
               </Table>
             </Scrollbar>
           </TableContainer>
+
+          {/*<Typography variant="subtitle2">求人一括設定画像</Typography>
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>画像</TableCell>
+
+                    <TableCell>画像説明</TableCell>
+
+                    <TableCell>ソート順</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {corporation.corporation_images.map((row, index) => (
+                    <TableRow key={index}>
+                      <Image src={row.image} />
+
+                      <TableCell>{row.alttext}</TableCell>
+
+                      <TableCell>{row.sort}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
+
+          <Typography variant="subtitle2">特徴</Typography>
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>画像</TableCell>
+
+                    <TableCell>特徴</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {corporation.corporation_features.map((row, index) => (
+                    <TableRow key={index}>
+                      <Image src={row.image} />
+
+                      <TableCell>{row.feature}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+                  </TableContainer>*/}
         </Stack>
       </Card>
     </>

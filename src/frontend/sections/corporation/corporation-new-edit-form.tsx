@@ -1,7 +1,7 @@
 import * as Yup from "yup";
 import { useFieldArray, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -24,6 +24,7 @@ import FormProvider, {
   RHFSwitch,
   RHFTextField,
   RHFSelect,
+  RHFUpload,
 } from "@/components/hook-form";
 
 import { ICorporationItem } from "@/types/corporation";
@@ -89,6 +90,21 @@ export default function CorporationNewEditForm({
         end_plan_date: Yup.mixed<any>().nullable(),
       })
     ),
+    /*corporation_images: Yup.array().of(
+      Yup.object().shape({
+        id: Yup.string(),
+        image: Yup.mixed<any>().required("画像を設定してください。"),
+        alttext: Yup.string(),
+        sort: Yup.number().required("ソート順を入力してください。"),
+      })
+    ),
+    corporation_features: Yup.array().of(
+      Yup.object().shape({
+        id: Yup.string(),
+        image: Yup.mixed<any>().required("画像を設定してください。"),
+        feature: Yup.string().required("特徴を入力してください。"),
+      })
+    ),*/
   });
 
   const defaultValues = useMemo(
@@ -111,6 +127,8 @@ export default function CorporationNewEditForm({
       higher_display:
         currentCorporation?.higher_display == "1" ? true : false || false,
       contracts: currentCorporation?.contracts || [],
+      /*corporation_images: currentCorporation?.corporation_images || [],
+      corporation_features: currentCorporation?.corporation_features || [],*/
     }),
     [currentCorporation]
   );
@@ -123,9 +141,13 @@ export default function CorporationNewEditForm({
   const {
     control,
     reset,
+    watch,
+    setValue,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
+
+  const values = watch();
 
   useEffect(() => {
     if (currentCorporation) {
@@ -133,13 +155,17 @@ export default function CorporationNewEditForm({
     }
   }, [currentCorporation, defaultValues, reset]);
 
-  // 契約情報
-  const { fields, append, remove } = useFieldArray({
+  // 契約プラン
+  const {
+    fields: contractFields,
+    append: appendContract,
+    remove: removeContract,
+  } = useFieldArray({
     control,
     name: "contracts",
   });
   const handleContractAdd = () => {
-    append({
+    appendContract({
       id: "",
       plan_id: "",
       start_date: null,
@@ -147,49 +173,152 @@ export default function CorporationNewEditForm({
     });
   };
   const handleContractRemove = (index: number) => {
-    remove(index);
+    removeContract(index);
   };
 
+  // 求人一括設定画像
+  /*const {
+    fields: imageFields,
+    append: appendImage,
+    remove: removeImage,
+  } = useFieldArray({
+    control,
+    name: "corporation_images",
+  });
+  const handleCorporationImageAdd = () => {
+    appendImage({
+      id: "",
+      image: null,
+      alttext: "",
+      sort: 0,
+    });
+  };
+  const handleCorporationImageRemove = (index: number) => {
+    removeImage(index);
+  };
+  const handleImageDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+
+      console.log(file);
+
+      const newFile = Object.assign(file, {
+        preview: URL.createObjectURL(file),
+      });
+
+      // TODO indexから設定
+      if (file) {
+        setValue(`corporation_images.0.image`, newFile, {
+          shouldValidate: true,
+        });
+      }
+    },
+    [setValue]
+  );
+  const handleImageRemoveFile = useCallback(() => {
+    setValue(`corporation_images.${0}.image`, null);
+  }, [setValue]);*/
+
+  // 法人特徴
+  /*const {
+    fields: featureFields,
+    append: appendFeature,
+    remove: removeFeature,
+  } = useFieldArray({
+    control,
+    name: "corporation_features",
+  });
+  const handleCorporationFeatureAdd = () => {
+    appendFeature({
+      id: "",
+      feature: "",
+      image: null,
+    });
+  };
+  const handleCorporationFeatureRemove = (index: number) => {
+    removeFeature(index);
+  };
+  const handleFeatureDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+
+      const newFile = Object.assign(file, {
+        preview: URL.createObjectURL(file),
+      });
+
+      if (file) {
+        setValue(`corporation_features.${0}.image`, newFile, {
+          shouldValidate: true,
+        });
+      }
+    },
+    [setValue]
+  );
+  const handleFeatureRemoveFile = useCallback(() => {
+    setValue(`corporation_features.${0}.image`, null);
+  }, [setValue]);*/
+
   const onSubmit = handleSubmit(async (data) => {
+    console.log(data);
     try {
       if (currentCorporation) {
-        await axios.patch(endpoints.corporation.update(currentCorporation.id), {
-          name: data.name,
-          name_private: data.name_private ? 1 : 0,
-          postcode: data.postcode,
-          prefecture_id: Number(data.prefecture_id),
-          city_id: Number(data.city_id),
-          address: data.address,
-          tel: data.tel,
-          fax: data.fax,
-          salon_num: data.salon_num != 0 ? data.salon_num : null,
-          employee_num: data.employee_num != 0 ? data.employee_num : null,
-          yearly_turnover: data.yearly_turnover,
-          average_age: data.average_age,
-          drug_maker: data.drug_maker,
-          homepage: data.homepage,
-          higher_display: data.higher_display ? 1 : 0,
-          contracts: data.contracts,
-        });
+        await axios.post(
+          endpoints.corporation.update(currentCorporation.id),
+          {
+            name: data.name,
+            name_private: data.name_private ? 1 : 0,
+            postcode: data.postcode,
+            prefecture_id: Number(data.prefecture_id),
+            city_id: Number(data.city_id),
+            address: data.address,
+            tel: data.tel,
+            fax: data.fax,
+            salon_num: data.salon_num != 0 ? data.salon_num : null,
+            employee_num: data.employee_num != 0 ? data.employee_num : null,
+            yearly_turnover: data.yearly_turnover,
+            average_age: data.average_age,
+            drug_maker: data.drug_maker,
+            homepage: data.homepage,
+            higher_display: data.higher_display ? 1 : 0,
+            contracts: data.contracts,
+            /*corporation_images: data.corporation_images,
+            corporation_features: data.corporation_features,*/
+          },
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
       } else {
-        await axios.post(endpoints.corporation.create, {
-          name: data.name,
-          name_private: data.name_private ? 1 : 0,
-          postcode: data.postcode,
-          prefecture_id: Number(data.prefecture_id),
-          city_id: Number(data.city_id),
-          address: data.address,
-          tel: data.tel,
-          fax: data.fax,
-          salon_num: data.salon_num != 0 ? data.salon_num : null,
-          employee_num: data.employee_num != 0 ? data.employee_num : null,
-          yearly_turnover: data.yearly_turnover,
-          average_age: data.average_age,
-          drug_maker: data.drug_maker,
-          homepage: data.homepage,
-          higher_display: data.higher_display ? 1 : 0,
-          contracts: data.contracts,
-        });
+        await axios.post(
+          endpoints.corporation.create,
+          {
+            name: data.name,
+            name_private: data.name_private ? 1 : 0,
+            postcode: data.postcode,
+            prefecture_id: Number(data.prefecture_id),
+            city_id: Number(data.city_id),
+            address: data.address,
+            tel: data.tel,
+            fax: data.fax,
+            salon_num: data.salon_num != 0 ? data.salon_num : null,
+            employee_num: data.employee_num != 0 ? data.employee_num : null,
+            yearly_turnover: data.yearly_turnover,
+            average_age: data.average_age,
+            drug_maker: data.drug_maker,
+            homepage: data.homepage,
+            higher_display: data.higher_display ? 1 : 0,
+            contracts: data.contracts,
+            /*corporation_images: data.corporation_images,
+            corporation_features: data.corporation_features,*/
+          },
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
       }
       reset();
       enqueueSnackbar(currentCorporation ? "更新しました！" : "作成しました！");
@@ -296,7 +425,7 @@ export default function CorporationNewEditForm({
               divider={<Divider flexItem sx={{ borderStyle: "dashed" }} />}
               spacing={3}
             >
-              {fields.map((item, index) => (
+              {contractFields.map((item, index) => (
                 <Stack key={item.id} alignItems="flex-end" spacing={1.5}>
                   <Stack
                     direction={{ xs: "column", md: "row" }}
@@ -304,7 +433,7 @@ export default function CorporationNewEditForm({
                     sx={{ width: 1 }}
                   >
                     <RHFSelect
-                      name={`contracts[${index}].plan_id`}
+                      name={`contracts.${index}.plan_id`}
                       size="small"
                       label="プラン"
                       InputLabelProps={{ shrink: true }}
@@ -328,7 +457,7 @@ export default function CorporationNewEditForm({
 
                     <RHFTextField
                       size="small"
-                      name={`contracts[${index}].start_date`}
+                      name={`contracts.${index}.start_date`}
                       label="掲載開始日"
                       InputLabelProps={{ shrink: true }}
                       type="date"
@@ -337,7 +466,7 @@ export default function CorporationNewEditForm({
 
                     <RHFTextField
                       size="small"
-                      name={`contracts[${index}].end_plan_date`}
+                      name={`contracts.${index}.end_plan_date`}
                       label="掲載終了日"
                       InputLabelProps={{ shrink: true }}
                       type="date"
@@ -377,6 +506,149 @@ export default function CorporationNewEditForm({
               </Button>
             </Stack>
           </Box>
+
+          {/*<Box sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ color: "text.disabled", mb: 3 }}>
+              求人一括設定画像:
+            </Typography>
+            <Stack
+              divider={<Divider flexItem sx={{ borderStyle: "dashed" }} />}
+              spacing={3}
+            >
+              {imageFields.map((item, index) => (
+                <Stack key={item.id} alignItems="flex-end" spacing={1.5}>
+                  <Stack
+                    direction={{ xs: "column", md: "row" }}
+                    spacing={2}
+                    sx={{ width: 1 }}
+                  >
+                    <Stack spacing={1.5}>
+                      <Typography variant="subtitle2">ロゴ</Typography>
+                      <RHFUpload
+                        thumbnail
+                        name={`corporation_images.${index}.image`}
+                        maxSize={3145728}
+                        onDrop={handleImageDrop}
+                        onRemove={handleImageRemoveFile}
+                        onUpload={() => console.info("ON UPLOAD")}
+                      />
+                    </Stack>
+
+                    <Stack spacing={1.5} flexShrink={0}>
+                      <RHFTextField
+                        size="small"
+                        name={`corporation_images.${index}.alttext`}
+                        label="画像説明"
+                        InputLabelProps={{ shrink: true }}
+                      />
+
+                      <RHFTextField
+                        size="small"
+                        name={`corporation_images.${index}.sort`}
+                        label="ソート順"
+                        InputLabelProps={{ shrink: true }}
+                        type="number"
+                        placeholder="0"
+                      />
+                    </Stack>
+                  </Stack>
+
+                  <Button
+                    size="small"
+                    color="error"
+                    startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+                    onClick={() => handleCorporationImageRemove(index)}
+                  >
+                    削除
+                  </Button>
+                </Stack>
+              ))}
+            </Stack>
+
+            <Divider sx={{ my: 3, borderStyle: "dashed" }} />
+
+            <Stack
+              spacing={3}
+              direction={{ xs: "column", md: "row" }}
+              alignItems={{ xs: "flex-end", md: "center" }}
+            >
+              <Button
+                size="small"
+                color="primary"
+                startIcon={<Iconify icon="mingcute:add-line" />}
+                onClick={handleCorporationImageAdd}
+                sx={{ flexShrink: 0 }}
+              >
+                求人一括設定画像を追加
+              </Button>
+            </Stack>
+              </Box>*/}
+
+          {/*<Box sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ color: "text.disabled", mb: 3 }}>
+              特徴:
+            </Typography>
+            <Stack
+              divider={<Divider flexItem sx={{ borderStyle: "dashed" }} />}
+              spacing={3}
+            >
+              {featureFields.map((item, index) => (
+                <Stack key={item.id} alignItems="flex-end" spacing={1.5}>
+                  <Stack
+                    direction={{ xs: "column", md: "row" }}
+                    spacing={2}
+                    sx={{ width: 1 }}
+                  >
+                    <Stack spacing={1.5}>
+                      <Typography variant="subtitle2">ロゴ</Typography>
+                      <RHFUpload
+                        thumbnail
+                        name={`corporation_features.${index}.image`}
+                        maxSize={3145728}
+                        onDrop={handleFeatureDrop}
+                        onRemove={handleFeatureRemoveFile}
+                        onUpload={() => console.info("ON UPLOAD")}
+                      />
+                    </Stack>
+
+                    <RHFTextField
+                      size="small"
+                      name={`corporation_features.${index}.feature`}
+                      label="特徴"
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Stack>
+
+                  <Button
+                    size="small"
+                    color="error"
+                    startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+                    onClick={() => handleCorporationFeatureRemove(index)}
+                  >
+                    削除
+                  </Button>
+                </Stack>
+              ))}
+            </Stack>
+
+            <Divider sx={{ my: 3, borderStyle: "dashed" }} />
+
+            <Stack
+              spacing={3}
+              direction={{ xs: "column", md: "row" }}
+              alignItems={{ xs: "flex-end", md: "center" }}
+            >
+              <Button
+                size="small"
+                color="primary"
+                startIcon={<Iconify icon="mingcute:add-line" />}
+                onClick={handleCorporationFeatureAdd}
+                sx={{ flexShrink: 0 }}
+              >
+                特徴を追加
+              </Button>
+            </Stack>
+          </Box>*/}
         </Card>
       </Grid>
     </>

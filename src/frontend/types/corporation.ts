@@ -22,6 +22,8 @@ export type ICorporationItem = {
   owner_image: string;
   owner_message: string;
   contracts: IContractItem[];
+  corporation_images: ICorporationImageItem[];
+  corporation_features: ICorporationFeatureItem[];
   plan_id: string;
   plan_name: string;
   start_date: Date | null;
@@ -46,4 +48,17 @@ export type IContractItem = {
   end_date: Date | null;
   expire: string;
   expire_name: string;
+};
+
+export type ICorporationImageItem = {
+  id: string;
+  image: string;
+  alttext: string;
+  sort: number;
+};
+
+export type ICorporationFeatureItem = {
+  id: string;
+  feature: string;
+  image: string;
 };
