@@ -46,3 +46,17 @@ export const PASSIVE_SMOKING = [
   { value: "3", label: "受動喫煙対策あり（敷地内完全禁煙）" },
   { value: "4", label: "全面禁煙" },
 ];
+
+export const MOVE_TYPE = [
+  { value: "1", label: "徒歩" },
+  { value: "2", label: "車" },
+  { value: "3", label: "バス" },
+];
+
+export const CLIENTELE = [
+  { value: "1", label: "20代中心" },
+  { value: "2", label: "30代中心" },
+  { value: "3", label: "40代以降中心" },
+  { value: "9", label: "ALL年代" },
+  { value: "99", label: "その他" },
+];

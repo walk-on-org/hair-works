@@ -108,13 +108,13 @@ class CorporationController extends Controller
             $corporation['contracts'] = $contracts;
 
             // 求人一括設定画像
-            $corporation['corporation_images'] = $corporation->corporationImages();
+            $corporation['corporation_images'] = $corporation->corporationImages;
             foreach ($corporation['corporation_images'] as $corporation_image) {
                 $corporation_image['image'] = config('uploadimage.corporation_image_path') . $corporation->id . '/' . $corporation_image->image;
             }
 
             // 法人特徴
-            $corporation['corporation_features'] = $corporation->corporationFeatures();
+            $corporation['corporation_features'] = $corporation->corporationFeatures;
             foreach ($corporation['corporation_features'] as $corporation_feature) {
                 $corporation_feature['image'] = config('uploadimage.corporation_feature_path') . $corporation->id . '/' . $corporation_feature->image;
             }

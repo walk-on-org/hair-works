@@ -8,6 +8,7 @@ import { useGetOffice } from "@/api/office";
 import { useGetCorporations } from "@/api/corporation";
 import { useGetPrefectures } from "@/api/prefecture";
 import { useGetCities } from "@/api/city";
+import { useGetStations } from "@/api/station";
 
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
@@ -27,6 +28,7 @@ export default function OfficeEditView({ id }: Props) {
   const { corporations } = useGetCorporations();
   const { prefectures } = useGetPrefectures();
   const { cities } = useGetCities();
+  const { stations } = useGetStations();
 
   return (
     <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -50,6 +52,7 @@ export default function OfficeEditView({ id }: Props) {
         corporations={corporations}
         prefectures={prefectures}
         cities={cities}
+        stations={stations}
       />
     </Container>
   );

@@ -18,8 +18,8 @@ class OfficeClientele extends Model
         1 => '20代中心',
         2 => '30代中心',
         3 => '40代以降中心',
-        4 => 'ALL年代',
-        5 => 'その他',
+        9 => 'ALL年代',
+        99 => 'その他',
     ];
 
     public function office() {

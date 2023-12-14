@@ -17,8 +17,6 @@ import { RouterLink } from "@/routes/components";
 
 import { useGetOffice } from "@/api/office";
 
-import Label from "@/components/label";
-import Image from "@/components/image";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import Iconify from "@/components/iconify";
 import EmptyContent from "@/components/empty-content";
@@ -61,6 +59,10 @@ export default function OfficeDetailView({ id }: Props) {
       sx={{ py: 10 }}
     />
   );
+
+  const clienteleName = office?.office_clienteles.map((row) => {
+    return row.clientele == "99" ? row.othertext : row.clientele_name;
+  });
 
   const renderOffice = office && (
     <>
@@ -268,6 +270,15 @@ export default function OfficeDetailView({ id }: Props) {
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
+              客層
+            </Typography>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {clienteleName.join("、")}
+            </Typography>
+          </Stack>
+
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
               サロンURL
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -283,6 +294,42 @@ export default function OfficeDetailView({ id }: Props) {
               {office.sns_url}
             </Typography>
           </Stack>
+
+          <Typography variant="subtitle2">事業所アクセス</Typography>
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>路線</TableCell>
+
+                    <TableCell>駅</TableCell>
+
+                    <TableCell>移動手段</TableCell>
+
+                    <TableCell>移動時間（分）</TableCell>
+
+                    <TableCell>備考</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {office.office_accesses.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{row.line_name}</TableCell>
+
+                      <TableCell>{row.station_name}</TableCell>
+
+                      <TableCell>{row.move_type_name}</TableCell>
+
+                      <TableCell>{row.time}</TableCell>
+
+                      <TableCell>{row.note}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
         </Stack>
       </Card>
     </>

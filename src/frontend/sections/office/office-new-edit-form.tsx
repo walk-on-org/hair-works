@@ -1,15 +1,9 @@
 import * as Yup from "yup";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useMemo, useEffect, useCallback } from "react";
+import { useMemo, useEffect } from "react";
 
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
-import Divider from "@mui/material/Divider";
-import MenuItem from "@mui/material/MenuItem";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Unstable_Grid2";
 import LoadingButton from "@mui/lab/LoadingButton";
 
@@ -19,20 +13,17 @@ import { useRouter } from "@/routes/hooks";
 import { useResponsive } from "@/hooks/use-responsive";
 
 import { useSnackbar } from "@/components/snackbar";
-import Iconify from "@/components/iconify";
-import FormProvider, {
-  RHFSwitch,
-  RHFTextField,
-  RHFSelect,
-  RHFUpload,
-} from "@/components/hook-form";
+import FormProvider from "@/components/hook-form";
 
 import { IOfficeItem } from "@/types/office";
 import { ICorporationItem } from "@/types/corporation";
 import { IPrefectureItem } from "@/types/prefecture";
 import { ICityItem } from "@/types/city";
+import { IStationItem } from "@/types/station";
 import axios, { endpoints } from "@/utils/axios";
-import { PASSIVE_SMOKING } from "@/config-global";
+import OfficeNewEditDetails from "./office-new-edit-details";
+import OfficeNewEditAccesses from "./office-new-edit-accesses";
+import OfficeNewEditClienteles from "./office-new-edit-clienteles";
 
 // ----------------------------------------------------------------------
 
@@ -41,6 +32,7 @@ type Props = {
   corporations: ICorporationItem[];
   prefectures: IPrefectureItem[];
   cities: ICityItem[];
+  stations: IStationItem[];
 };
 
 export default function OfficeNewEditForm({
@@ -48,6 +40,7 @@ export default function OfficeNewEditForm({
   corporations,
   prefectures,
   cities,
+  stations,
 }: Props) {
   const router = useRouter();
 
@@ -89,6 +82,23 @@ export default function OfficeNewEditForm({
     passive_smoking: Yup.string().required("受動喫煙対策を入力してください。"),
     external_url: Yup.string().url("正しい形式でURLを入力してください。"),
     sns_url: Yup.string().url("正しい形式でURLを入力してください。"),
+    office_accesses: Yup.array().of(
+      Yup.object().shape({
+        id: Yup.string(),
+        line_id: Yup.string(),
+        station_id: Yup.string().required("駅を入力してください"),
+        move_type: Yup.string().required("移動手段を入力してください。"),
+        time: Yup.number().required("時間を入力してください。"),
+        note: Yup.string(),
+      })
+    ),
+    office_clienteles: Yup.array().of(
+      Yup.object().shape({
+        id: Yup.string(),
+        clientele: Yup.string().required("客層を入力してください。"),
+        othertext: Yup.string(),
+      })
+    ),
   });
 
   const defaultValues = useMemo(
@@ -114,6 +124,8 @@ export default function OfficeNewEditForm({
       passive_smoking: currentOffice?.passive_smoking || "",
       external_url: currentOffice?.external_url || "",
       sns_url: currentOffice?.sns_url || "",
+      office_accesses: currentOffice?.office_accesses || [],
+      office_clienteles: currentOffice?.office_clienteles || [],
     }),
     [currentOffice]
   );
@@ -124,10 +136,9 @@ export default function OfficeNewEditForm({
   });
 
   const {
-    control,
     reset,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = methods;
 
   useEffect(() => {
@@ -167,6 +178,8 @@ export default function OfficeNewEditForm({
             passive_smoking: Number(data.passive_smoking),
             external_url: data.external_url,
             sns_url: data.sns_url,
+            office_accesses: data.office_accesses,
+            office_clienteles: data.office_clienteles,
           },
           {
             headers: {
@@ -202,6 +215,8 @@ export default function OfficeNewEditForm({
             passive_smoking: Number(data.passive_smoking),
             external_url: data.external_url,
             sns_url: data.sns_url,
+            office_accesses: data.office_accesses,
+            office_clienteles: data.office_clienteles,
           },
           {
             headers: {
@@ -223,159 +238,15 @@ export default function OfficeNewEditForm({
     <>
       <Grid xs={12}>
         <Card>
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFTextField name="name" label="事業所名" />
+          <OfficeNewEditDetails
+            corporations={corporations}
+            prefectures={prefectures}
+            cities={cities}
+          />
 
-            <RHFSelect
-              fullWidth
-              name="corporation_id"
-              label="法人"
-              InputLabelProps={{ shrink: true }}
-              PaperPropsSx={{ textTransform: "capitalize" }}
-            >
-              <MenuItem
-                value=""
-                sx={{ fontStyle: "italic", color: "text.secondary" }}
-              >
-                None
-              </MenuItem>
-              <Divider sx={{ borderStyle: "dashed" }} />
-              {corporations.map((corporation) => (
-                <MenuItem key={corporation.name} value={corporation.id}>
-                  {corporation.name}
-                </MenuItem>
-              ))}
-            </RHFSelect>
+          <OfficeNewEditAccesses stations={stations} />
 
-            <RHFTextField name="postcode" label="郵便番号" />
-
-            <RHFSelect
-              fullWidth
-              name="prefecture_id"
-              label="都道府県"
-              InputLabelProps={{ shrink: true }}
-              PaperPropsSx={{ textTransform: "capitalize" }}
-            >
-              <MenuItem
-                value=""
-                sx={{ fontStyle: "italic", color: "text.secondary" }}
-              >
-                None
-              </MenuItem>
-              <Divider sx={{ borderStyle: "dashed" }} />
-              {prefectures.map((prefecture) => (
-                <MenuItem key={prefecture.name} value={prefecture.id}>
-                  {prefecture.name}
-                </MenuItem>
-              ))}
-            </RHFSelect>
-
-            <RHFSelect
-              fullWidth
-              name="city_id"
-              label="市区町村"
-              InputLabelProps={{ shrink: true }}
-              PaperPropsSx={{ textTransform: "capitalize" }}
-            >
-              <MenuItem
-                value=""
-                sx={{ fontStyle: "italic", color: "text.secondary" }}
-              >
-                None
-              </MenuItem>
-              <Divider sx={{ borderStyle: "dashed" }} />
-              {cities.map((city) => (
-                <MenuItem key={city.name} value={city.id}>
-                  {city.name}
-                </MenuItem>
-              ))}
-            </RHFSelect>
-
-            <RHFTextField name="address" label="住所" />
-
-            <RHFTextField name="tel" label="電話番号" />
-
-            <RHFTextField name="fax" label="FAX番号" />
-
-            <RHFTextField
-              name="open_date"
-              label="開店・リニューアル日"
-              type="date"
-            />
-
-            <RHFTextField name="business_time" label="営業時間" />
-
-            <RHFTextField name="regular_holiday" label="定休日" />
-
-            <RHFTextField
-              name="floor_space"
-              label="坪数（坪）"
-              type="number"
-              placeholder="0"
-            />
-
-            <RHFTextField
-              name="seat_num"
-              label="セット面（面）"
-              type="number"
-              placeholder="0"
-            />
-
-            <RHFTextField name="shampoo_stand" label="シャンプー台" />
-
-            <RHFTextField
-              name="staff"
-              label="スタッフ（人）"
-              type="number"
-              placeholder="0"
-            />
-
-            <RHFTextField
-              name="new_customer_ratio"
-              label="新規客割合（%）"
-              type="number"
-              placeholder="0"
-            />
-
-            <RHFTextField
-              name="cut_unit_price"
-              label="標準カット単価（円）"
-              type="number"
-              placeholder="0"
-            />
-
-            <RHFTextField
-              name="customer_unit_price"
-              label="顧客単価（円）"
-              type="number"
-              placeholder="0"
-            />
-
-            <RHFSelect
-              fullWidth
-              name="passive_smoking"
-              label="受動喫煙対策"
-              InputLabelProps={{ shrink: true }}
-              PaperPropsSx={{ textTransform: "capitalize" }}
-            >
-              <MenuItem
-                value=""
-                sx={{ fontStyle: "italic", color: "text.secondary" }}
-              >
-                None
-              </MenuItem>
-              <Divider sx={{ borderStyle: "dashed" }} />
-              {PASSIVE_SMOKING.map((row) => (
-                <MenuItem key={row.value} value={row.value}>
-                  {row.label}
-                </MenuItem>
-              ))}
-            </RHFSelect>
-
-            <RHFTextField name="external_url" label="サロンURL" />
-
-            <RHFTextField name="sns_url" label="SNSリンク" />
-          </Stack>
+          <OfficeNewEditClienteles />
         </Card>
       </Grid>
     </>
@@ -390,6 +261,7 @@ export default function OfficeNewEditForm({
           variant="contained"
           size="large"
           loading={isSubmitting}
+          onClick={() => console.log(errors)}
         >
           {!currentOffice ? "事業所を作成" : "事業所を変更"}
         </LoadingButton>

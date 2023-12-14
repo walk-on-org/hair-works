@@ -91,21 +91,22 @@ class OfficeController extends Controller
             foreach ($office_accesses as $office_access) {
                 $office_access->move_type_name = OfficeAccess::MOVE_TYPE[$office_access->move_type];
             }
+            $office['office_accesses'] = $office_accesses;
             
             // 事業所客層
-            $offices['office_clienteles'] = $office->officeClienteles();
-            foreach ($offices['office_clienteles'] as $office_clientele) {
+            $office['office_clienteles'] = $office->officeClienteles;
+            foreach ($office['office_clienteles'] as $office_clientele) {
                 $office_clientele['clientele_name'] = OfficeClientele::CLIENTELE[$office_clientele->clientele];
             }
 
             // 求人一括設定画像
-            $office['office_images'] = $office->officeImages();
+            $office['office_images'] = $office->officeImages;
             foreach ($office['office_images'] as $office_image) {
                 $office_image['image'] = config('uploadimage.office_image_path') . $office->id . '/' . $office_image->image;
             }
 
             // 事業所特徴
-            $office['office_features'] = $office->officeFeatures();
+            $office['office_features'] = $office->officeFeatures;
             foreach ($office['office_features'] as $office_feature) {
                 $office_feature['image'] = config('uploadimage.office_feature_path') . $office->id . '/' . $office_feature->image;
             }
@@ -278,6 +279,7 @@ class OfficeController extends Controller
 
                 // 事業所客層
                 if (isset($data['office_clienteles']) && is_array($data['office_clienteles'])) {
+                    \Log::debug($data['office_clienteles']);
                     // 入力があったID以外は削除
                     $ids = array_column($data['office_clienteles'], 'id');
                     if (count($ids) > 0) {
