@@ -26,9 +26,9 @@ import FormProvider, {
 import { IHtmlAddContentItem } from "@/types/html-add-content";
 import { IPrefectureItem } from "@/types/prefecture";
 import { IGovernmentCityItem } from "@/types/government-city";
+import { ICityItem } from "@/types/city";
+import { IStationItem } from "@/types/station";
 import axios, { endpoints } from "@/utils/axios";
-import { useSearchCities } from "@/api/city";
-import { useSearchStations } from "@/api/station";
 
 // ----------------------------------------------------------------------
 
@@ -36,18 +36,22 @@ type Props = {
   currentHtmlAddContent?: IHtmlAddContentItem;
   prefectures: IPrefectureItem[];
   governmentCities: IGovernmentCityItem[];
+  cities: ICityItem[];
+  stations: IStationItem[];
 };
 
 export default function HtmlAddContentNewEditForm({
   currentHtmlAddContent,
   prefectures,
   governmentCities,
+  cities,
+  stations,
 }: Props) {
   const router = useRouter();
-
   const mdUp = useResponsive("up", "md");
-
   const { enqueueSnackbar } = useSnackbar();
+  const [searchCities, setSearchCitis] = useState<ICityItem[]>([]);
+  const [searchStations, setSearchStations] = useState<IStationItem[]>([]);
 
   const NewHtmlAddContentSchema = Yup.object().shape({
     prefecture_id: Yup.string().required("都道府県を入力してください。"),
@@ -85,6 +89,7 @@ export default function HtmlAddContentNewEditForm({
     reset,
     watch,
     handleSubmit,
+    setValue,
     formState: { isSubmitting },
   } = methods;
 
@@ -93,6 +98,19 @@ export default function HtmlAddContentNewEditForm({
   useEffect(() => {
     if (currentHtmlAddContent) {
       reset(defaultValues);
+
+      // 都道府県が設定済の場合、該当の市区町村を選択肢に設定
+      const filterCities = cities.filter(
+        (city) => city.prefecture_id == currentHtmlAddContent.prefecture_id
+      );
+      setSearchCitis(filterCities);
+
+      // 都道府県が設定済の場合、該当の駅を選択肢に設定
+      const filterStations = stations.filter(
+        (station) =>
+          station.prefecture_id == currentHtmlAddContent.prefecture_id
+      );
+      setSearchStations(filterStations);
     }
   }, [currentHtmlAddContent, defaultValues, reset]);
 
@@ -137,22 +155,34 @@ export default function HtmlAddContentNewEditForm({
     }
   });
 
-  const [selectPrefectureId, setSelectPrefectureId] = useState<string>(
-    currentHtmlAddContent?.prefecture_id || ""
-  );
-  const { cities: searchCities } = useSearchCities(selectPrefectureId);
-  const { stations: searchStations } = useSearchStations(selectPrefectureId);
-  useEffect(() => {
-    // 都道府県が変更された場合
-    setSelectPrefectureId(values.prefecture_id);
-  }, [values.prefecture_id]);
+  // 都道府県変更時に該当の都道府県の市区町村、駅をセット
+  const handlePrefectureChange = async (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setValue("prefecture_id", event.target.value);
+    // 市区町村
+    const filterCities = cities.filter(
+      (city) => city.prefecture_id == event.target.value
+    );
+    setSearchCitis(filterCities);
+    // 駅
+    const filterStations = stations.filter(
+      (station) => station.prefecture_id == event.target.value
+    );
+    setSearchStations(filterStations);
+  };
 
   const renderDetails = (
     <>
       <Grid xs={12}>
         <Card>
           <Stack spacing={3} sx={{ p: 3 }}>
-            <RHFSelect native name="prefecture_id" label="都道府県">
+            <RHFSelect
+              native
+              name="prefecture_id"
+              label="都道府県"
+              onChange={(event) => handlePrefectureChange(event)}
+            >
               <option value=""></option>
               {prefectures.map((prefecture) => (
                 <option key={prefecture.id} value={prefecture.id}>
@@ -185,7 +215,7 @@ export default function HtmlAddContentNewEditForm({
               </MenuItem>
               <Divider sx={{ borderStyle: "dashed" }} />
               {searchCities.map((city) => (
-                <MenuItem key={city.name} value={city.id}>
+                <MenuItem key={city.id} value={city.id}>
                   {city.name}
                 </MenuItem>
               ))}
@@ -206,7 +236,7 @@ export default function HtmlAddContentNewEditForm({
               </MenuItem>
               <Divider sx={{ borderStyle: "dashed" }} />
               {searchStations.map((station) => (
-                <MenuItem key={station.name} value={station.id}>
+                <MenuItem key={station.id} value={station.id}>
                   {station.name}
                 </MenuItem>
               ))}

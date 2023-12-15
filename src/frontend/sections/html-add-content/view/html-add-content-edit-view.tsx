@@ -7,6 +7,8 @@ import { paths } from "@/routes/paths";
 import { useGetHtmlAddContent } from "@/api/html-add-content";
 import { useGetGovernmentCities } from "@/api/government-city";
 import { useGetPrefectures } from "@/api/prefecture";
+import { useGetCities } from "@/api/city";
+import { useGetStations } from "@/api/station";
 
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
@@ -25,6 +27,8 @@ export default function HtmlAddContentEditView({ id }: Props) {
   const { htmlAddContent: currentHtmlAddContent } = useGetHtmlAddContent(id);
   const { governmentCities } = useGetGovernmentCities();
   const { prefectures } = useGetPrefectures();
+  const { cities } = useGetCities();
+  const { stations } = useGetStations();
 
   return (
     <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -47,6 +51,8 @@ export default function HtmlAddContentEditView({ id }: Props) {
         currentHtmlAddContent={currentHtmlAddContent}
         prefectures={prefectures}
         governmentCities={governmentCities}
+        cities={cities}
+        stations={stations}
       />
     </Container>
   );

@@ -217,6 +217,7 @@ export default function CorporationNewEditForm({
       <Grid xs={12}>
         <Card>
           <CorporationNewEditDetails
+            currentCorporation={currentCorporation}
             prefectures={prefectures}
             cities={cities}
           />

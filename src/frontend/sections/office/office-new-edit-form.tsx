@@ -238,6 +238,7 @@ export default function OfficeNewEditForm({
       <Grid xs={12}>
         <Card>
           <OfficeNewEditDetails
+            currentOffice={currentOffice}
             corporations={corporations}
             prefectures={prefectures}
             cities={cities}

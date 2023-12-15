@@ -81,7 +81,7 @@ class HtmlAddContentController extends Controller
                 'station_id' => '',
                 'display_average_salary' => 'numeric',
                 'display_feature' => 'numeric',
-                'feature' => 'string',
+                'feature' => '',
             ]);
 
             // 政令指定都市マスタ存在チェック
@@ -126,7 +126,7 @@ class HtmlAddContentController extends Controller
                 'station_id' => '',
                 'display_average_salary' => 'numeric',
                 'display_feature' => 'numeric',
-                'feature' => 'string',
+                'feature' => '',
             ]);
 
             // 政令指定都市マスタ存在チェック

@@ -9,6 +9,8 @@ import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 
 import { useGetPrefectures } from "@/api/prefecture";
 import { useGetGovernmentCities } from "@/api/government-city";
+import { useGetCities } from "@/api/city";
+import { useGetStations } from "@/api/station";
 
 import HtmlAddContentNewEditForm from "../html-add-content-new-edit-form";
 
@@ -19,6 +21,8 @@ export default function HtmlAddContentCreateView() {
 
   const { prefectures } = useGetPrefectures();
   const { governmentCities } = useGetGovernmentCities();
+  const { cities } = useGetCities();
+  const { stations } = useGetStations();
 
   return (
     <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -40,6 +44,8 @@ export default function HtmlAddContentCreateView() {
       <HtmlAddContentNewEditForm
         prefectures={prefectures}
         governmentCities={governmentCities}
+        cities={cities}
+        stations={stations}
       />
     </Container>
   );

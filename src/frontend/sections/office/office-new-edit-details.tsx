@@ -1,27 +1,94 @@
+import { useFormContext } from "react-hook-form";
+import { useEffect, useState } from "react";
+
 import Divider from "@mui/material/Divider";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 
 import { RHFTextField, RHFSelect } from "@/components/hook-form";
 
+import { IOfficeItem } from "@/types/office";
 import { ICorporationItem } from "@/types/corporation";
 import { IPrefectureItem } from "@/types/prefecture";
 import { ICityItem } from "@/types/city";
 import { PASSIVE_SMOKING } from "@/config-global";
+import axios from "axios";
 
 // ----------------------------------------------------------------------
 
 type Props = {
+  currentOffice?: IOfficeItem;
   corporations: ICorporationItem[];
   prefectures: IPrefectureItem[];
   cities: ICityItem[];
 };
 
 export default function OfficeNewEditDetails({
+  currentOffice,
   corporations,
   prefectures,
   cities,
 }: Props) {
+  const { watch, setValue } = useFormContext();
+  const values = watch();
+  const [searchCities, setSearchCitis] = useState<ICityItem[]>([]);
+
+  // 都道府県が設定済の場合、該当の市区町村を選択肢に設定
+  useEffect(() => {
+    if (currentOffice) {
+      const filterCities = cities.filter(
+        (city) => city.prefecture_id == currentOffice.prefecture_id
+      );
+      setSearchCitis(filterCities);
+    }
+  }, [currentOffice]);
+
+  // 郵便番号変更時に住所を自動設定
+  const handlePostcodeChange = async (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const postcode = event.target.value;
+    setValue("postcode", postcode);
+    if (postcode.length < 7) return;
+    // 郵便番号から住所検索API
+    const res = await axios.get("https://zipcloud.ibsnet.co.jp/api/search", {
+      params: { zipcode: postcode },
+    });
+    if (res.status === 200) {
+      const selectPrefecture = prefectures.find(
+        (prefecture) => prefecture.name == res.data.results[0].address1
+      );
+      if (selectPrefecture == undefined) return;
+      // 都道府県内の市区町村のみ設定可にする
+      const filterCities = cities.filter(
+        (city) => city.prefecture_id == selectPrefecture.id
+      );
+      setSearchCitis(filterCities);
+      // 該当の市区町村を検索
+      const selectCity = filterCities.find(
+        (city) => city.name == res.data.results[0].address2
+      );
+      setValue("prefecture_id", selectPrefecture.id);
+      setValue("city_id", selectCity?.id);
+      setValue("address", res.data.results[0].address3);
+    } else {
+      setValue("prefecture_id", "");
+      setValue("city_id", "");
+      setValue("address", "");
+    }
+  };
+
+  // 都道府県変更時に該当の都道府県の市区町村をセット
+  const handlePrefectureChange = async (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setValue("prefecture_id", event.target.value);
+    const filterCities = cities.filter(
+      (city) => city.prefecture_id == event.target.value
+    );
+    setSearchCitis(filterCities);
+  };
+
   return (
     <Stack spacing={3} sx={{ p: 3 }}>
       <RHFTextField name="name" label="事業所名" />
@@ -47,7 +114,11 @@ export default function OfficeNewEditDetails({
         ))}
       </RHFSelect>
 
-      <RHFTextField name="postcode" label="郵便番号" />
+      <RHFTextField
+        name="postcode"
+        label="郵便番号"
+        onChange={(event) => handlePostcodeChange(event)}
+      />
 
       <RHFSelect
         fullWidth
@@ -55,6 +126,7 @@ export default function OfficeNewEditDetails({
         label="都道府県"
         InputLabelProps={{ shrink: true }}
         PaperPropsSx={{ textTransform: "capitalize" }}
+        onChange={(event) => handlePrefectureChange(event)}
       >
         <MenuItem
           value=""
@@ -84,7 +156,7 @@ export default function OfficeNewEditDetails({
           None
         </MenuItem>
         <Divider sx={{ borderStyle: "dashed" }} />
-        {cities.map((city) => (
+        {searchCities.map((city) => (
           <MenuItem key={city.name} value={city.id}>
             {city.name}
           </MenuItem>
