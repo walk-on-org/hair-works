@@ -26,6 +26,7 @@ class CorporationController extends Controller
             ->join('plans', 'contracts1.plan_id', '=', 'plans.id')
             ->whereNull('contracts2.id')
             ->select(
+                'contracts1.id',
                 'contracts1.corporation_id',
                 'contracts1.plan_id',
                 'plans.name as plan_name',
@@ -37,6 +38,10 @@ class CorporationController extends Controller
             ->join('prefectures', 'corporations.prefecture_id', '=', 'prefectures.id')
             ->join('cities', 'corporations.city_id', '=', 'cities.id')
             ->leftJoin(DB::raw("({$contract_subquery->toSql()}) as latest_contracts"), 'corporations.id', '=', 'latest_contracts.corporation_id')
+            ->leftJoin('offices', 'corporations.id', '=', 'offices.corporation_id')
+            ->leftJoin('jobs', 'offices.id', '=', 'jobs.office_id')
+            ->groupBy('corporations.id')
+            ->groupBy('latest_contracts.id')
             ->select(
                 'corporations.id',
                 'corporations.name',
@@ -62,6 +67,8 @@ class CorporationController extends Controller
                 'latest_contracts.start_date',
                 'latest_contracts.end_plan_date',
                 'latest_contracts.end_date',
+                DB::raw('count(distinct offices.id) as office_count'),
+                DB::raw('count(distinct jobs.id) as job_count'),
             )
             ->get();
         foreach ($corporations as $c) {

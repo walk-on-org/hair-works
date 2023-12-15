@@ -42,6 +42,8 @@ export default function CorporationTableRow({
     city_name,
     address,
     tel,
+    office_count,
+    job_count,
     higher_display,
     higher_display_name,
     plan_name,
@@ -71,9 +73,9 @@ export default function CorporationTableRow({
 
         <TableCell>{tel}</TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{office_count}</TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{job_count}</TableCell>
 
         <TableCell>TODO</TableCell>
 

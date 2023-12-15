@@ -29,6 +29,8 @@ export type ICorporationItem = {
   start_date: Date | null;
   end_plan_date: Date | null;
   end_date: Date | null;
+  office_count: number;
+  job_count: number;
   createdAt: Date;
   updatedAt: Date;
 };

@@ -31,6 +31,7 @@ export type IOfficeItem = {
   office_clienteles: IOfficeClienteleItem[];
   office_images: IOfficeImageItem[];
   office_features: IOfficeFeatureItem[];
+  job_count: number;
   created_at: Date;
   updated_at: Date;
 };

@@ -21,6 +21,8 @@ class OfficeController extends Controller
             ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
             ->join('prefectures', 'offices.prefecture_id', '=', 'prefectures.id')
             ->join('cities', 'offices.city_id', '=', 'cities.id')
+            ->leftJoin('jobs', 'offices.id', '=', 'jobs.office_id')
+            ->groupBy('offices.id')
             ->select(
                 'offices.id',
                 'offices.name',
@@ -46,6 +48,7 @@ class OfficeController extends Controller
                 'offices.passive_smoking',
                 'offices.external_url',
                 'offices.sns_url',
+                DB::raw('count(distinct jobs.id) as job_count'),
             )
             ->get();
         foreach ($offices as $o) {

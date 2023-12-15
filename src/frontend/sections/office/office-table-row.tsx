@@ -43,6 +43,7 @@ export default function OfficeTableRow({
     city_name,
     address,
     tel,
+    job_count,
   } = row;
   const confirm = useBoolean();
   const popover = usePopover();
@@ -80,7 +81,7 @@ export default function OfficeTableRow({
 
         <TableCell>{tel}</TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{job_count}</TableCell>
 
         <TableCell align="right">
           <IconButton
