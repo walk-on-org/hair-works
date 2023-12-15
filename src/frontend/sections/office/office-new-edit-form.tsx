@@ -49,7 +49,7 @@ export default function OfficeNewEditForm({
   const { enqueueSnackbar } = useSnackbar();
 
   const NewOfficeSchema = Yup.object().shape({
-    name: Yup.string().required("法人名を入力してください。"),
+    name: Yup.string().required("事業所名を入力してください。"),
     corporation_id: Yup.string().required("法人を入力してください。"),
     postcode: Yup.string()
       .required("郵便番号を入力してください。")
@@ -148,7 +148,6 @@ export default function OfficeNewEditForm({
   }, [currentOffice, defaultValues, reset]);
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log(data);
     try {
       if (currentOffice) {
         await axios.post(

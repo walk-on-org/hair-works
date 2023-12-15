@@ -60,3 +60,11 @@ export const CLIENTELE = [
   { value: "9", label: "ALL年代" },
   { value: "99", label: "その他" },
 ];
+
+export const JOB_STATUS_OPTIONS = [
+  { value: "0", label: "掲載準備中" },
+  { value: "5", label: "掲載承認待ち" },
+  { value: "9", label: "掲載承認済" },
+  { value: "10", label: "掲載中" },
+  { value: "20", label: "掲載停止" },
+];

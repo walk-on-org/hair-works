@@ -27,7 +27,7 @@ export default function OfficeCreateView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : "lg"}>
       <CustomBreadcrumbs
-        heading="法人作成"
+        heading="事業所作成"
         links={[
           { name: "ダッシュボード", href: paths.admin.dashboard },
           {

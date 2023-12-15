@@ -71,6 +71,11 @@ export function useNavData() {
             path: paths.admin.office.root,
             icon: ICONS.ecommerce,
           },
+          {
+            title: "求人",
+            path: paths.admin.job.root,
+            icon: ICONS.job,
+          },
         ],
       },
 

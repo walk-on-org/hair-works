@@ -35,6 +35,12 @@ export const paths = {
       detail: (id: string) => `${ROOTS.ADMIN}/offices/${id}`,
       edit: (id: string) => `${ROOTS.ADMIN}/offices/${id}/edit`,
     },
+    job: {
+      root: `${ROOTS.ADMIN}/jobs`,
+      new: `${ROOTS.ADMIN}/jobs/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/jobs/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/jobs/${id}/edit`,
+    },
     jobCategory: {
       root: `${ROOTS.ADMIN}/settings/job_categories`,
       new: `${ROOTS.ADMIN}/settings/job_categories/new`,

@@ -22,6 +22,7 @@ use App\Http\Controllers\AdKeywordController;
 use App\Http\Controllers\CustomLpController;
 use App\Http\Controllers\CorporationController;
 use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\JobController;
 
 /*
 |--------------------------------------------------------------------------
@@ -180,4 +181,11 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::post('/offices/update/{id}', [OfficeController::class, 'update']);
     Route::post('/offices/destroy/{id}', [OfficeController::class, 'destroy']);
     Route::post('/offices/destroy_multiple', [OfficeController::class, 'destroyMultiple']);
+    // 求人
+    Route::get('/jobs', [JobController::class, 'index']);
+    Route::get('/jobs/{id}', [JobController::class, 'show']);
+    Route::post('/jobs/create', [JobController::class, 'create']);
+    Route::post('/jobs/update/{id}', [JobController::class, 'update']);
+    Route::post('/jobs/destroy/{id}', [JobController::class, 'destroy']);
+    Route::post('/jobs/destroy_multiple', [JobController::class, 'destroyMultiple']);
 });

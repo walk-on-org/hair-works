@@ -1,0 +1,73 @@
+export type IJobItem = {
+  id: string;
+  name: string;
+  corporation_id: string;
+  corporation_name: string;
+  office_id: string;
+  office_name: string;
+  status: string;
+  status_name: string;
+  pickup: string;
+  pickup_name: string;
+  private: string;
+  private_name: string;
+  recommend: string;
+  recommend_name: string;
+  indeed_private: string;
+  indeed_private_name: string;
+  minimum_wage_ok: string;
+  minimum_wage_ok_name: string;
+  job_category_id: string;
+  job_category_name: string;
+  position_id: string;
+  position_name: string;
+  employment_id: string;
+  employment_name: string;
+  m_salary_lower: number | null;
+  m_salary_upper: number | null;
+  t_salary_lower: number | null;
+  t_salary_upper: number | null;
+  d_salary_lower: number | null;
+  d_salary_upper: number | null;
+  commission_lower: number | null;
+  commission_upper: number | null;
+  salary: string;
+  work_time: string;
+  job_description: string;
+  holiday: string;
+  welfare: string;
+  entry_requirement: string;
+  catch_copy: string;
+  recommend_point: string;
+  salon_message: string;
+  publish_start_date: Date;
+  publish_end_date: Date;
+  commitment_term_ids: string[];
+  commitment_term_names: string[];
+  holiday_ids: string[];
+  holiday_names: string[];
+  qualification_ids: string[];
+  qualification_names: string[];
+  job_images: IJobImageItem[];
+  created_at: Date;
+  updated_at: Date;
+};
+
+export type IJobTableFilterValue = string | string[];
+
+export type IJobTableFilters = {
+  corporation_name: string;
+  office_name: string;
+  name: string;
+  job_category: string[];
+  position: string[];
+  employment: string[];
+  status: string[];
+};
+
+export type IJobImageItem = {
+  id: string;
+  image: string;
+  alttext: string;
+  sort: number;
+};

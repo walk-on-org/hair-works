@@ -8,41 +8,48 @@ import IconButton from "@mui/material/IconButton";
 
 import { useBoolean } from "@/hooks/use-boolean";
 
+import Label from "@/components/label";
 import Iconify from "@/components/iconify";
 import { ConfirmDialog } from "@/components/custom-dialog";
 import CustomPopover, { usePopover } from "@/components/custom-popover";
 
-import { IOfficeItem } from "@/types/office";
+import { IJobItem } from "@/types/job";
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  row: IOfficeItem;
+  row: IJobItem;
   selected: boolean;
   onEditRow: VoidFunction;
   onViewRow: VoidFunction;
   onCorporationViewRow: VoidFunction;
+  onOfficeViewRow: VoidFunction;
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
 };
 
-export default function OfficeTableRow({
+export default function JobTableRow({
   row,
   selected,
   onSelectRow,
   onEditRow,
   onViewRow,
   onCorporationViewRow,
+  onOfficeViewRow,
   onDeleteRow,
 }: Props) {
   const {
     id,
     name,
+    corporation_id,
     corporation_name,
-    prefecture_name,
-    city_name,
-    address,
-    tel,
+    office_id,
+    office_name,
+    job_category_name,
+    position_name,
+    employment_name,
+    status,
+    status_name,
   } = row;
   const confirm = useBoolean();
   const popover = usePopover();
@@ -67,20 +74,35 @@ export default function OfficeTableRow({
         </TableCell>
 
         <TableCell>
+          <Link noWrap onClick={onOfficeViewRow} sx={{ cursor: "pointer" }}>
+            {office_name}
+          </Link>
+        </TableCell>
+
+        <TableCell>
           <Link noWrap onClick={onViewRow} sx={{ cursor: "pointer" }}>
             {name}
           </Link>
         </TableCell>
 
-        <TableCell>{prefecture_name}</TableCell>
+        <TableCell>{job_category_name}</TableCell>
 
-        <TableCell>{city_name}</TableCell>
+        <TableCell>{position_name}</TableCell>
 
-        <TableCell>{address}</TableCell>
+        <TableCell>{employment_name}</TableCell>
 
-        <TableCell>{tel}</TableCell>
-
-        <TableCell>TODO</TableCell>
+        <TableCell>
+          <Label
+            variant="soft"
+            color={
+              (status == "10" && "info") ||
+              (status == "20" && "warning") ||
+              "default"
+            }
+          >
+            {status_name}
+          </Label>
+        </TableCell>
 
         <TableCell align="right">
           <IconButton
