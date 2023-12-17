@@ -132,9 +132,12 @@ export default function CorporationNewEditForm({
 
   const {
     reset,
+    watch,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = methods;
+
+  const values = watch();
 
   useEffect(() => {
     if (currentCorporation) {
@@ -241,6 +244,10 @@ export default function CorporationNewEditForm({
           variant="contained"
           size="large"
           loading={isSubmitting}
+          onClick={() => {
+            console.log(errors);
+            console.log(values);
+          }}
         >
           {!currentCorporation ? "法人を作成" : "法人を変更"}
         </LoadingButton>

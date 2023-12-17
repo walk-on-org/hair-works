@@ -113,7 +113,7 @@ export default function CorporationNewEditDetails({
         </MenuItem>
         <Divider sx={{ borderStyle: "dashed" }} />
         {prefectures.map((prefecture) => (
-          <MenuItem key={prefecture.name} value={prefecture.id}>
+          <MenuItem key={prefecture.id} value={prefecture.id}>
             {prefecture.name}
           </MenuItem>
         ))}
@@ -134,7 +134,7 @@ export default function CorporationNewEditDetails({
         </MenuItem>
         <Divider sx={{ borderStyle: "dashed" }} />
         {searchCities.map((city) => (
-          <MenuItem key={city.name} value={city.id}>
+          <MenuItem key={city.id} value={city.id}>
             {city.name}
           </MenuItem>
         ))}

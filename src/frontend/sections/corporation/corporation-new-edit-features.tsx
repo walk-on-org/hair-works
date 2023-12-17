@@ -17,7 +17,7 @@ export default function CorporationNewEditFeatures() {
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "office_features",
+    name: "corporation_features",
   });
 
   const handleAdd = () => {
@@ -33,7 +33,7 @@ export default function CorporationNewEditFeatures() {
   };
 
   const handleDrop = useCallback(
-    (acceptedFiles: File[]) => {
+    (index: number, acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
 
       const newFile = Object.assign(file, {
@@ -41,8 +41,7 @@ export default function CorporationNewEditFeatures() {
       });
 
       if (file) {
-        // TODO
-        setValue(`corporation_features.${0}.image`, newFile, {
+        setValue(`corporation_features.${index}.image`, newFile, {
           shouldValidate: true,
         });
       }
@@ -50,10 +49,12 @@ export default function CorporationNewEditFeatures() {
     [setValue]
   );
 
-  const handleRemoveFile = useCallback(() => {
-    // TODO
-    setValue(`corporation_features.${0}.image`, null);
-  }, [setValue]);
+  const handleRemoveFile = useCallback(
+    (index: number) => {
+      setValue(`corporation_features.${index}.image`, null);
+    },
+    [setValue]
+  );
 
   return (
     <Box sx={{ p: 3 }}>
@@ -66,19 +67,15 @@ export default function CorporationNewEditFeatures() {
       >
         {fields.map((item, index) => (
           <Stack key={item.id} alignItems="flex-end" spacing={1.5}>
-            <Stack
-              direction={{ xs: "column", md: "row" }}
-              spacing={2}
-              sx={{ width: 1 }}
-            >
+            <Stack direction="column" spacing={2} sx={{ width: 1 }}>
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">ロゴ</Typography>
                 <RHFUpload
                   thumbnail
                   name={`corporation_features.${index}.image`}
                   maxSize={3145728}
-                  onDrop={handleDrop}
-                  onRemove={handleRemoveFile}
+                  onDrop={(inputFile) => handleDrop(index, inputFile)}
+                  onRemove={() => handleRemoveFile(index)}
                   onUpload={() => console.info("ON UPLOAD")}
                 />
               </Stack>

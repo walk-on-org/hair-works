@@ -102,7 +102,7 @@ export default function CorporationNewEditContracts({ plans }: Props) {
               />
             </Stack>
 
-            {item.id == "" && (
+            {values.contracts[index].id == "" && (
               <Button
                 size="small"
                 color="error"

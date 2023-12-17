@@ -6,6 +6,7 @@ use App\Models\Corporation;
 use App\Models\Contract;
 use App\Models\CorporationImage;
 use App\Models\CorporationFeature;
+use App\Library\UploadImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -161,26 +162,50 @@ class CorporationController extends Controller
                 'contracts.*.start_date' => '',
                 'contracts.*.end_plan_date' => '',
                 'corporation_images' => 'nullable|array',
-                'corporation_images.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'corporation_images.*.image' => '',
                 'corporation_images.*.alttext' => '',
-                'corporation_images.*.sort' => 'number',
+                'corporation_images.*.sort' => 'numeric',
                 'corporation_features' => 'nullable|array',
-                'corporation_features.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'corporation_features.*.image' => '',
                 'corporation_features.*.feature' => 'required|string',
             ]);
 
             DB::transaction(function () use ($data) {
                 // 法人登録
                 $corporation = Corporation::create($data);
+                
                 // 契約登録
                 if (isset($data['contracts']) && is_array($data['contracts'])) {
-                    $corporation->contracts->createMany($data['contracts']);
+                    $corporation->contracts()->createMany($data['contracts']);
                 }
+
                 // 求人一括設定画像登録
-                // TODO
+                if (isset($data['corporation_images']) && is_array($data['corporation_images'])) {
+                    foreach ($data['corporation_images'] as $corporation_image) {
+                        // ファイルアップロード
+                        $corporation_image['image'] = UploadImage::uploadImageFile(
+                            $corporation_image['image'],
+                            config('uploadimage.corporation_image_storage'),
+                            $corporation->id
+                        );
+                        // データベースへ登録
+                        $corporation->corporationImages()->create($corporation_image);
+                    }
+                }
 
                 // 法人特徴登録
-                // TODO
+                if (isset($data['corporation_features']) && is_array($data['corporation_features'])) {
+                    foreach ($data['corporation_features'] as $corporation_feature) {
+                        // ファイルアップロード
+                        $corporation_feature['image'] = UploadImage::uploadImageFile(
+                            $corporation_feature['image'],
+                            config('uploadimage.corporation_feature_storage'),
+                            $corporation->id
+                        );
+                        // データベースへ登録
+                        $corporation->corporationFeatures()->create($corporation_feature);
+                    }
+                }
             });
             
             return response()->json(['result' => 'ok']);
@@ -220,12 +245,12 @@ class CorporationController extends Controller
                 'contracts.*.end_plan_date' => '',
                 'corporation_images' => 'nullable|array',
                 'corporation_images.*.id' => '',
-                'corporation_images.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'corporation_images.*.image' => '',
                 'corporation_images.*.alttext' => '',
-                'corporation_images.*.sort' => 'number',
+                'corporation_images.*.sort' => 'numeric',
                 'corporation_features' => 'nullable|array',
                 'corporation_features.*.id' => '',
-                'corporation_features.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'corporation_features.*.image' => '',
                 'corporation_features.*.feature' => 'required|string',
             ]);
 
@@ -252,10 +277,10 @@ class CorporationController extends Controller
                 }
 
                 // 求人一括設定画像
-                // TODO
+                self::updateCorporationImage($corporation, $data['corporation_images']);
 
                 // 法人特徴
-                // TODO
+                self::updateCorporationFeature($corporation, $data['corporation_features']);
             });
             
             return response()->json(['result' => 'ok']);
@@ -306,6 +331,161 @@ class CorporationController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'One or more corporations not found'], 404);
+        }
+    }
+
+    /**
+     * 法人の求人一括設定画像更新処理
+     */
+    private function updateCorporationImage($corporation, $corporation_images)
+    {
+        if (isset($corporation_images) && is_array($corporation_images)) {
+            // 入力があったID以外は削除
+            $ids = array_column($corporation_images, 'id');
+            $ids = array_filter($ids, function ($val) {
+                return !(is_null($val) || $val === "");
+            });
+            if (count($ids) > 0) {
+                $delete_data = CorporationImage::where('corporation_id', $corporation->id)
+                    ->whereNotIn('id', $ids)
+                    ->get();
+                foreach ($delete_data as $row) {
+                    UploadImage::deleteImageFile(
+                        $row->image,
+                        config('uploadimage.corporation_image_storage'),
+                        $corporation->id
+                    );
+                    $row->delete();
+                }
+            }
+
+            foreach ($corporation_images as $corporation_image) {
+                if (isset($corporation_image['id']) && !empty($corporation_image['id'])) {
+                    // 登録済みのデータは更新
+                    $registered_data = CorporationImage::find($corporation_image['id']);
+                    if (is_string($corporation_image['image'])) {
+                        // 文字列の場合は画像変更していないため、説明、ソート順が変更されている場合のみ更新
+                        if ($registered_data->alttext != $corporation_image['alttext']
+                            || $registered_data->sort != $corporation_image['sort']) {
+                            $registered_data->update([
+                                'alttext' => $corporation_image['alttext'],
+                                'sort' => $corporation_image['sort'],
+                            ]);
+                        }
+                    } else {
+                        // ファイル形式の場合は画像変更しているため、更新
+                        // ファイルアップロード
+                        $corporation_image['image'] = UploadImage::uploadImageFile(
+                            $corporation_image['image'],
+                            config('uploadimage.corporation_image_storage'),
+                            $corporation->id,
+                            $registered_data->image
+                        );
+                        // データベースに保存
+                        $registered_data->update([
+                            'image' => $corporation_image['image'],
+                            'alttext' => $corporation_image['alttext'],
+                            'sort' => $corporation_image['sort'],
+                        ]);
+                    }
+                } else {
+                    // 未登録データは登録
+                    // ファイルアップロード
+                    $corporation_image['image'] = UploadImage::uploadImageFile(
+                        $corporation_image['image'],
+                        config('uploadimage.corporation_image_storage'),
+                        $corporation->id
+                    );
+                    // データベースへ登録
+                    $corporation->corporationImages()->create($corporation_image);
+                }
+            }
+        } else {
+            // 全くない場合は全削除
+            foreach ($corporation->corporationImages as $corporation_image) {
+                UploadImage::deleteImageFile(
+                    $corporation_image->image,
+                    config('uploadimage.corporation_image_storage'),
+                    $corporation->id
+                );
+            }
+            $corporation->corporationImages()->delete();
+        }
+    }
+
+    /**
+     * 法人の求人一括設定画像更新処理
+     */
+    private function updateCorporationFeature($corporation, $corporation_features)
+    {
+        if (isset($corporation_features) && is_array($corporation_features)) {
+            // 入力があったID以外は削除
+            $ids = array_column($corporation_features, 'id');
+            $ids = array_filter($ids, function ($val) {
+                return !(is_null($val) || $val === "");
+            });
+            if (count($ids) > 0) {
+                $delete_data = CorporationFeature::where('corporation_id', $corporation->id)
+                    ->whereNotIn('id', $ids)
+                    ->get();
+                foreach ($delete_data as $row) {
+                    UploadImage::deleteImageFile(
+                        $row->image,
+                        config('uploadimage.corporation_feature_storage'),
+                        $corporation->id
+                    );
+                    $row->delete();
+                }
+            }
+
+            foreach ($corporation_features as $corporation_feature) {
+                if (isset($corporation_feature['id']) && !empty($corporation_feature['id'])) {
+                    // 登録済みのデータは更新
+                    $registered_data = CorporationFeature::find($corporation_feature['id']);
+                    if (is_string($corporation_feature['image'])) {
+                        // 文字列の場合は画像変更していないため、特徴が変更されている場合のみ更新
+                        if ($registered_data->feature != $corporation_feature['feature']) {
+                            $registered_data->update([
+                                'feature' => $corporation_feature['feature'],
+                            ]);
+                        }
+                    } else {
+                        // ファイル形式の場合は画像変更しているため、更新
+                        // ファイルアップロード
+                        $corporation_feature['image'] = UploadImage::uploadImageFile(
+                            $corporation_feature['image'],
+                            config('uploadimage.corporation_feature_storage'),
+                            $corporation->id,
+                            $registered_data->image
+                        );
+                        // データベースに保存
+                        $registered_data->update([
+                            'image' => $corporation_feature['image'],
+                            'feature' => $corporation_feature['feature'],
+                        ]);
+                    }
+                } else {
+                    // 未登録データは登録
+                    // ファイルアップロード
+                    $corporation_feature['image'] = UploadImage::uploadImageFile(
+                        $corporation_feature['image'],
+                        config('uploadimage.corporation_feature_storage'),
+                        $corporation->id
+                    );
+                    // データベースへ登録
+                    $corporation->corporationFeatures()->create($corporation_feature);
+                }
+            }
+        } else {
+            // 全くない場合は全削除
+            foreach ($corporation->corporationFeatures as $corporation_feature) {
+                UploadImage::deleteImageFile(
+                    $corporation_feature->image,
+                    config('uploadimage.corporation_feature_storage'),
+                    $corporation->id
+                );
+            }
+            $corporation->corporationFeatures()->delete();
         }
     }
 }

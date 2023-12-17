@@ -1,7 +1,12 @@
 "use client";
 
+import { useCallback, useState } from "react";
+
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
+import { alpha } from "@mui/material/styles";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
@@ -39,8 +44,14 @@ type Props = {
 export default function CorporationDetailView({ id }: Props) {
   const { corporation, corporationLoading, corporationError } =
     useGetCorporation(id);
-
   const settings = useSettingsContext();
+  const [currentTab, setCurrentTab] = useState("contract");
+  const handleChangeTab = useCallback(
+    (event: React.SyntheticEvent, newValue: string) => {
+      setCurrentTab(newValue);
+    },
+    []
+  );
 
   const renderSkeleton = <CorporationDetailSkeleton />;
 
@@ -235,8 +246,38 @@ export default function CorporationDetailView({ id }: Props) {
               {corporation.higher_display_name}
             </Label>
           </Stack>
+        </Stack>
+      </Card>
 
-          <Typography variant="subtitle2">契約プラン</Typography>
+      <Card sx={{ my: 4 }}>
+        <Tabs
+          value={currentTab}
+          onChange={handleChangeTab}
+          sx={{
+            px: 3,
+            boxShadow: (theme) =>
+              `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
+          }}
+        >
+          {[
+            {
+              value: "contract",
+              label: "契約プラン",
+            },
+            {
+              value: "image",
+              label: "求人一括設定画像",
+            },
+            {
+              value: "feature",
+              label: "特徴",
+            },
+          ].map((tab) => (
+            <Tab key={tab.value} value={tab.value} label={tab.label} />
+          ))}
+        </Tabs>
+
+        {currentTab === "contract" && (
           <TableContainer sx={{ overflow: "unset" }}>
             <Scrollbar>
               <Table sx={{ minWidth: 960 }}>
@@ -278,8 +319,9 @@ export default function CorporationDetailView({ id }: Props) {
               </Table>
             </Scrollbar>
           </TableContainer>
+        )}
 
-          {/*<Typography variant="subtitle2">求人一括設定画像</Typography>
+        {currentTab === "image" && (
           <TableContainer sx={{ overflow: "unset" }}>
             <Scrollbar>
               <Table sx={{ minWidth: 960 }}>
@@ -295,7 +337,7 @@ export default function CorporationDetailView({ id }: Props) {
                 <TableBody>
                   {corporation.corporation_images.map((row, index) => (
                     <TableRow key={index}>
-                      <Image src={row.image} />
+                      <Image width={200} src={row.image} />
 
                       <TableCell>{row.alttext}</TableCell>
 
@@ -306,8 +348,9 @@ export default function CorporationDetailView({ id }: Props) {
               </Table>
             </Scrollbar>
           </TableContainer>
+        )}
 
-          <Typography variant="subtitle2">特徴</Typography>
+        {currentTab === "feature" && (
           <TableContainer sx={{ overflow: "unset" }}>
             <Scrollbar>
               <Table sx={{ minWidth: 960 }}>
@@ -321,7 +364,7 @@ export default function CorporationDetailView({ id }: Props) {
                 <TableBody>
                   {corporation.corporation_features.map((row, index) => (
                     <TableRow key={index}>
-                      <Image src={row.image} />
+                      <Image width={200} src={row.image} />
 
                       <TableCell>{row.feature}</TableCell>
                     </TableRow>
@@ -329,8 +372,8 @@ export default function CorporationDetailView({ id }: Props) {
                 </TableBody>
               </Table>
             </Scrollbar>
-                  </TableContainer>*/}
-        </Stack>
+          </TableContainer>
+        )}
       </Card>
     </>
   );

@@ -34,7 +34,7 @@ export default function CorporationNewEditImages() {
   };
 
   const handleDrop = useCallback(
-    (acceptedFiles: File[]) => {
+    (index: number, acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
 
       const newFile = Object.assign(file, {
@@ -42,8 +42,7 @@ export default function CorporationNewEditImages() {
       });
 
       if (file) {
-        // TODO
-        setValue(`corporation_images.${0}.image`, newFile, {
+        setValue(`corporation_images.${index}.image`, newFile, {
           shouldValidate: true,
         });
       }
@@ -51,10 +50,12 @@ export default function CorporationNewEditImages() {
     [setValue]
   );
 
-  const handleRemoveFile = useCallback(() => {
-    // TODO
-    setValue(`corporation_images.${0}.image`, null);
-  }, [setValue]);
+  const handleRemoveFile = useCallback(
+    (index: number) => {
+      setValue(`corporation_images.${index}.image`, null);
+    },
+    [setValue]
+  );
 
   return (
     <Box sx={{ p: 3 }}>
@@ -67,24 +68,24 @@ export default function CorporationNewEditImages() {
       >
         {fields.map((item, index) => (
           <Stack key={item.id} alignItems="flex-end" spacing={1.5}>
-            <Stack
-              direction={{ xs: "column", md: "row" }}
-              spacing={2}
-              sx={{ width: 1 }}
-            >
+            <Stack direction="column" spacing={2} sx={{ width: 1 }}>
               <Stack spacing={1.5}>
                 <Typography variant="subtitle2">ロゴ</Typography>
                 <RHFUpload
                   thumbnail
                   name={`corporation_images.${index}.image`}
                   maxSize={3145728}
-                  onDrop={handleDrop}
-                  onRemove={handleRemoveFile}
+                  onDrop={(inputFile) => handleDrop(index, inputFile)}
+                  onRemove={() => handleRemoveFile(index)}
                   onUpload={() => console.info("ON UPLOAD")}
                 />
               </Stack>
 
-              <Stack spacing={1.5} flexShrink={0}>
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                spacing={1.5}
+                flexShrink={0}
+              >
                 <RHFTextField
                   size="small"
                   name={`corporation_images.${index}.alttext`}
