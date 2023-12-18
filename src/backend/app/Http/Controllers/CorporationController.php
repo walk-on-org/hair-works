@@ -162,11 +162,11 @@ class CorporationController extends Controller
                 'contracts.*.start_date' => '',
                 'contracts.*.end_plan_date' => '',
                 'corporation_images' => 'nullable|array',
-                'corporation_images.*.image' => '',
+                'corporation_images.*.image' => 'required',
                 'corporation_images.*.alttext' => '',
                 'corporation_images.*.sort' => 'numeric',
                 'corporation_features' => 'nullable|array',
-                'corporation_features.*.image' => '',
+                'corporation_features.*.image' => 'required',
                 'corporation_features.*.feature' => 'required|string',
             ]);
 
@@ -277,10 +277,10 @@ class CorporationController extends Controller
                 }
 
                 // 求人一括設定画像
-                self::updateCorporationImage($corporation, $data['corporation_images']);
+                self::updateCorporationImage($corporation, isset($data['corporation_images']) ? $data['corporation_images'] : null);
 
                 // 法人特徴
-                self::updateCorporationFeature($corporation, $data['corporation_features']);
+                self::updateCorporationFeature($corporation, isset($data['corporation_features']) ? $data['corporation_features'] : null);
             });
             
             return response()->json(['result' => 'ok']);
@@ -345,18 +345,18 @@ class CorporationController extends Controller
             $ids = array_filter($ids, function ($val) {
                 return !(is_null($val) || $val === "");
             });
+            $delete_query = CorporationImage::where('corporation_id', $corporation->id);
             if (count($ids) > 0) {
-                $delete_data = CorporationImage::where('corporation_id', $corporation->id)
-                    ->whereNotIn('id', $ids)
-                    ->get();
-                foreach ($delete_data as $row) {
-                    UploadImage::deleteImageFile(
-                        $row->image,
-                        config('uploadimage.corporation_image_storage'),
-                        $corporation->id
-                    );
-                    $row->delete();
-                }
+                $delete_query = $delete_query->whereNotIn('id', $ids);
+            }
+            $delete_data = $delete_query->get();
+            foreach ($delete_data as $row) {
+                UploadImage::deleteImageFile(
+                    $row->image,
+                    config('uploadimage.corporation_image_storage'),
+                    $office->id
+                );
+                $row->delete();
             }
 
             foreach ($corporation_images as $corporation_image) {
@@ -414,7 +414,7 @@ class CorporationController extends Controller
     }
 
     /**
-     * 法人の求人一括設定画像更新処理
+     * 法人特徴更新処理
      */
     private function updateCorporationFeature($corporation, $corporation_features)
     {
@@ -424,18 +424,18 @@ class CorporationController extends Controller
             $ids = array_filter($ids, function ($val) {
                 return !(is_null($val) || $val === "");
             });
+            $delete_query = CorporationFeature::where('corporation_id', $corporation->id);
             if (count($ids) > 0) {
-                $delete_data = CorporationFeature::where('corporation_id', $corporation->id)
-                    ->whereNotIn('id', $ids)
-                    ->get();
-                foreach ($delete_data as $row) {
-                    UploadImage::deleteImageFile(
-                        $row->image,
-                        config('uploadimage.corporation_feature_storage'),
-                        $corporation->id
-                    );
-                    $row->delete();
-                }
+                $delete_query = $delete_query->whereNotIn('id', $ids);
+            }
+            $delete_data = $delete_query->get();
+            foreach ($delete_data as $row) {
+                UploadImage::deleteImageFile(
+                    $row->image,
+                    config('uploadimage.corporation_feature_storage'),
+                    $office->id
+                );
+                $row->delete();
             }
 
             foreach ($corporation_features as $corporation_feature) {

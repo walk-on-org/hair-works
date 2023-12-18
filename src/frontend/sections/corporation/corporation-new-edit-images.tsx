@@ -68,21 +68,25 @@ export default function CorporationNewEditImages() {
       >
         {fields.map((item, index) => (
           <Stack key={item.id} alignItems="flex-end" spacing={1.5}>
-            <Stack direction="column" spacing={2} sx={{ width: 1 }}>
-              <Stack spacing={1.5}>
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              spacing={2}
+              sx={{ width: 1 }}
+            >
+              <Stack spacing={1.5} width={{ xs: "auto", md: 400 }}>
                 <Typography variant="subtitle2">ロゴ</Typography>
                 <RHFUpload
                   thumbnail
                   name={`corporation_images.${index}.image`}
                   maxSize={3145728}
                   onDrop={(inputFile) => handleDrop(index, inputFile)}
-                  onRemove={() => handleRemoveFile(index)}
-                  onUpload={() => console.info("ON UPLOAD")}
+                  onDelete={() => handleRemoveFile(index)}
                 />
               </Stack>
 
               <Stack
-                direction={{ xs: "column", md: "row" }}
+                direction="column"
+                mt={{ xs: 0, md: 4 }}
                 spacing={1.5}
                 flexShrink={0}
               >

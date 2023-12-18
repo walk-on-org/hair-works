@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CustomLp;
+use App\Library\UploadImage;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -89,20 +90,29 @@ class CustomLpController extends Controller
                 'point2' => 'required|string',
                 'point3' => 'required|string',
                 'status' => 'numeric|regex:/^[0-2]{1}$/',
-                'logo' => 'nullable|file|mimes:jpeg,jpg,png,webp',
+                'logo' => '',
             ]);
-            
+
             $custom_lp = CustomLp::findOrFail($id);
             if ($request->hasFile('logo')) {
-                $uploaded_file = $request->file('logo');
-                $filename = time() . '_' . $uploaded_file->getClientOriginalName();
-                $uploaded_file->storeAs(config('uploadimage.custom_lp_logo_storage') . $custom_lp->id, $filename);
-
-                // 以前のファイルがあれば削除
-                if ($custom_lp->logo) {
-                    Storage::delete(config('uploadimage.custom_lp_logo_storage') . $custom_lp->id . $custom_lp->logo);
-                }
-                $data['logo'] = $filename;
+                // 画像設定
+                $data['logo'] = UploadImage::uploadImageFile(
+                    $request->file('logo'),
+                    config('uploadimage.custom_lp_logo_storage'),
+                    $custom_lp->id,
+                    $custom_lp->logo
+                );
+            } else if (!isset($data['logo']) && $custom_lp->logo) {
+                // 画像削除
+                UploadImage::deleteImageFile(
+                    $custom_lp->logo,
+                    config('uploadimage.custom_lp_logo_storage'),
+                    $custom_lp->id
+                );
+                $data['logo'] = null;
+            } else {
+                // 画像変更なし
+                $data['logo'] = $custom_lp->logo;
             }
             $custom_lp->update($data);
             return response()->json(['result' => 'ok']);

@@ -99,7 +99,6 @@ export default function CustomLpNewEditForm({ currentCustomLp }: Props) {
   }, [setValue]);
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log(data);
     try {
       if (currentCustomLp) {
         await axios.post(
@@ -178,8 +177,7 @@ export default function CustomLpNewEditForm({ currentCustomLp }: Props) {
                 name="logo"
                 maxSize={3145728}
                 onDrop={handleDrop}
-                onRemove={handleRemoveFile}
-                onUpload={() => console.info("ON UPLOAD")}
+                onDelete={handleRemoveFile}
               />
             </Stack>
           </Stack>

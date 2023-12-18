@@ -12,19 +12,20 @@ import { RHFTextField, RHFUpload } from "@/components/hook-form";
 
 // ----------------------------------------------------------------------
 
-export default function CorporationNewEditFeatures() {
+export default function OfficeNewEditImages() {
   const { control, setValue } = useFormContext();
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "corporation_features",
+    name: "office_images",
   });
 
   const handleAdd = () => {
     append({
       id: "",
-      feature: "",
       image: null,
+      alttext: "",
+      sort: 0,
     });
   };
 
@@ -41,7 +42,7 @@ export default function CorporationNewEditFeatures() {
       });
 
       if (file) {
-        setValue(`corporation_features.${index}.image`, newFile, {
+        setValue(`office_images.${index}.image`, newFile, {
           shouldValidate: true,
         });
       }
@@ -51,7 +52,7 @@ export default function CorporationNewEditFeatures() {
 
   const handleRemoveFile = useCallback(
     (index: number) => {
-      setValue(`corporation_features.${index}.image`, null);
+      setValue(`office_images.${index}.image`, null);
     },
     [setValue]
   );
@@ -59,7 +60,7 @@ export default function CorporationNewEditFeatures() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h6" sx={{ color: "text.disabled", mb: 3 }}>
-        特徴:
+        求人一括設定画像:
       </Typography>
       <Stack
         divider={<Divider flexItem sx={{ borderStyle: "dashed" }} />}
@@ -72,11 +73,11 @@ export default function CorporationNewEditFeatures() {
               spacing={2}
               sx={{ width: 1 }}
             >
-              <Stack spacing={1.5} width={{ xs: "auto", md: 400 }}>
+              <Stack spacing={1.5}>
                 <Typography variant="subtitle2">ロゴ</Typography>
                 <RHFUpload
                   thumbnail
-                  name={`corporation_features.${index}.image`}
+                  name={`office_images.${index}.image`}
                   maxSize={3145728}
                   onDrop={(inputFile) => handleDrop(index, inputFile)}
                   onDelete={() => handleRemoveFile(index)}
@@ -91,9 +92,18 @@ export default function CorporationNewEditFeatures() {
               >
                 <RHFTextField
                   size="small"
-                  name={`corporation_features.${index}.feature`}
-                  label="特徴"
+                  name={`office_images.${index}.alttext`}
+                  label="画像説明"
                   InputLabelProps={{ shrink: true }}
+                />
+
+                <RHFTextField
+                  size="small"
+                  name={`office_images.${index}.sort`}
+                  label="ソート順"
+                  InputLabelProps={{ shrink: true }}
+                  type="number"
+                  placeholder="0"
                 />
               </Stack>
             </Stack>
@@ -124,7 +134,7 @@ export default function CorporationNewEditFeatures() {
           onClick={handleAdd}
           sx={{ flexShrink: 0 }}
         >
-          特徴を追加
+          求人一括設定画像を追加
         </Button>
       </Stack>
     </Box>

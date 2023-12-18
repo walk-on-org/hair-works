@@ -1,7 +1,12 @@
 "use client";
 
+import { useCallback, useState } from "react";
+
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
+import { alpha } from "@mui/material/styles";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
@@ -11,12 +16,14 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
+import Link from "@mui/material/Link";
 
 import { paths } from "@/routes/paths";
 import { RouterLink } from "@/routes/components";
 
 import { useGetOffice } from "@/api/office";
 
+import Image from "@/components/image";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import Iconify from "@/components/iconify";
 import EmptyContent from "@/components/empty-content";
@@ -27,7 +34,6 @@ import { fDate } from "@/utils/format-time";
 
 import OfficeDetailToolbar from "../office-detail-toolbar";
 import { OfficeDetailSkeleton } from "../office-skelton";
-import { Link } from "@mui/material";
 
 // ----------------------------------------------------------------------
 
@@ -37,8 +43,14 @@ type Props = {
 
 export default function OfficeDetailView({ id }: Props) {
   const { office, officeLoading, officeError } = useGetOffice(id);
-
   const settings = useSettingsContext();
+  const [currentTab, setCurrentTab] = useState("access");
+  const handleChangeTab = useCallback(
+    (event: React.SyntheticEvent, newValue: string) => {
+      setCurrentTab(newValue);
+    },
+    []
+  );
 
   const renderSkeleton = <OfficeDetailSkeleton />;
 
@@ -294,8 +306,38 @@ export default function OfficeDetailView({ id }: Props) {
               {office.sns_url}
             </Typography>
           </Stack>
+        </Stack>
+      </Card>
 
-          <Typography variant="subtitle2">事業所アクセス</Typography>
+      <Card sx={{ my: 4 }}>
+        <Tabs
+          value={currentTab}
+          onChange={handleChangeTab}
+          sx={{
+            px: 3,
+            boxShadow: (theme) =>
+              `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
+          }}
+        >
+          {[
+            {
+              value: "access",
+              label: "事業所アクセス",
+            },
+            {
+              value: "image",
+              label: "求人一括設定画像",
+            },
+            {
+              value: "feature",
+              label: "特徴",
+            },
+          ].map((tab) => (
+            <Tab key={tab.value} value={tab.value} label={tab.label} />
+          ))}
+        </Tabs>
+
+        {currentTab === "access" && (
           <TableContainer sx={{ overflow: "unset" }}>
             <Scrollbar>
               <Table sx={{ minWidth: 960 }}>
@@ -330,7 +372,61 @@ export default function OfficeDetailView({ id }: Props) {
               </Table>
             </Scrollbar>
           </TableContainer>
-        </Stack>
+        )}
+
+        {currentTab === "image" && (
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>画像</TableCell>
+
+                    <TableCell>画像説明</TableCell>
+
+                    <TableCell>ソート順</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {office.office_images.map((row, index) => (
+                    <TableRow key={index}>
+                      <Image width={200} src={row.image} />
+
+                      <TableCell>{row.alttext}</TableCell>
+
+                      <TableCell>{row.sort}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
+        )}
+
+        {currentTab === "feature" && (
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>画像</TableCell>
+
+                    <TableCell>特徴</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {office.office_features.map((row, index) => (
+                    <TableRow key={index}>
+                      <Image width={200} src={row.image} />
+
+                      <TableCell>{row.feature}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
+        )}
       </Card>
     </>
   );

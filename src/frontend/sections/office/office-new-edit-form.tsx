@@ -24,6 +24,8 @@ import axios, { endpoints } from "@/utils/axios";
 import OfficeNewEditDetails from "./office-new-edit-details";
 import OfficeNewEditAccesses from "./office-new-edit-accesses";
 import OfficeNewEditClienteles from "./office-new-edit-clienteles";
+import OfficeNewEditImages from "./office-new-edit-images";
+import OfficeNewEditFeatures from "./office-new-edit-features";
 
 // ----------------------------------------------------------------------
 
@@ -99,6 +101,21 @@ export default function OfficeNewEditForm({
         othertext: Yup.string(),
       })
     ),
+    office_images: Yup.array().of(
+      Yup.object().shape({
+        id: Yup.string(),
+        image: Yup.mixed<any>().required("画像を設定してください。"),
+        alttext: Yup.string(),
+        sort: Yup.number().required("ソート順を入力してください。"),
+      })
+    ),
+    office_features: Yup.array().of(
+      Yup.object().shape({
+        id: Yup.string(),
+        image: Yup.mixed<any>().required("画像を設定してください。"),
+        feature: Yup.string().required("特徴を入力してください。"),
+      })
+    ),
   });
 
   const defaultValues = useMemo(
@@ -126,6 +143,8 @@ export default function OfficeNewEditForm({
       sns_url: currentOffice?.sns_url || "",
       office_accesses: currentOffice?.office_accesses || [],
       office_clienteles: currentOffice?.office_clienteles || [],
+      office_images: currentOffice?.office_images || [],
+      office_features: currentOffice?.office_features || [],
     }),
     [currentOffice]
   );
@@ -138,7 +157,7 @@ export default function OfficeNewEditForm({
   const {
     reset,
     handleSubmit,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting },
   } = methods;
 
   useEffect(() => {
@@ -179,6 +198,8 @@ export default function OfficeNewEditForm({
             sns_url: data.sns_url,
             office_accesses: data.office_accesses,
             office_clienteles: data.office_clienteles,
+            office_images: data.office_images,
+            office_features: data.office_features,
           },
           {
             headers: {
@@ -216,6 +237,8 @@ export default function OfficeNewEditForm({
             sns_url: data.sns_url,
             office_accesses: data.office_accesses,
             office_clienteles: data.office_clienteles,
+            office_images: data.office_images,
+            office_features: data.office_features,
           },
           {
             headers: {
@@ -247,6 +270,10 @@ export default function OfficeNewEditForm({
           <OfficeNewEditAccesses stations={stations} />
 
           <OfficeNewEditClienteles />
+
+          <OfficeNewEditImages />
+
+          <OfficeNewEditFeatures />
         </Card>
       </Grid>
     </>
@@ -261,7 +288,6 @@ export default function OfficeNewEditForm({
           variant="contained"
           size="large"
           loading={isSubmitting}
-          onClick={() => console.log(errors)}
         >
           {!currentOffice ? "事業所を作成" : "事業所を変更"}
         </LoadingButton>

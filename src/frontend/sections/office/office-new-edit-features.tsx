@@ -12,12 +12,12 @@ import { RHFTextField, RHFUpload } from "@/components/hook-form";
 
 // ----------------------------------------------------------------------
 
-export default function CorporationNewEditFeatures() {
+export default function OfficeNewEditFeatures() {
   const { control, setValue } = useFormContext();
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "corporation_features",
+    name: "office_features",
   });
 
   const handleAdd = () => {
@@ -41,7 +41,7 @@ export default function CorporationNewEditFeatures() {
       });
 
       if (file) {
-        setValue(`corporation_features.${index}.image`, newFile, {
+        setValue(`office_features.${index}.image`, newFile, {
           shouldValidate: true,
         });
       }
@@ -51,7 +51,7 @@ export default function CorporationNewEditFeatures() {
 
   const handleRemoveFile = useCallback(
     (index: number) => {
-      setValue(`corporation_features.${index}.image`, null);
+      setValue(`office_features.${index}.image`, null);
     },
     [setValue]
   );
@@ -72,11 +72,11 @@ export default function CorporationNewEditFeatures() {
               spacing={2}
               sx={{ width: 1 }}
             >
-              <Stack spacing={1.5} width={{ xs: "auto", md: 400 }}>
+              <Stack spacing={1.5}>
                 <Typography variant="subtitle2">ロゴ</Typography>
                 <RHFUpload
                   thumbnail
-                  name={`corporation_features.${index}.image`}
+                  name={`office_features.${index}.image`}
                   maxSize={3145728}
                   onDrop={(inputFile) => handleDrop(index, inputFile)}
                   onDelete={() => handleRemoveFile(index)}
@@ -91,7 +91,7 @@ export default function CorporationNewEditFeatures() {
               >
                 <RHFTextField
                   size="small"
-                  name={`corporation_features.${index}.feature`}
+                  name={`office_features.${index}.feature`}
                   label="特徴"
                   InputLabelProps={{ shrink: true }}
                 />

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Office;
 use App\Models\OfficeAccess;
 use App\Models\OfficeClientele;
+use App\Models\OfficeImage;
+use App\Models\OfficeFeature;
+use App\Library\UploadImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -158,11 +161,11 @@ class OfficeController extends Controller
                 'office_clienteles.*.clientele' => 'numeric',
                 'office_clienteles.*.othertext' => '',
                 'office_images' => 'nullable|array',
-                'office_images.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'office_images.*.image' => 'required',
                 'office_images.*.alttext' => '',
-                'office_images.*.sort' => 'number',
+                'office_images.*.sort' => 'numeric',
                 'office_features' => 'nullable|array',
-                'office_features.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'office_features.*.image' => 'required',
                 'office_features.*.feature' => 'required|string',
             ]);
 
@@ -171,19 +174,41 @@ class OfficeController extends Controller
                 $office = Office::create($data);
                 // 事業所アクセス登録
                 if (isset($data['office_accesses']) && is_array($data['office_accesses'])) {
-                    $office->officeAccesses->createMany($data['office_accesses']);
+                    $office->officeAccesses()->createMany($data['office_accesses']);
                 }
 
                 // 事業所客層登録
                 if (isset($data['office_clienteles']) && is_array($data['office_clienteles'])) {
-                    $office->officeClienteles->createMany($data['office_clienteles']);
+                    $office->officeClienteles()->createMany($data['office_clienteles']);
                 }
 
                 // 求人一括設定画像登録
-                // TODO
+                if (isset($data['office_images']) && is_array($data['office_images'])) {
+                    foreach ($data['office_images'] as $office_image) {
+                        // ファイルアップロード
+                        $office_image['image'] = UploadImage::uploadImageFile(
+                            $office_image['image'],
+                            config('uploadimage.office_image_storage'),
+                            $office->id
+                        );
+                        // データベースへ登録
+                        $office->officeImages()->create($office_image);
+                    }
+                }
 
                 // 事業所特徴登録
-                // TODO
+                if (isset($data['office_features']) && is_array($data['office_features'])) {
+                    foreach ($data['office_features'] as $office_feature) {
+                        // ファイルアップロード
+                        $office_feature['image'] = UploadImage::uploadImageFile(
+                            $office_feature['image'],
+                            config('uploadimage.office_feature_storage'),
+                            $office->id
+                        );
+                        // データベースへ登録
+                        $office->officeFeatures()->create($office_feature);
+                    }
+                }
             });
 
             return response()->json(['result' => 'ok']);
@@ -233,12 +258,12 @@ class OfficeController extends Controller
                 'office_clienteles.*.othertext' => '',
                 'office_images' => 'nullable|array',
                 'office_images.*.id' => '',
-                'office_images.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'office_images.*.image' => 'required',
                 'office_images.*.alttext' => '',
-                'office_images.*.sort' => 'number',
+                'office_images.*.sort' => 'numeric',
                 'office_features' => 'nullable|array',
                 'office_features.*.id' => '',
-                'office_features.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'office_features.*.image' => 'required',
                 'office_features.*.feature' => 'required|string',
             ]);
 
@@ -247,72 +272,16 @@ class OfficeController extends Controller
                 $office->update($data);
 
                 // 事業所アクセス
-                if (isset($data['office_accesses']) && is_array($data['office_accesses'])) {
-                    // 入力があったID以外は削除
-                    $ids = array_column($data['office_accesses'], 'id');
-                    if (count($ids) > 0) {
-                        OfficeAccess::where('office_id', $id)
-                            ->whereNotIn('id', $ids)
-                            ->delete();
-                    } else {
-                        $office->officeAccesses()->delete();
-                    }
-                    
-                    // 入力があったデータは登録or更新
-                    foreach ($data['office_accesses'] as $office_access) {
-                        if (isset($office_access['id']) && !empty($office_access['id'])) {
-                            // 登録済みのデータは更新
-                            OfficeAccess::where('id', $office_access['id'])
-                                ->update([
-                                    'line_id' => $office_access['line_id'],
-                                    'station_id' => $office_access['station_id'],
-                                    'move_type' => $office_access['move_type'],
-                                    'time' => $office_access['time'],
-                                    'note' => $office_access['note'],
-                                ]);
-                        } else {
-                            // 未登録データは登録
-                            $office->officeAccesses()->create($office_access);
-                        }
-                    }
-                } else {
-                    // 入力がない場合は削除
-                    $office->officeAccesses()->delete();
-                }
+                self::updateOfficeAccess($office, isset($data['office_accesses']) ? $data['office_accesses'] : null);
 
                 // 事業所客層
-                if (isset($data['office_clienteles']) && is_array($data['office_clienteles'])) {
-                    \Log::debug($data['office_clienteles']);
-                    // 入力があったID以外は削除
-                    $ids = array_column($data['office_clienteles'], 'id');
-                    if (count($ids) > 0) {
-                        OfficeClientele::where('office_id', $id)
-                            ->whereNotIn('id', $ids)
-                            ->delete();
-                    } else {
-                        $office->officeClienteles()->delete();
-                    }
-
-                    foreach ($data['office_clienteles'] as $office_clientele) {
-                        if (isset($office_clientele['id']) && !empty($office_clientele['id'])) {
-                            // 登録済みのデータは更新
-                            OfficeClientele::where('id', $office_clientele['id'])
-                                ->update([
-                                    'clientele' => $office_clientele['clientele'],
-                                    'othertext' => $office_clientele['othertext'],
-                                ]);
-                        } else {
-                            // 未登録データは登録
-                            $office->officeClienteles()->create($office_clientele);
-                        }
-                    }
-                }
+                self::updateOfficeClientele($office, isset($data['office_clienteles']) ? $data['office_clienteles'] : null);
 
                 // 求人一括設定画像
-                // TODO
+                self::updateOfficeImage($office, isset($data['office_images']) ? $data['office_images'] : null);
 
                 // 法人特徴
-                // TODO
+                self::updateOfficeFeature($office, isset($data['office_features']) ? $data['office_features'] : null);
             });
 
             return response()->json(['result' => 'ok']);
@@ -363,6 +332,241 @@ class OfficeController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'One or more offices not found'], 404);
+        }
+    }
+
+    /**
+     * 事業所アクセス更新処理
+     */
+    private function updateOfficeAccess($office, $office_accesses)
+    {
+        if (isset($office_accesses) && is_array($office_accesses)) {
+            // 入力があったID以外は削除
+            $ids = array_column($office_accesses, 'id');
+            $ids = array_filter($ids, function ($val) {
+                return !(is_null($val) || $val === "");
+            });
+            if (count($ids) > 0) {
+                OfficeAccess::where('office_id', $office->id)
+                    ->whereNotIn('id', $ids)
+                    ->delete();
+            } else {
+                $office->officeAccesses()->delete();
+            }
+            
+            // 入力があったデータは登録or更新
+            foreach ($office_accesses as $office_access) {
+                if (isset($office_access['id']) && !empty($office_access['id'])) {
+                    // 登録済みのデータは更新
+                    OfficeAccess::where('id', $office_access['id'])
+                        ->update([
+                            'line_id' => $office_access['line_id'],
+                            'station_id' => $office_access['station_id'],
+                            'move_type' => $office_access['move_type'],
+                            'time' => $office_access['time'],
+                            'note' => $office_access['note'],
+                        ]);
+                } else {
+                    // 未登録データは登録
+                    $office->officeAccesses()->create($office_access);
+                }
+            }
+        } else {
+            // 入力がない場合は削除
+            $office->officeAccesses()->delete();
+        }
+    }
+
+    /**
+     * 事業所客層更新処理
+     */
+    private function updateOfficeClientele($office, $office_clienteles)
+    {
+        if (isset($office_clienteles) && is_array($office_clienteles)) {
+            // 入力があったID以外は削除
+            $ids = array_column($office_clienteles, 'id');
+            $ids = array_filter($ids, function ($val) {
+                return !(is_null($val) || $val === "");
+            });
+            if (count($ids) > 0) {
+                OfficeClientele::where('office_id', $office->id)
+                    ->whereNotIn('id', $ids)
+                    ->delete();
+            } else {
+                $office->officeClienteles()->delete();
+            }
+
+            foreach ($office_clienteles as $office_clientele) {
+                if (isset($office_clientele['id']) && !empty($office_clientele['id'])) {
+                    // 登録済みのデータは更新
+                    OfficeClientele::where('id', $office_clientele['id'])
+                        ->update([
+                            'clientele' => $office_clientele['clientele'],
+                            'othertext' => $office_clientele['othertext'],
+                        ]);
+                } else {
+                    // 未登録データは登録
+                    $office->officeClienteles()->create($office_clientele);
+                }
+            }
+        } else {
+            // 入力がない場合は削除
+            $office->officeClienteles()->delete();
+        }
+    }
+
+    /**
+     * 事業所の求人一括設定画像更新処理
+     */
+    private function updateOfficeImage($office, $office_images)
+    {
+        if (isset($office_images) && is_array($office_images)) {
+            // 入力があったID以外は削除
+            $ids = array_column($office_images, 'id');
+            $ids = array_filter($ids, function ($val) {
+                return !(is_null($val) || $val === "");
+            });
+            $delete_query = OfficeImage::where('office_id', $office->id);
+            if (count($ids) > 0) {
+                $delete_query = $delete_query->whereNotIn('id', $ids);
+            }
+            $delete_data = $delete_query->get();
+            foreach ($delete_data as $row) {
+                UploadImage::deleteImageFile(
+                    $row->image,
+                    config('uploadimage.office_image_storage'),
+                    $office->id
+                );
+                $row->delete();
+            }
+
+            foreach ($office_images as $office_image) {
+                if (isset($office_image['id']) && !empty($office_image['id'])) {
+                    // 登録済みのデータは更新
+                    $registered_data = OfficeImage::find($office_image['id']);
+                    if (is_string($office_image['image'])) {
+                        // 文字列の場合は画像変更していないため、説明、ソート順が変更されている場合のみ更新
+                        if ($registered_data->alttext != $office_image['alttext']
+                            || $registered_data->sort != $office_image['sort']) {
+                            $registered_data->update([
+                                'alttext' => $office_image['alttext'],
+                                'sort' => $office_image['sort'],
+                            ]);
+                        }
+                    } else {
+                        // ファイル形式の場合は画像変更しているため、更新
+                        // ファイルアップロード
+                        $office_image['image'] = UploadImage::uploadImageFile(
+                            $office_image['image'],
+                            config('uploadimage.office_image_storage'),
+                            $office->id,
+                            $registered_data->image
+                        );
+                        // データベースに保存
+                        $registered_data->update([
+                            'image' => $office_image['image'],
+                            'alttext' => $office_image['alttext'],
+                            'sort' => $office_image['sort'],
+                        ]);
+                    }
+                } else {
+                    // 未登録データは登録
+                    // ファイルアップロード
+                    $office_image['image'] = UploadImage::uploadImageFile(
+                        $office_image['image'],
+                        config('uploadimage.office_image_storage'),
+                        $office->id
+                    );
+                    // データベースへ登録
+                    $office->officeImages()->create($office_image);
+                }
+            }
+        } else {
+            // 全くない場合は全削除
+            foreach ($office->officeImages as $office_image) {
+                UploadImage::deleteImageFile(
+                    $office_image->image,
+                    config('uploadimage.office_image_storage'),
+                    $office->id
+                );
+            }
+            $office->officeImages()->delete();
+        }
+    }
+
+    /**
+     * 事業所特徴更新処理
+     */
+    private function updateOfficeFeature($office, $office_features)
+    {
+        if (isset($office_features) && is_array($office_features)) {
+            // 入力があったID以外は削除
+            $ids = array_column($office_features, 'id');
+            $ids = array_filter($ids, function ($val) {
+                return !(is_null($val) || $val === "");
+            });
+            $delete_query = OfficeFeature::where('office_id', $office->id);
+            if (count($ids) > 0) {
+                $delete_query = $delete_query->whereNotIn('id', $ids);
+            }
+            $delete_data = $delete_query->get();
+            foreach ($delete_data as $row) {
+                UploadImage::deleteImageFile(
+                    $row->image,
+                    config('uploadimage.office_feature_storage'),
+                    $office->id
+                );
+                $row->delete();
+            }
+
+            foreach ($office_features as $office_feature) {
+                if (isset($office_feature['id']) && !empty($office_feature['id'])) {
+                    // 登録済みのデータは更新
+                    $registered_data = OfficeFeature::find($office_feature['id']);
+                    if (is_string($office_feature['image'])) {
+                        // 文字列の場合は画像変更していないため、特徴が変更されている場合のみ更新
+                        if ($registered_data->feature != $office_feature['feature']) {
+                            $registered_data->update([
+                                'feature' => $office_feature['feature'],
+                            ]);
+                        }
+                    } else {
+                        // ファイル形式の場合は画像変更しているため、更新
+                        // ファイルアップロード
+                        $office_feature['image'] = UploadImage::uploadImageFile(
+                            $office_feature['image'],
+                            config('uploadimage.office_feature_storage'),
+                            $office->id,
+                            $registered_data->image
+                        );
+                        // データベースに保存
+                        $registered_data->update([
+                            'image' => $office_feature['image'],
+                            'feature' => $office_feature['feature'],
+                        ]);
+                    }
+                } else {
+                    // 未登録データは登録
+                    // ファイルアップロード
+                    $office_feature['image'] = UploadImage::uploadImageFile(
+                        $office_feature['image'],
+                        config('uploadimage.office_feature_storage'),
+                        $office->id
+                    );
+                    // データベースへ登録
+                    $office->officeFeatures()->create($office_feature);
+                }
+            }
+        } else {
+            // 全くない場合は全削除
+            foreach ($office->officeFeatures as $office_feature) {
+                UploadImage::deleteImageFile(
+                    $office_feature->image,
+                    config('uploadimage.office_feature_storage'),
+                    $office->id
+                );
+            }
+            $office->officeFeatures()->delete();
         }
     }
 }
