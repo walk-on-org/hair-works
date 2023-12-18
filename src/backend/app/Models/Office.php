@@ -71,4 +71,8 @@ class Office extends Model
     public function officeImages() {
         return $this->hasMany('App\Models\OfficeImage');
     }
+
+    public function jobs() {
+        return $this->hasMany('App\Models\Job');
+    }
 }

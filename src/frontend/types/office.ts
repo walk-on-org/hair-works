@@ -1,3 +1,5 @@
+import { IJobItem } from "./job";
+
 export type IOfficeItem = {
   id: string;
   name: string;
@@ -31,6 +33,7 @@ export type IOfficeItem = {
   office_clienteles: IOfficeClienteleItem[];
   office_images: IOfficeImageItem[];
   office_features: IOfficeFeatureItem[];
+  jobs: IJobItem[];
   job_count: number;
   created_at: Date;
   updated_at: Date;

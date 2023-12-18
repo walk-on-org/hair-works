@@ -117,6 +117,14 @@ class OfficeController extends Controller
                 $office_feature['image'] = config('uploadimage.office_feature_path') . $office->id . '/' . $office_feature->image;
             }
 
+            // 求人
+            $office['jobs'] = $office->jobs;
+            foreach ($office['jobs'] as $job) {
+                $job['job_category_name'] = $job->jobCategory->name;
+                $job['position_name'] = $job->position->name;
+                $job['employment_name'] = $job->employment->name;
+            }
+
             return response()->json(['office' => $office]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Office not found'], 404);

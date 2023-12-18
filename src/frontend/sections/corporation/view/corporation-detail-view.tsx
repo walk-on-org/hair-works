@@ -345,7 +345,9 @@ export default function CorporationDetailView({ id }: Props) {
                 <TableBody>
                   {corporation.corporation_images.map((row, index) => (
                     <TableRow key={index}>
-                      <Image width={200} src={row.image} />
+                      <TableCell>
+                        <Image width={200} src={row.image} />
+                      </TableCell>
 
                       <TableCell>{row.alttext}</TableCell>
 
@@ -372,7 +374,9 @@ export default function CorporationDetailView({ id }: Props) {
                 <TableBody>
                   {corporation.corporation_features.map((row, index) => (
                     <TableRow key={index}>
-                      <Image width={200} src={row.image} />
+                      <TableCell>
+                        <Image width={200} src={row.image} />
+                      </TableCell>
 
                       <TableCell>{row.feature}</TableCell>
                     </TableRow>
@@ -403,19 +407,23 @@ export default function CorporationDetailView({ id }: Props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>TODO</TableCell>
+                  {corporation.offices.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{row.id}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.name}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.postcode}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>
+                        {row.prefecture_name + row.city_name + row.address}
+                      </TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.tel}</TableCell>
 
-                    <TableCell>TODO</TableCell>
-                  </TableRow>
+                      <TableCell>TODO</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </Scrollbar>

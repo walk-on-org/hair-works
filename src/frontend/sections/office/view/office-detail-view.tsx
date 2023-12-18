@@ -332,6 +332,10 @@ export default function OfficeDetailView({ id }: Props) {
               value: "feature",
               label: "特徴",
             },
+            {
+              value: "job",
+              label: "求人一覧",
+            },
           ].map((tab) => (
             <Tab key={tab.value} value={tab.value} label={tab.label} />
           ))}
@@ -390,7 +394,9 @@ export default function OfficeDetailView({ id }: Props) {
                 <TableBody>
                   {office.office_images.map((row, index) => (
                     <TableRow key={index}>
-                      <Image width={200} src={row.image} />
+                      <TableCell>
+                        <Image width={200} src={row.image} />
+                      </TableCell>
 
                       <TableCell>{row.alttext}</TableCell>
 
@@ -417,7 +423,9 @@ export default function OfficeDetailView({ id }: Props) {
                 <TableBody>
                   {office.office_features.map((row, index) => (
                     <TableRow key={index}>
-                      <Image width={200} src={row.image} />
+                      <TableCell>
+                        <Image width={200} src={row.image} />
+                      </TableCell>
 
                       <TableCell>{row.feature}</TableCell>
                     </TableRow>
@@ -446,17 +454,19 @@ export default function OfficeDetailView({ id }: Props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>TODO</TableCell>
+                  {office.jobs.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{row.id}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.name}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.job_category_name}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.position_name}</TableCell>
 
-                    <TableCell>TODO</TableCell>
-                  </TableRow>
+                      <TableCell>{row.employment_name}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </Scrollbar>

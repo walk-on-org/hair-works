@@ -1,3 +1,5 @@
+import { IOfficeItem } from "./office";
+
 export type ICorporationItem = {
   id: string;
   name: string;
@@ -24,6 +26,7 @@ export type ICorporationItem = {
   contracts: IContractItem[];
   corporation_images: ICorporationImageItem[];
   corporation_features: ICorporationFeatureItem[];
+  offices: IOfficeItem[];
   plan_id: string;
   plan_name: string;
   start_date: Date | null;

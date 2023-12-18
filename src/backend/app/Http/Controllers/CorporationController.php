@@ -127,6 +127,13 @@ class CorporationController extends Controller
                 $corporation_feature['image'] = config('uploadimage.corporation_feature_path') . $corporation->id . '/' . $corporation_feature->image;
             }
 
+            // 事業所
+            $corporation['offices'] = $corporation->offices;
+            foreach ($corporation['offices'] as $office) {
+                $office['prefecture_name'] = $office->prefecture->name;
+                $office['city_name'] = $office->city->name;
+            }
+
             return response()->json(['corporation' => $corporation]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Corporation not found'], 404);
