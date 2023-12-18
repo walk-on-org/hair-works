@@ -72,7 +72,7 @@ export default function OfficeNewEditFeatures() {
               spacing={2}
               sx={{ width: 1 }}
             >
-              <Stack spacing={1.5}>
+              <Stack spacing={1.5} width={{ xs: "auto", md: 400 }}>
                 <Typography variant="subtitle2">ロゴ</Typography>
                 <RHFUpload
                   thumbnail

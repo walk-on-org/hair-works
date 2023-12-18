@@ -12,12 +12,12 @@ import { RHFTextField, RHFUpload } from "@/components/hook-form";
 
 // ----------------------------------------------------------------------
 
-export default function OfficeNewEditImages() {
+export default function JobNewEditImages() {
   const { control, setValue } = useFormContext();
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "office_images",
+    name: "job_images",
   });
 
   const handleAdd = () => {
@@ -42,7 +42,7 @@ export default function OfficeNewEditImages() {
       });
 
       if (file) {
-        setValue(`office_images.${index}.image`, newFile, {
+        setValue(`job_images.${index}.image`, newFile, {
           shouldValidate: true,
         });
       }
@@ -52,7 +52,7 @@ export default function OfficeNewEditImages() {
 
   const handleRemoveFile = useCallback(
     (index: number) => {
-      setValue(`office_images.${index}.image`, null);
+      setValue(`job_images.${index}.image`, null);
     },
     [setValue]
   );
@@ -77,7 +77,7 @@ export default function OfficeNewEditImages() {
                 <Typography variant="subtitle2">ロゴ</Typography>
                 <RHFUpload
                   thumbnail
-                  name={`office_images.${index}.image`}
+                  name={`job_images.${index}.image`}
                   maxSize={3145728}
                   onDrop={(inputFile) => handleDrop(index, inputFile)}
                   onDelete={() => handleRemoveFile(index)}
@@ -92,14 +92,14 @@ export default function OfficeNewEditImages() {
               >
                 <RHFTextField
                   size="small"
-                  name={`office_images.${index}.alttext`}
+                  name={`job_images.${index}.alttext`}
                   label="画像説明"
                   InputLabelProps={{ shrink: true }}
                 />
 
                 <RHFTextField
                   size="small"
-                  name={`office_images.${index}.sort`}
+                  name={`job_images.${index}.sort`}
                   label="ソート順"
                   InputLabelProps={{ shrink: true }}
                   type="number"

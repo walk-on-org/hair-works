@@ -6,6 +6,8 @@ use App\Models\Job;
 use App\Models\JobCommitmentTerm;
 use App\Models\JobHoliday;
 use App\Models\JobQualification;
+use App\Models\JobImage;
+use App\Library\UploadImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -165,9 +167,9 @@ class JobController extends Controller
                 'salon_message' => '',
                 'commitment_term_ids' => 'nullable|array',
                 'job_images' => 'nullable|array',
-                'job_images.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'job_images.*.image' => 'required',
                 'job_images.*.alttext' => '',
-                'job_images.*.sort' => 'number',
+                'job_images.*.sort' => 'numeric',
             ]);
 
             DB::transaction(function () use ($data) {
@@ -175,7 +177,18 @@ class JobController extends Controller
                 $job = Job::create($data);
 
                 // 求人一括設定画像登録
-                // TODO
+                if (isset($data['job_images']) && is_array($data['job_images'])) {
+                    foreach ($data['job_images'] as $job_image) {
+                        // ファイルアップロード
+                        $job_image['image'] = UploadImage::uploadImageFile(
+                            $job_image['image'],
+                            config('uploadimage.job_image_storage'),
+                            $job->id
+                        );
+                        // データベースへ登録
+                        $job->jobImages()->create($job_image);
+                    }
+                }
 
                 // 求人こだわり条件
                 if (isset($data['commitment_term_ids']) && is_array($data['commitment_term_ids']) && count($data['commitment_term_ids']) > 0) {
@@ -252,9 +265,9 @@ class JobController extends Controller
                 'commitment_term_ids' => 'nullable|array',
                 'job_images' => 'nullable|array',
                 'job_images.*.id' => '',
-                'job_images.*.image' => 'required|file|mimes:jpeg,jpg,png,webp',
+                'job_images.*.image' => 'required',
                 'job_images.*.alttext' => '',
-                'job_images.*.sort' => 'number',
+                'job_images.*.sort' => 'numeric',
             ]);
 
             DB::transaction(function () use ($data, $id) {
@@ -262,7 +275,7 @@ class JobController extends Controller
                 $job->update($data);
 
                 // 求人一括設定画像
-                // TODO
+                self::updateJobImage($job, isset($data['job_images']) ? $data['job_images'] : null);
 
                 // 求人こだわり条件
                 if (isset($data['commitment_term_ids']) && is_array($data['commitment_term_ids']) && count($data['commitment_term_ids']) > 0) {
@@ -391,6 +404,85 @@ class JobController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'One or more jobs not found'], 404);
+        }
+    }
+
+    /**
+     * 求人一括設定画像更新処理
+     */
+    private function updateJobImage($job, $job_images)
+    {
+        if (isset($job_images) && is_array($job_images)) {
+            // 入力があったID以外は削除
+            $ids = array_column($job_images, 'id');
+            $ids = array_filter($ids, function ($val) {
+                return !(is_null($val) || $val === "");
+            });
+            $delete_query = JobImage::where('job_id', $job->id);
+            if (count($ids) > 0) {
+                $delete_query = $delete_query->whereNotIn('id', $ids);
+            }
+            $delete_data = $delete_query->get();
+            foreach ($delete_data as $row) {
+                UploadImage::deleteImageFile(
+                    $row->image,
+                    config('uploadimage.job_image_storage'),
+                    $job->id
+                );
+                $row->delete();
+            }
+
+            foreach ($job_images as $job_image) {
+                if (isset($job_image['id']) && !empty($job_image['id'])) {
+                    // 登録済みのデータは更新
+                    $registered_data = JobImage::find($job_image['id']);
+                    if (is_string($job_image['image'])) {
+                        // 文字列の場合は画像変更していないため、説明、ソート順が変更されている場合のみ更新
+                        if ($registered_data->alttext != $job_image['alttext']
+                            || $registered_data->sort != $job_image['sort']) {
+                            $registered_data->update([
+                                'alttext' => $job_image['alttext'],
+                                'sort' => $job_image['sort'],
+                            ]);
+                        }
+                    } else {
+                        // ファイル形式の場合は画像変更しているため、更新
+                        // ファイルアップロード
+                        $job_image['image'] = UploadImage::uploadImageFile(
+                            $job_image['image'],
+                            config('uploadimage.job_image_storage'),
+                            $job->id,
+                            $registered_data->image
+                        );
+                        // データベースに保存
+                        $registered_data->update([
+                            'image' => $job_image['image'],
+                            'alttext' => $job_image['alttext'],
+                            'sort' => $job_image['sort'],
+                        ]);
+                    }
+                } else {
+                    // 未登録データは登録
+                    // ファイルアップロード
+                    $job_image['image'] = UploadImage::uploadImageFile(
+                        $job_image['image'],
+                        config('uploadimage.job_image_storage'),
+                        $job->id
+                    );
+                    // データベースへ登録
+                    $job->jobImages()->create($job_image);
+                }
+            }
+        } else {
+            // 全くない場合は全削除
+            foreach ($job->jobImages as $job_image) {
+                UploadImage::deleteImageFile(
+                    $job_image->image,
+                    config('uploadimage.job_image_storage'),
+                    $job->id
+                );
+            }
+            $job->jobImages()->delete();
         }
     }
 }

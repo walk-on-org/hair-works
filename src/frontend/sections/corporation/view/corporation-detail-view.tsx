@@ -272,6 +272,14 @@ export default function CorporationDetailView({ id }: Props) {
               value: "feature",
               label: "特徴",
             },
+            {
+              value: "office",
+              label: "事業所一覧（応募数）",
+            },
+            {
+              value: "user",
+              label: "担当者",
+            },
           ].map((tab) => (
             <Tab key={tab.value} value={tab.value} label={tab.label} />
           ))}
@@ -369,6 +377,76 @@ export default function CorporationDetailView({ id }: Props) {
                       <TableCell>{row.feature}</TableCell>
                     </TableRow>
                   ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
+        )}
+
+        {currentTab === "office" && (
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>事業所ID</TableCell>
+
+                    <TableCell>事業所名</TableCell>
+
+                    <TableCell>郵便番号</TableCell>
+
+                    <TableCell>住所</TableCell>
+
+                    <TableCell>電話番号</TableCell>
+
+                    <TableCell>応募数</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
+        )}
+
+        {currentTab === "user" && (
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>アカウントID</TableCell>
+
+                    <TableCell>氏名</TableCell>
+
+                    <TableCell>電話番号</TableCell>
+
+                    <TableCell>メールアドレス</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </Scrollbar>

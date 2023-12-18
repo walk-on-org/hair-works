@@ -25,6 +25,7 @@ import { IPositionItem } from "@/types/position";
 import { IQualificationItem } from "@/types/qualification";
 import axios, { endpoints } from "@/utils/axios";
 import JobNewEditDetails from "./job-new-edit-details";
+import JobNewEditImages from "./job-new-edit-images";
 
 // ----------------------------------------------------------------------
 
@@ -87,6 +88,14 @@ export default function JobNewEditForm({
     recommend_point: Yup.string(),
     salon_message: Yup.string(),
     commitment_term_names: Yup.array(),
+    job_images: Yup.array().of(
+      Yup.object().shape({
+        id: Yup.string(),
+        image: Yup.mixed<any>().required("画像を設定してください。"),
+        alttext: Yup.string(),
+        sort: Yup.number().required("ソート順を入力してください。"),
+      })
+    ),
   });
 
   const defaultValues = useMemo(
@@ -123,6 +132,7 @@ export default function JobNewEditForm({
       recommend_point: currentJob?.recommend_point || "",
       salon_message: currentJob?.salon_message || "",
       commitment_term_names: currentJob?.commitment_term_names || [],
+      job_images: currentJob?.job_images || [],
     }),
     [currentJob]
   );
@@ -204,6 +214,7 @@ export default function JobNewEditForm({
             recommend_point: data.recommend_point,
             salon_message: data.salon_message,
             commitment_term_ids: selectCommitmentTermIds,
+            job_images: data.job_images,
           },
           {
             headers: {
@@ -254,6 +265,7 @@ export default function JobNewEditForm({
             recommend_point: data.recommend_point,
             salon_message: data.salon_message,
             commitment_term_ids: selectCommitmentTermIds,
+            job_images: data.job_images,
           },
           {
             headers: {
@@ -284,6 +296,8 @@ export default function JobNewEditForm({
             holidays={holidays}
             qualifications={qualifications}
           />
+
+          <JobNewEditImages />
         </Card>
       </Grid>
     </>

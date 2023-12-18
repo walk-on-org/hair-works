@@ -1,7 +1,12 @@
 "use client";
 
+import { useCallback, useState } from "react";
+
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
+import { alpha } from "@mui/material/styles";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
@@ -17,6 +22,7 @@ import { RouterLink } from "@/routes/components";
 
 import { useGetJob } from "@/api/job";
 
+import Image from "@/components/image";
 import Label from "@/components/label";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import Iconify from "@/components/iconify";
@@ -27,6 +33,7 @@ import { useSettingsContext } from "@/components/settings";
 import JobDetailToolbar from "../job-detail-toolbar";
 import { JobDetailSkeleton } from "../job-skelton";
 import { Link } from "@mui/material";
+import { fCurrency } from "@/utils/format-number";
 
 // ----------------------------------------------------------------------
 
@@ -36,8 +43,14 @@ type Props = {
 
 export default function JobDetailView({ id }: Props) {
   const { job, jobLoading, jobError } = useGetJob(id);
-
   const settings = useSettingsContext();
+  const [currentTab, setCurrentTab] = useState("image");
+  const handleChangeTab = useCallback(
+    (event: React.SyntheticEvent, newValue: string) => {
+      setCurrentTab(newValue);
+    },
+    []
+  );
 
   const renderSkeleton = <JobDetailSkeleton />;
 
@@ -219,8 +232,9 @@ export default function JobDetailView({ id }: Props) {
               月給
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              TODO
-              {job.m_salary_lower && job.m_salary_upper}
+              {job.m_salary_lower ? `${fCurrency(job.m_salary_lower)}円` : ""}
+              {job.m_salary_lower || job.m_salary_upper ? "〜" : ""}
+              {job.m_salary_upper ? `${fCurrency(job.m_salary_upper)}円` : ""}
             </Typography>
           </Stack>
 
@@ -229,8 +243,9 @@ export default function JobDetailView({ id }: Props) {
               時給
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              TODO
-              {job.t_salary_lower && job.t_salary_upper}
+              {job.t_salary_lower ? `${fCurrency(job.t_salary_lower)}円` : ""}
+              {job.t_salary_lower || job.t_salary_upper ? "〜" : ""}
+              {job.t_salary_upper ? `${fCurrency(job.t_salary_upper)}円` : ""}
             </Typography>
           </Stack>
 
@@ -239,8 +254,9 @@ export default function JobDetailView({ id }: Props) {
               日給
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              TODO
-              {job.d_salary_lower && job.d_salary_upper}
+              {job.d_salary_lower ? `${fCurrency(job.d_salary_lower)}円` : ""}
+              {job.d_salary_lower || job.d_salary_upper ? "〜" : ""}
+              {job.d_salary_upper ? `${fCurrency(job.d_salary_upper)}円` : ""}
             </Typography>
           </Stack>
 
@@ -249,8 +265,13 @@ export default function JobDetailView({ id }: Props) {
               歩合
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              TODO
-              {job.commission_lower && job.commission_upper}
+              {job.commission_lower
+                ? `${fCurrency(job.commission_lower)}%`
+                : ""}
+              {job.commission_lower || job.commission_upper ? "〜" : ""}
+              {job.commission_upper
+                ? `${fCurrency(job.commission_upper)}%`
+                : ""}
             </Typography>
           </Stack>
 
@@ -388,43 +409,59 @@ export default function JobDetailView({ id }: Props) {
               {job.commitment_term_names.join("、")}
             </Typography>
           </Stack>
+        </Stack>
+      </Card>
 
-          {/*<Typography variant="subtitle2">事業所アクセス</Typography>
+      <Card sx={{ my: 4 }}>
+        <Tabs
+          value={currentTab}
+          onChange={handleChangeTab}
+          sx={{
+            px: 3,
+            boxShadow: (theme) =>
+              `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
+          }}
+        >
+          {[
+            {
+              value: "image",
+              label: "求人画像",
+            },
+          ].map((tab) => (
+            <Tab key={tab.value} value={tab.value} label={tab.label} />
+          ))}
+        </Tabs>
+
+        {currentTab === "image" && (
           <TableContainer sx={{ overflow: "unset" }}>
             <Scrollbar>
               <Table sx={{ minWidth: 960 }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell>路線</TableCell>
+                    <TableCell>画像</TableCell>
 
-                    <TableCell>駅</TableCell>
+                    <TableCell>画像説明</TableCell>
 
-                    <TableCell>移動手段</TableCell>
-
-                    <TableCell>移動時間（分）</TableCell>
-
-                    <TableCell>備考</TableCell>
+                    <TableCell>ソート順</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {job.job_accesses.map((row, index) => (
+                  {job.job_images.map((row, index) => (
                     <TableRow key={index}>
-                      <TableCell>{row.line_name}</TableCell>
+                      <TableCell>
+                        <Image width={200} src={row.image} />
+                      </TableCell>
 
-                      <TableCell>{row.station_name}</TableCell>
+                      <TableCell>{row.alttext}</TableCell>
 
-                      <TableCell>{row.move_type_name}</TableCell>
-
-                      <TableCell>{row.time}</TableCell>
-
-                      <TableCell>{row.note}</TableCell>
+                      <TableCell>{row.sort}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </Scrollbar>
-                  </TableContainer>*/}
-        </Stack>
+          </TableContainer>
+        )}
       </Card>
     </>
   );

@@ -427,6 +427,41 @@ export default function OfficeDetailView({ id }: Props) {
             </Scrollbar>
           </TableContainer>
         )}
+
+        {currentTab === "job" && (
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>求人ID</TableCell>
+
+                    <TableCell>求人名</TableCell>
+
+                    <TableCell>職種</TableCell>
+
+                    <TableCell>役職/役割</TableCell>
+
+                    <TableCell>雇用形態</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+
+                    <TableCell>TODO</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
+        )}
       </Card>
     </>
   );
