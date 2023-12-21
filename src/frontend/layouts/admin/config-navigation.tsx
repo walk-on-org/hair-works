@@ -81,104 +81,84 @@ export function useNavData() {
             path: paths.admin.member.root,
             icon: ICONS.user,
           },
-        ],
-      },
-
-      // マスタ設定
-      // ----------------------------------------------------------------------
-      {
-        subheader: "マスタ設定",
-        items: [
-          // 職種
           {
-            title: "職種",
-            path: paths.admin.jobCategory.root,
-          },
-          // 役職/役割
-          {
-            title: "役職/役割",
-            path: paths.admin.position.root,
-          },
-          // 雇用形態
-          {
-            title: "雇用形態",
-            path: paths.admin.employment.root,
-          },
-          // 都道府県
-          {
-            title: "都道府県",
-            path: paths.admin.prefecture.root,
-          },
-          // 政令指定都市
-          {
-            title: "政令指定都市",
-            path: paths.admin.governmentCity.root,
-          },
-          // 市区町村
-          {
-            title: "市区町村",
-            path: paths.admin.city.root,
-          },
-          // 鉄道事業者
-          {
-            title: "鉄道事業者",
-            path: paths.admin.trainCompany.root,
-          },
-          // 路線
-          {
-            title: "路線",
-            path: paths.admin.line.root,
-          },
-          // 駅
-          {
-            title: "駅",
-            path: paths.admin.station.root,
-          },
-          // 休日
-          {
-            title: "休日",
-            path: paths.admin.holiday.root,
-          },
-          // こだわり条件
-          {
-            title: "こだわり条件",
-            path: paths.admin.commitmentTerm.root,
-          },
-          // 保有資格
-          {
-            title: "保有資格",
-            path: paths.admin.qualification.root,
-          },
-          // LP職種
-          {
-            title: "LP職種",
-            path: paths.admin.lpJobCategory.root,
-          },
-          // プラン
-          {
-            title: "プラン",
-            path: paths.admin.plan.root,
-          },
-          // HTML追加コンテンツ
-          {
-            title: "HTML追加コンテンツ",
-            path: paths.admin.htmlAddContent.root,
-            icon: ICONS.file,
-          },
-          // 祝日
-          {
-            title: "祝日",
-            path: paths.admin.nationalHoliday.root,
-          },
-          // 広告キーワード
-          {
-            title: "広告キーワード",
-            path: paths.admin.adKeyword.root,
-          },
-          // 専用LP設定
-          {
-            title: "専用LP設定",
-            path: paths.admin.customLp.root,
+            title: "マスタ設定",
+            path: "#",
+            icon: ICONS.menuItem,
+            children: [
+              {
+                title: "職種",
+                path: paths.admin.jobCategory.root,
+              },
+              {
+                title: "役職/役割",
+                path: paths.admin.position.root,
+              },
+              {
+                title: "雇用形態",
+                path: paths.admin.employment.root,
+              },
+              {
+                title: "都道府県",
+                path: paths.admin.prefecture.root,
+              },
+              {
+                title: "政令指定都市",
+                path: paths.admin.governmentCity.root,
+              },
+              {
+                title: "市区町村",
+                path: paths.admin.city.root,
+              },
+              {
+                title: "鉄道事業者",
+                path: paths.admin.trainCompany.root,
+              },
+              {
+                title: "路線",
+                path: paths.admin.line.root,
+              },
+              {
+                title: "駅",
+                path: paths.admin.station.root,
+              },
+              {
+                title: "休日",
+                path: paths.admin.holiday.root,
+              },
+              {
+                title: "こだわり条件",
+                path: paths.admin.commitmentTerm.root,
+              },
+              {
+                title: "保有資格",
+                path: paths.admin.qualification.root,
+              },
+              {
+                title: "LP職種",
+                path: paths.admin.lpJobCategory.root,
+              },
+              {
+                title: "プラン",
+                path: paths.admin.plan.root,
+              },
+              {
+                title: "HTML追加コンテンツ",
+                path: paths.admin.htmlAddContent.root,
+              },
+              {
+                title: "祝日",
+                path: paths.admin.nationalHoliday.root,
+              },
+              {
+                title: "広告キーワード",
+                path: paths.admin.adKeyword.root,
+              },
+              {
+                title: "専用LP設定",
+                path: paths.admin.customLp.root,
+              },
+            ],
           },
         ],
       },
