@@ -76,6 +76,11 @@ export function useNavData() {
             path: paths.admin.job.root,
             icon: ICONS.job,
           },
+          {
+            title: "会員情報",
+            path: paths.admin.member.root,
+            icon: ICONS.user,
+          },
         ],
       },
 

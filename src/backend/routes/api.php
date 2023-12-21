@@ -23,6 +23,7 @@ use App\Http\Controllers\CustomLpController;
 use App\Http\Controllers\CorporationController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\JobController;
+use App\Http\Controllers\MemberController;
 
 /*
 |--------------------------------------------------------------------------
@@ -188,4 +189,10 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::post('/jobs/update/{id}', [JobController::class, 'update']);
     Route::post('/jobs/destroy/{id}', [JobController::class, 'destroy']);
     Route::post('/jobs/destroy_multiple', [JobController::class, 'destroyMultiple']);
+    // 会員情報
+    Route::get('/members', [MemberController::class, 'index']);
+    Route::get('/members/{id}', [MemberController::class, 'show']);
+    Route::post('/members/update/{id}', [MemberController::class, 'update']);
+    Route::post('/members/destroy/{id}', [MemberController::class, 'destroy']);
+    Route::post('/members/destroy_multiple', [MemberController::class, 'destroyMultiple']);
 });
