@@ -82,6 +82,11 @@ export function useNavData() {
             icon: ICONS.user,
           },
           {
+            title: "応募者",
+            path: paths.admin.applicant.root,
+            icon: ICONS.user,
+          },
+          {
             title: "マスタ設定",
             path: "#",
             icon: ICONS.menuItem,

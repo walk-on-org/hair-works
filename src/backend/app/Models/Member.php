@@ -167,4 +167,8 @@ class Member extends Model
         }
         return implode("\n", $text_list);
     }
+
+    public function applicants() {
+        return $this->hasMany('App\Models\Applicant');
+    }
 }

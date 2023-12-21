@@ -207,4 +207,9 @@ export const endpoints = {
     destroy: (id: string) => `/api/members/destroy/${id}`,
     destroyMultiple: "/api/members/destroy_multiple",
   },
+  applicant: {
+    list: "/api/applicants",
+    detail: (id: string) => `/api/applicants/${id}`,
+    update: (id: string) => `/api/applicants/update/${id}`,
+  },
 };

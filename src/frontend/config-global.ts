@@ -131,3 +131,14 @@ export const INTRODUCTION_GIFT_STATUS_OPTIONS = [
   { value: "90", label: "【対象外】紹介者該当なし" },
   { value: "91", label: "【対象外】重複登録" },
 ];
+
+export const APPLICANT_STATUS_OPTIONS = [
+  { value: "0", label: "未対応" },
+  { value: "1", label: "連絡不通" },
+  { value: "2", label: "辞退" },
+  { value: "3", label: "連絡済" },
+  { value: "7", label: "見学/面接後NG" },
+  { value: "4", label: "面接済" },
+  { value: "5", label: "内定" },
+  { value: "6", label: "入社済" },
+];

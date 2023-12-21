@@ -5,23 +5,15 @@ import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
-import Stack from "@mui/material/Stack";
-import Button from "@mui/material/Button";
-import Tooltip from "@mui/material/Tooltip";
 import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
-import IconButton from "@mui/material/IconButton";
 import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
-import { useBoolean } from "@/hooks/use-boolean";
-import { useGetMembers } from "@/api/member";
-import { useGetPrefectures } from "@/api/prefecture";
+import { useGetApplicants } from "@/api/applicant";
 
-import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
-import { ConfirmDialog } from "@/components/custom-dialog";
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import {
@@ -35,75 +27,58 @@ import {
   TableSelectedAction,
   TablePaginationCustom,
 } from "@/components/table";
-import { useSnackbar } from "@/components/snackbar";
 
 import {
-  IMemberItem,
-  IMemberTableFilters,
-  IMemberTableFilterValue,
-} from "@/types/member";
+  IApplicantItem,
+  IApplicantTableFilters,
+  IApplicantTableFilterValue,
+} from "@/types/applicant";
 
-import MemberTableRow from "../member-table-row";
-import MemberTableToolbar from "../member-table-toolbar";
-import MemberTableFiltersResult from "../member-table-filters-result";
-import axios, { endpoints } from "@/utils/axios";
-import {
-  REGISTER_SITE_OPTIONS,
-  REGISTER_FORM_OPTIONS,
-  INTRODUCTION_GIFT_STATUS_OPTIONS,
-} from "@/config-global";
+import ApplicantTableRow from "../applicant-table-row";
+import ApplicantTableToolbar from "../applicant-table-toolbar";
+import ApplicantTableFiltersResult from "../applicant-table-filters-result";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: "id", label: "会員ID", width: 160 },
+  { id: "id", label: "応募者ID", width: 160 },
+  { id: "corporation", label: "法人", width: 160 },
+  { id: "office", label: "事業所", width: 160 },
+  { id: "office_prefecture", label: "事業所都道府県", width: 160 },
+  { id: "job", label: "求人", width: 160 },
+  { id: "job_recommend", label: "求人種類", width: 80 },
   { id: "name", label: "氏名" },
-  { id: "email", label: "メールアドレス", width: 120 },
-  { id: "phone", label: "電話番号", width: 120 },
-  { id: "change_time", label: "希望転職時期", width: 120 },
-  { id: "employment", label: "希望勤務体系", width: 120 },
-  { id: "emp_prefecture", label: "希望勤務地", width: 120 },
+  { id: "applicant_date", label: "応募日時", width: 120 },
+  { id: "proposal_type", label: "申込種別", width: 120 },
   { id: "status", label: "状態", width: 120 },
-  { id: "applicant_count", label: "応募数", width: 80 },
-  { id: "register_site", label: "登録サイト", width: 120 },
-  { id: "register_form", label: "登録フォーム", width: 120 },
   { id: "register_route", label: "登録経路", width: 120 },
-  { id: "job", label: "登録経緯求人", width: 160 },
-  { id: "proposal_datetimes", label: "連絡可能日時", width: 160 },
   { id: "", width: 88 },
 ];
 
-const defaultFilters: IMemberTableFilters = {
+const defaultFilters: IApplicantTableFilters = {
+  corporation_name: "",
+  office_name: "",
   name: "",
-  phone: "",
-  email: "",
-  emp_prefecture: [],
-  register_site: [],
-  register_form: [],
   // TODO 登録経路
-  introduction_gift_status: [],
 };
 
 // ----------------------------------------------------------------------
 
-export default function MemberListView() {
+export default function ApplicantListView() {
   const router = useRouter();
   const table = useTable({ defaultOrderBy: "id" });
-  const confirm = useBoolean();
   const settings = useSettingsContext();
-  const [tableData, setTableData] = useState<IMemberItem[]>([]);
+  const [tableData, setTableData] = useState<IApplicantItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
-  const { enqueueSnackbar } = useSnackbar();
 
   // 求人データ取得
-  const { members, membersLoading, membersEmpty } = useGetMembers();
-  const { prefectures } = useGetPrefectures();
+  const { applicants, applicantsLoading, applicantsEmpty } = useGetApplicants();
 
   useEffect(() => {
-    if (members.length) {
-      setTableData(members);
+    if (applicants.length) {
+      setTableData(applicants);
     }
-  }, [members]);
+  }, [applicants]);
 
   const dataFiltered = applyFilter({
     inputData: tableData,
@@ -120,10 +95,10 @@ export default function MemberListView() {
 
   const canReset = !isEqual(defaultFilters, filters);
 
-  const notFound = (!dataFiltered.length && canReset) || membersEmpty;
+  const notFound = (!dataFiltered.length && canReset) || applicantsEmpty;
 
   const handleFilters = useCallback(
-    (name: string, value: IMemberTableFilterValue) => {
+    (name: string, value: IApplicantTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,
@@ -133,55 +108,16 @@ export default function MemberListView() {
     [table]
   );
 
-  const handleDeleteRow = useCallback(
-    async (id: string) => {
-      try {
-        await axios.post(endpoints.member.destroy(id));
-
-        const deleteRow = tableData.filter((row) => row.id !== id);
-        setTableData(deleteRow);
-        table.onUpdatePageDeleteRow(dataInPage.length);
-        enqueueSnackbar("削除しました！");
-      } catch (error) {
-        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-        console.error(error);
-      }
-    },
-    [dataInPage.length, table, tableData]
-  );
-
-  const handleDeleteRows = useCallback(async () => {
-    try {
-      await axios.post(endpoints.member.destroyMultiple, {
-        ids: table.selected,
-      });
-
-      const deleteRows = tableData.filter(
-        (row) => !table.selected.includes(row.id)
-      );
-      setTableData(deleteRows);
-      table.onUpdatePageDeleteRows({
-        totalRows: tableData.length,
-        totalRowsInPage: dataInPage.length,
-        totalRowsFiltered: dataFiltered.length,
-      });
-      enqueueSnackbar("削除しました！");
-    } catch (error) {
-      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
-      console.log(error);
-    }
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
-
   const handleEditRow = useCallback(
     (id: string) => {
-      router.push(paths.admin.member.edit(id));
+      router.push(paths.admin.applicant.edit(id));
     },
     [router]
   );
 
   const handleViewRow = useCallback(
     (id: string) => {
-      router.push(paths.admin.member.detail(id));
+      router.push(paths.admin.applicant.detail(id));
     },
     [router]
   );
@@ -201,12 +137,12 @@ export default function MemberListView() {
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
         <CustomBreadcrumbs
-          heading="会員情報"
+          heading="応募者"
           links={[
             { name: "ダッシュボード", href: paths.admin.dashboard },
             {
-              name: "会員情報",
-              href: paths.admin.member.root,
+              name: "応募者",
+              href: paths.admin.applicant.root,
             },
             { name: "一覧" },
           ]}
@@ -214,17 +150,10 @@ export default function MemberListView() {
         />
 
         <Card>
-          <MemberTableToolbar
-            filters={filters}
-            onFilters={handleFilters}
-            prefectures={prefectures}
-            registerSiteOptions={REGISTER_SITE_OPTIONS}
-            registerFormOptions={REGISTER_FORM_OPTIONS}
-            introductionGiftStatusOptions={INTRODUCTION_GIFT_STATUS_OPTIONS}
-          />
+          <ApplicantTableToolbar filters={filters} onFilters={handleFilters} />
 
           {canReset && (
-            <MemberTableFiltersResult
+            <ApplicantTableFiltersResult
               filters={filters}
               onFilters={handleFilters}
               //
@@ -245,15 +174,6 @@ export default function MemberListView() {
                   checked,
                   tableData.map((row) => row.id)
                 )
-              }
-              action={
-                <Stack direction="row">
-                  <Tooltip title="削除">
-                    <IconButton color="primary" onClick={confirm.onTrue}>
-                      <Iconify icon="solar:trash-bin-trash-bold" />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
               }
             />
 
@@ -278,7 +198,7 @@ export default function MemberListView() {
                 />
 
                 <TableBody>
-                  {membersLoading ? (
+                  {applicantsLoading ? (
                     [...Array(table.rowsPerPage)].map((i, index) => (
                       <TableSkeleton key={index} sx={{ height: denseHeight }} />
                     ))
@@ -290,7 +210,7 @@ export default function MemberListView() {
                           table.page * table.rowsPerPage + table.rowsPerPage
                         )
                         .map((row) => (
-                          <MemberTableRow
+                          <ApplicantTableRow
                             key={row.id}
                             row={row}
                             selected={table.selected.includes(row.id)}
@@ -298,7 +218,6 @@ export default function MemberListView() {
                             onEditRow={() => handleEditRow(row.id)}
                             onViewRow={() => handleViewRow(row.id)}
                             onJobViewRow={() => handleJobViewRow(row.job_id)}
-                            onDeleteRow={() => handleDeleteRow(row.id)}
                           />
                         ))}
                     </>
@@ -328,30 +247,6 @@ export default function MemberListView() {
           />
         </Card>
       </Container>
-
-      <ConfirmDialog
-        open={confirm.value}
-        onClose={confirm.onFalse}
-        title="削除"
-        content={
-          <>
-            <strong> {table.selected.length} </strong>
-            件の会員データを削除しますが、よろしいでしょうか?
-          </>
-        }
-        action={
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => {
-              handleDeleteRows();
-              confirm.onFalse();
-            }}
-          >
-            削除
-          </Button>
-        }
-      />
     </>
   );
 }
@@ -363,19 +258,11 @@ function applyFilter({
   comparator,
   filters,
 }: {
-  inputData: IMemberItem[];
+  inputData: IApplicantItem[];
   comparator: (a: any, b: any) => number;
-  filters: IMemberTableFilters;
+  filters: IApplicantTableFilters;
 }) {
-  const {
-    name,
-    email,
-    phone,
-    emp_prefecture,
-    register_site,
-    register_form,
-    introduction_gift_status,
-  } = filters;
+  const { corporation_name, office_name, name } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
@@ -387,45 +274,28 @@ function applyFilter({
 
   inputData = stabilizedThis.map((el) => el[0]);
 
+  if (corporation_name) {
+    inputData = inputData.filter(
+      (applicant) =>
+        applicant.corporation_name
+          .toLowerCase()
+          .indexOf(corporation_name.toLowerCase()) !== -1
+    );
+  }
+
+  if (office_name) {
+    inputData = inputData.filter(
+      (applicant) =>
+        applicant.office_name
+          .toLowerCase()
+          .indexOf(office_name.toLowerCase()) !== -1
+    );
+  }
+
   if (name) {
     inputData = inputData.filter(
-      (member) => member.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
-  if (email) {
-    inputData = inputData.filter(
-      (member) => member.email.toLowerCase().indexOf(email.toLowerCase()) !== -1
-    );
-  }
-
-  if (phone) {
-    inputData = inputData.filter(
-      (member) => member.phone.toLowerCase().indexOf(phone.toLowerCase()) !== -1
-    );
-  }
-
-  if (emp_prefecture.length) {
-    inputData = inputData.filter((member) =>
-      emp_prefecture.includes(member.emp_prefecture_name)
-    );
-  }
-
-  if (register_site.length) {
-    inputData = inputData.filter((member) =>
-      register_site.includes(member.register_site_name)
-    );
-  }
-
-  if (register_form.length) {
-    inputData = inputData.filter((member) =>
-      register_form.includes(member.register_form_name)
-    );
-  }
-
-  if (introduction_gift_status.length) {
-    inputData = inputData.filter((member) =>
-      introduction_gift_status.includes(member.introduction_gift_status_name)
+      (applicant) =>
+        applicant.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
     );
   }
 

@@ -24,6 +24,7 @@ use App\Http\Controllers\CorporationController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\ApplicantController;
 
 /*
 |--------------------------------------------------------------------------
@@ -195,4 +196,8 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::post('/members/update/{id}', [MemberController::class, 'update']);
     Route::post('/members/destroy/{id}', [MemberController::class, 'destroy']);
     Route::post('/members/destroy_multiple', [MemberController::class, 'destroyMultiple']);
+    // 応募者
+    Route::get('/applicants', [ApplicantController::class, 'index']);
+    Route::get('/applicants/{id}', [ApplicantController::class, 'show']);
+    Route::post('/applicants/update/{id}', [ApplicantController::class, 'update']);
 });
