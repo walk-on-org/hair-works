@@ -212,4 +212,11 @@ export const endpoints = {
     detail: (id: string) => `/api/applicants/${id}`,
     update: (id: string) => `/api/applicants/update/${id}`,
   },
+  inquiry: {
+    list: "/api/inquiries",
+    detail: (id: string) => `/api/inquiries/${id}`,
+    update: (id: string) => `/api/inquiries/update/${id}`,
+    destroy: (id: string) => `/api/inquiries/destroy/${id}`,
+    destroyMultiple: "/api/inquiries/destroy_multiple",
+  },
 };

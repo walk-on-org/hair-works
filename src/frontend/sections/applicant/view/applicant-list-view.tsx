@@ -71,7 +71,7 @@ export default function ApplicantListView() {
   const [tableData, setTableData] = useState<IApplicantItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
 
-  // 求人データ取得
+  // 応募者データ取得
   const { applicants, applicantsLoading, applicantsEmpty } = useGetApplicants();
 
   useEffect(() => {

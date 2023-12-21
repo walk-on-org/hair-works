@@ -25,6 +25,7 @@ use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ApplicantController;
+use App\Http\Controllers\InquiryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -200,4 +201,10 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/applicants', [ApplicantController::class, 'index']);
     Route::get('/applicants/{id}', [ApplicantController::class, 'show']);
     Route::post('/applicants/update/{id}', [ApplicantController::class, 'update']);
+    // 問い合わせ
+    Route::get('/inquiries', [InquiryController::class, 'index']);
+    Route::get('/inquiries/{id}', [InquiryController::class, 'show']);
+    Route::post('/inquiries/update/{id}', [InquiryController::class, 'update']);
+    Route::post('/inquiries/destroy/{id}', [InquiryController::class, 'destroy']);
+    Route::post('/inquiries/destroy_multiple', [InquiryController::class, 'destroyMultiple']);
 });

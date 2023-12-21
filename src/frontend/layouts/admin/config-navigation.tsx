@@ -87,6 +87,11 @@ export function useNavData() {
             icon: ICONS.user,
           },
           {
+            title: "問い合わせ",
+            path: paths.admin.inquiry.root,
+            icon: ICONS.external,
+          },
+          {
             title: "マスタ設定",
             path: "#",
             icon: ICONS.menuItem,

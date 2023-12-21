@@ -142,3 +142,8 @@ export const APPLICANT_STATUS_OPTIONS = [
   { value: "5", label: "内定" },
   { value: "6", label: "入社済" },
 ];
+
+export const INQUIRY_STATUS_OPTIONS = [
+  { value: "0", label: "未対応" },
+  { value: "1", label: "対応済" },
+];
