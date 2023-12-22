@@ -56,6 +56,12 @@ export const paths = {
       detail: (id: string) => `${ROOTS.ADMIN}/inquiries/${id}`,
       edit: (id: string) => `${ROOTS.ADMIN}/inquiries/${id}/edit`,
     },
+    article: {
+      root: `${ROOTS.ADMIN}/articles`,
+      new: `${ROOTS.ADMIN}/articles/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/articles/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/articles/${id}/edit`,
+    },
     articleCategory: {
       root: `${ROOTS.ADMIN}/article_categories`,
       new: `${ROOTS.ADMIN}/article_categories/new`,

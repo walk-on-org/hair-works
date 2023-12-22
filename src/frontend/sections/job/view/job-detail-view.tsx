@@ -79,7 +79,7 @@ export default function JobDetailView({ id }: Props) {
         links={[
           { name: "ダッシュボード", href: paths.admin.dashboard },
           {
-            name: "事業所",
+            name: "求人",
             href: paths.admin.job.root,
           },
           { name: job?.name },

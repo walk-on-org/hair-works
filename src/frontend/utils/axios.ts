@@ -219,6 +219,14 @@ export const endpoints = {
     destroy: (id: string) => `/api/inquiries/destroy/${id}`,
     destroyMultiple: "/api/inquiries/destroy_multiple",
   },
+  article: {
+    list: "/api/articles",
+    detail: (id: string) => `/api/articles/${id}`,
+    create: "/api/articles/create",
+    update: (id: string) => `/api/articles/update/${id}`,
+    destroy: (id: string) => `/api/articles/destroy/${id}`,
+    destroyMultiple: "/api/articles/destroy_multiple",
+  },
   articleCategory: {
     list: "/api/article_categories",
     detail: (id: string) => `/api/article_categories/${id}`,

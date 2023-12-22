@@ -37,10 +37,10 @@ export default function JobCreateView() {
         links={[
           { name: "ダッシュボード", href: paths.admin.dashboard },
           {
-            name: "事業所",
+            name: "求人",
             href: paths.admin.job.root,
           },
-          { name: "事業所を作成" },
+          { name: "求人を作成" },
         ]}
         sx={{
           mb: { xs: 3, md: 5 },

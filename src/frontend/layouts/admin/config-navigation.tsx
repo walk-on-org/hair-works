@@ -97,6 +97,10 @@ export function useNavData() {
             icon: ICONS.blog,
             children: [
               {
+                title: "記事",
+                path: paths.admin.article.root,
+              },
+              {
                 title: "カテゴリ",
                 path: paths.admin.articleCategory.root,
               },

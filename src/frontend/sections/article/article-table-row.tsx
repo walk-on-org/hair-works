@@ -1,0 +1,156 @@
+import Link from "@mui/material/Link";
+import Button from "@mui/material/Button";
+import MenuItem from "@mui/material/MenuItem";
+import TableRow from "@mui/material/TableRow";
+import Checkbox from "@mui/material/Checkbox";
+import TableCell from "@mui/material/TableCell";
+import IconButton from "@mui/material/IconButton";
+
+import { useBoolean } from "@/hooks/use-boolean";
+
+import Label from "@/components/label";
+import Iconify from "@/components/iconify";
+import { ConfirmDialog } from "@/components/custom-dialog";
+import CustomPopover, { usePopover } from "@/components/custom-popover";
+
+import { IArticleItem } from "@/types/article";
+import { fCurrency } from "@/utils/format-number";
+import { fDateTime } from "@/utils/format-time";
+
+// ----------------------------------------------------------------------
+
+type Props = {
+  row: IArticleItem;
+  selected: boolean;
+  onEditRow: VoidFunction;
+  onViewRow: VoidFunction;
+  onSelectRow: VoidFunction;
+  onDeleteRow: VoidFunction;
+};
+
+export default function ArticleTableRow({
+  row,
+  selected,
+  onSelectRow,
+  onEditRow,
+  onViewRow,
+  onDeleteRow,
+}: Props) {
+  const {
+    id,
+    title,
+    article_category_name,
+    status,
+    status_name,
+    add_cta,
+    add_cta_name,
+    commitment_term_name,
+    position_name,
+    m_salary_lower,
+    updated_at,
+  } = row;
+  const confirm = useBoolean();
+  const popover = usePopover();
+
+  return (
+    <>
+      <TableRow hover selected={selected}>
+        <TableCell padding="checkbox">
+          <Checkbox checked={selected} onClick={onSelectRow} />
+        </TableCell>
+
+        <TableCell>{id}</TableCell>
+
+        <TableCell>{title}</TableCell>
+
+        <TableCell>{article_category_name}</TableCell>
+
+        <TableCell>
+          <Label
+            variant="soft"
+            color={
+              (status == "1" && "info") ||
+              (status == "2" && "warning") ||
+              "default"
+            }
+          >
+            {status_name}
+          </Label>
+        </TableCell>
+
+        <TableCell>
+          <Label variant="soft" color={(add_cta == "1" && "info") || "default"}>
+            {add_cta_name}
+          </Label>
+        </TableCell>
+
+        <TableCell>{commitment_term_name}</TableCell>
+
+        <TableCell>{position_name}</TableCell>
+
+        <TableCell>{fCurrency(m_salary_lower)}</TableCell>
+
+        <TableCell>{fDateTime(updated_at)}</TableCell>
+
+        <TableCell align="right">
+          <IconButton
+            color={popover.open ? "primary" : "default"}
+            onClick={popover.onOpen}
+          >
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
+        </TableCell>
+      </TableRow>
+
+      <CustomPopover
+        open={popover.open}
+        onClose={popover.onClose}
+        arrow="right-top"
+        sx={{ width: 140 }}
+      >
+        <MenuItem
+          onClick={() => {
+            onViewRow();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:eye-bold" />
+          詳細
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            onEditRow();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:pen-bold" />
+          編集
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            confirm.onTrue();
+            popover.onClose();
+          }}
+          sx={{ color: "error.main" }}
+        >
+          <Iconify icon="solar:trash-bin-trash-bold" />
+          削除
+        </MenuItem>
+      </CustomPopover>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="削除"
+        content="削除してよろしいでしょうか?"
+        action={
+          <Button variant="contained" color="error" onClick={onDeleteRow}>
+            削除
+          </Button>
+        }
+      />
+    </>
+  );
+}

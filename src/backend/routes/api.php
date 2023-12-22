@@ -27,6 +27,7 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ApplicantController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\ArticleCategoryController;
+use App\Http\Controllers\ArticleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -215,4 +216,11 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::patch('/article_categories/update/{id}', [ArticleCategoryController::class, 'update']);
     Route::post('/article_categories/destroy/{id}', [ArticleCategoryController::class, 'destroy']);
     Route::post('/article_categories/destroy_multiple', [ArticleCategoryController::class, 'destroyMultiple']);
+    // 特集記事
+    Route::get('/articles', [ArticleController::class, 'index']);
+    Route::get('/articles/{id}', [ArticleController::class, 'show']);
+    Route::post('/articles/create', [ArticleController::class, 'create']);
+    Route::post('/articles/update/{id}', [ArticleController::class, 'update']);
+    Route::post('/articles/destroy/{id}', [ArticleController::class, 'destroy']);
+    Route::post('/articles/destroy_multiple', [ArticleController::class, 'destroyMultiple']);
 });

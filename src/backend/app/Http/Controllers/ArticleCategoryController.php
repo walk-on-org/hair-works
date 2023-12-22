@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ArticleCategory;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
 
 class ArticleCategoryController extends Controller
 {
