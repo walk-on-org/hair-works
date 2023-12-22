@@ -92,6 +92,17 @@ export function useNavData() {
             icon: ICONS.external,
           },
           {
+            title: "特集",
+            path: "#",
+            icon: ICONS.blog,
+            children: [
+              {
+                title: "カテゴリ",
+                path: paths.admin.articleCategory.root,
+              },
+            ],
+          },
+          {
             title: "マスタ設定",
             path: "#",
             icon: ICONS.menuItem,
