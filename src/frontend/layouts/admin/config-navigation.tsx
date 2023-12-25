@@ -97,6 +97,21 @@ export function useNavData() {
             icon: ICONS.external,
           },
           {
+            title: "データ分析・活用",
+            path: "#",
+            icon: ICONS.analytics,
+            children: [
+              {
+                title: "お気に入り",
+                path: paths.admin.keep.root,
+              },
+              {
+                title: "閲覧履歴",
+                path: paths.admin.history.root,
+              },
+            ],
+          },
+          {
             title: "特集",
             path: "#",
             icon: ICONS.blog,

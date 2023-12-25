@@ -29,6 +29,8 @@ use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\ArticleCategoryController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ConversionHistoryController;
+use App\Http\Controllers\KeepController;
+use App\Http\Controllers\HistoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -226,4 +228,8 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::post('/articles/destroy_multiple', [ArticleController::class, 'destroyMultiple']);
     // CV経路
     Route::get('/conversion_histories', [ConversionHistoryController::class, 'index']);
+    // お気に入り
+    Route::get('/keeps', [KeepController::class, 'index']);
+    // 閲覧履歴
+    Route::get('/histories', [HistoryController::class, 'index']);
 });

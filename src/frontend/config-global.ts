@@ -147,3 +147,8 @@ export const INQUIRY_STATUS_OPTIONS = [
   { value: "0", label: "未対応" },
   { value: "1", label: "対応済" },
 ];
+
+export const KEEP_STATUS_OPTIONS = [
+  { value: "1", label: "お気に入り済" },
+  { value: "2", label: "お気に入り解除" },
+];

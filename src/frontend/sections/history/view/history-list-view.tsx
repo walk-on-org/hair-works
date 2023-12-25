@@ -10,8 +10,11 @@ import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
-import { fTimestamp } from "@/utils/format-time";
-import { useGetConversionHistories } from "@/api/conversion-history";
+import { useRouter } from "@/routes/hooks";
+import { useGetHistories } from "@/api/history";
+import { useGetJobCategories } from "@/api/job-category";
+import { useGetPositions } from "@/api/position";
+import { useGetEmployments } from "@/api/employment";
 
 import Scrollbar from "@/components/scrollbar";
 import { useSettingsContext } from "@/components/settings";
@@ -29,92 +32,73 @@ import {
 } from "@/components/table";
 
 import {
-  IConversionHistoryItem,
-  IConversionHistoryTableFilters,
-  IConversionHistoryTableFilterValue,
-} from "@/types/conversion-history";
+  IHistoryItem,
+  IHistoryTableFilters,
+  IHistoryTableFilterValue,
+} from "@/types/history";
 
-import ConversionHistoryTableRow from "../conversion-history-table-row";
-import ConversionHistoryTableToolbar from "../conversion-history-table-toolbar";
-import ConversionHistoryTableFiltersResult from "../conversion-history-table-filters-result";
+import HistoryTableRow from "../history-table-row";
+import HistoryTableToolbar from "../history-table-toolbar";
+import HistoryTableFiltersResult from "../history-table-filters-result";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: "id", label: "連番", width: 120 },
-  { id: "utm_source", label: "utm_source", width: 140 },
-  { id: "utm_medium", label: "utm_medium", width: 140 },
-  { id: "utm_campaign", label: "utm_campaign", width: 140 },
-  { id: "utm_term", label: "utm_term", width: 140 },
-  { id: "keyword", label: "キーワード", width: 140 },
-  { id: "lp_url", label: "LP", width: 140 },
-  { id: "lp_date", label: "LP日時", width: 140 },
-  { id: "cv_url", label: "CV", width: 140 },
-  { id: "cv_date", label: "CV日時", width: 140 },
-  { id: "cv_row", label: "会員・応募者・問合せ", width: 140 },
+  { id: "id", label: "閲覧履歴ID", width: 120 },
+  { id: "member", label: "会員", width: 140 },
+  { id: "corporation", label: "法人", width: 160 },
+  { id: "office", label: "事業所", width: 160 },
+  { id: "job", label: "求人", width: 160 },
+  { id: "job_category", label: "職種", width: 120 },
+  { id: "position", label: "役職/役割", width: 120 },
+  { id: "employment", label: "雇用形態", width: 120 },
+  { id: "viewed_at", label: "閲覧日時", width: 140 },
 ];
 
-const defaultFilters: IConversionHistoryTableFilters = {
-  utm_source: "",
-  utm_medium: "",
-  utm_campaign: "",
-  utm_term: "",
-  lp_url: "",
-  lp_start_date: null,
-  lp_end_date: null,
-  cv_url: "",
-  cv_start_date: null,
-  cv_end_date: null,
+const defaultFilters: IHistoryTableFilters = {
+  corporation_name: "",
+  office_name: "",
+  job_name: "",
+  job_category: [],
+  position: [],
+  employment: [],
 };
 
 // ----------------------------------------------------------------------
 
-export default function ConversionHistoryListView() {
+export default function HistoryListView() {
+  const router = useRouter();
   const table = useTable({ defaultOrderBy: "id" });
   const settings = useSettingsContext();
-  const [tableData, setTableData] = useState<IConversionHistoryItem[]>([]);
+  const [tableData, setTableData] = useState<IHistoryItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
 
-  const lpDateError =
-    filters.lp_start_date && filters.lp_end_date
-      ? filters.lp_start_date.getTime() > filters.lp_end_date.getTime()
-      : false;
-
-  const cvDateError =
-    filters.cv_start_date && filters.cv_end_date
-      ? filters.cv_start_date.getTime() > filters.cv_end_date.getTime()
-      : false;
-
-  // CV経路データ取得
-  const {
-    conversionHistories,
-    conversionHistoriesLoading,
-    conversionHistoriesEmpty,
-  } = useGetConversionHistories();
+  // 閲覧履歴データ取得
+  const { histories, historiesLoading, historiesEmpty } = useGetHistories();
+  const { jobCategories } = useGetJobCategories();
+  const { positions } = useGetPositions();
+  const { employments } = useGetEmployments();
 
   useEffect(() => {
-    if (conversionHistories.length) {
-      setTableData(conversionHistories);
+    if (histories.length) {
+      setTableData(histories);
     }
-  }, [conversionHistories]);
+  }, [histories]);
 
   const dataFiltered = applyFilter({
     inputData: tableData,
     comparator: getComparator(table.order, table.orderBy),
     filters,
-    lpDateError,
-    cvDateError,
   });
 
   const denseHeight = table.dense ? 60 : 80;
 
   const canReset = !isEqual(defaultFilters, filters);
 
-  const notFound =
-    (!dataFiltered.length && canReset) || conversionHistoriesEmpty;
+  const notFound = (!dataFiltered.length && canReset) || historiesEmpty;
 
   const handleFilters = useCallback(
-    (title: string, value: IConversionHistoryTableFilterValue) => {
+    (title: string, value: IHistoryTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,
@@ -128,16 +112,44 @@ export default function ConversionHistoryListView() {
     setFilters(defaultFilters);
   }, []);
 
+  const handleCorporationViewRow = useCallback(
+    (id: string) => {
+      router.push(paths.admin.corporation.detail(id));
+    },
+    [router]
+  );
+
+  const handleOfficeViewRow = useCallback(
+    (id: string) => {
+      router.push(paths.admin.office.detail(id));
+    },
+    [router]
+  );
+
+  const handleJobViewRow = useCallback(
+    (id: string) => {
+      router.push(paths.admin.job.detail(id));
+    },
+    [router]
+  );
+
+  const handleMemberViewRow = useCallback(
+    (id: string) => {
+      router.push(paths.admin.member.detail(id));
+    },
+    [router]
+  );
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
         <CustomBreadcrumbs
-          heading="CV経路"
+          heading="閲覧履歴"
           links={[
             { name: "ダッシュボード", href: paths.admin.dashboard },
             {
-              name: "CV経路",
-              href: paths.admin.conversionHistory.root,
+              name: "閲覧履歴",
+              href: paths.admin.history.root,
             },
             { name: "一覧" },
           ]}
@@ -145,13 +157,16 @@ export default function ConversionHistoryListView() {
         />
 
         <Card>
-          <ConversionHistoryTableToolbar
+          <HistoryTableToolbar
             filters={filters}
             onFilters={handleFilters}
+            jobCategories={jobCategories}
+            positions={positions}
+            employments={employments}
           />
 
           {canReset && (
-            <ConversionHistoryTableFiltersResult
+            <HistoryTableFiltersResult
               filters={filters}
               onFilters={handleFilters}
               //
@@ -196,7 +211,7 @@ export default function ConversionHistoryListView() {
                 />
 
                 <TableBody>
-                  {conversionHistoriesLoading ? (
+                  {historiesLoading ? (
                     [...Array(table.rowsPerPage)].map((i, index) => (
                       <TableSkeleton key={index} sx={{ height: denseHeight }} />
                     ))
@@ -208,11 +223,21 @@ export default function ConversionHistoryListView() {
                           table.page * table.rowsPerPage + table.rowsPerPage
                         )
                         .map((row) => (
-                          <ConversionHistoryTableRow
+                          <HistoryTableRow
                             key={row.id}
                             row={row}
                             selected={table.selected.includes(row.id)}
                             onSelectRow={() => table.onSelectRow(row.id)}
+                            onCorporationViewRow={() =>
+                              handleCorporationViewRow(row.corporation_id)
+                            }
+                            onOfficeViewRow={() =>
+                              handleOfficeViewRow(row.office_id)
+                            }
+                            onJobViewRow={() => handleJobViewRow(row.job_id)}
+                            onMemberViewRow={() =>
+                              handleMemberViewRow(row.member_id)
+                            }
                           />
                         ))}
                     </>
@@ -252,26 +277,18 @@ function applyFilter({
   inputData,
   comparator,
   filters,
-  lpDateError,
-  cvDateError,
 }: {
-  inputData: IConversionHistoryItem[];
+  inputData: IHistoryItem[];
   comparator: (a: any, b: any) => number;
-  filters: IConversionHistoryTableFilters;
-  lpDateError: boolean;
-  cvDateError: boolean;
+  filters: IHistoryTableFilters;
 }) {
   const {
-    utm_source,
-    utm_medium,
-    utm_campaign,
-    utm_term,
-    lp_url,
-    lp_start_date,
-    lp_end_date,
-    cv_url,
-    cv_start_date,
-    cv_end_date,
+    corporation_name,
+    office_name,
+    job_name,
+    job_category,
+    position,
+    employment,
   } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
@@ -284,86 +301,46 @@ function applyFilter({
 
   inputData = stabilizedThis.map((el) => el[0]);
 
-  if (utm_source) {
+  if (corporation_name) {
     inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_source
+      (history) =>
+        history.corporation_name
           .toLowerCase()
-          .indexOf(utm_source.toLowerCase()) !== -1
+          .indexOf(corporation_name.toLowerCase()) !== -1
     );
   }
 
-  if (utm_medium) {
+  if (office_name) {
     inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_medium
-          .toLowerCase()
-          .indexOf(utm_medium.toLowerCase()) !== -1
-    );
-  }
-
-  if (utm_campaign) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_campaign
-          .toLowerCase()
-          .indexOf(utm_campaign.toLowerCase()) !== -1
-    );
-  }
-
-  if (utm_term) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_term
-          .toLowerCase()
-          .indexOf(utm_term.toLowerCase()) !== -1
-    );
-  }
-
-  if (lp_url) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.lp_url.toLowerCase().indexOf(lp_url.toLowerCase()) !==
+      (history) =>
+        history.office_name.toLowerCase().indexOf(office_name.toLowerCase()) !==
         -1
     );
   }
 
-  if (!lpDateError) {
-    if (lp_start_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.lp_date) >= fTimestamp(lp_start_date)
-      );
-    }
-    if (lp_end_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.lp_date) <= fTimestamp(lp_end_date)
-      );
-    }
-  }
-
-  if (cv_url) {
+  if (job_name) {
     inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.cv_url.toLowerCase().indexOf(cv_url.toLowerCase()) !==
-        -1
+      (history) =>
+        history.job_name.toLowerCase().indexOf(job_name.toLowerCase()) !== -1
     );
   }
 
-  if (!cvDateError) {
-    if (cv_start_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.cv_date) >= fTimestamp(cv_start_date)
-      );
-    }
-    if (cv_end_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.cv_date) <= fTimestamp(cv_end_date)
-      );
-    }
+  if (job_category.length) {
+    inputData = inputData.filter((history) =>
+      job_category.includes(history.job_category_name)
+    );
+  }
+
+  if (position.length) {
+    inputData = inputData.filter((history) =>
+      position.includes(history.position_name)
+    );
+  }
+
+  if (employment.length) {
+    inputData = inputData.filter((history) =>
+      employment.includes(history.employment_name)
+    );
   }
 
   return inputData;

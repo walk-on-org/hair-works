@@ -59,6 +59,12 @@ export const paths = {
     conversionHistory: {
       root: `${ROOTS.ADMIN}/conversion_histories`,
     },
+    keep: {
+      root: `${ROOTS.ADMIN}/keeps`,
+    },
+    history: {
+      root: `${ROOTS.ADMIN}/histories`,
+    },
     article: {
       root: `${ROOTS.ADMIN}/articles`,
       new: `${ROOTS.ADMIN}/articles/new`,

@@ -10,8 +10,11 @@ import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
-import { fTimestamp } from "@/utils/format-time";
-import { useGetConversionHistories } from "@/api/conversion-history";
+import { useRouter } from "@/routes/hooks";
+import { useGetKeeps } from "@/api/keep";
+import { useGetJobCategories } from "@/api/job-category";
+import { useGetPositions } from "@/api/position";
+import { useGetEmployments } from "@/api/employment";
 
 import Scrollbar from "@/components/scrollbar";
 import { useSettingsContext } from "@/components/settings";
@@ -29,92 +32,77 @@ import {
 } from "@/components/table";
 
 import {
-  IConversionHistoryItem,
-  IConversionHistoryTableFilters,
-  IConversionHistoryTableFilterValue,
-} from "@/types/conversion-history";
+  IKeepItem,
+  IKeepTableFilters,
+  IKeepTableFilterValue,
+} from "@/types/keep";
 
-import ConversionHistoryTableRow from "../conversion-history-table-row";
-import ConversionHistoryTableToolbar from "../conversion-history-table-toolbar";
-import ConversionHistoryTableFiltersResult from "../conversion-history-table-filters-result";
+import KeepTableRow from "../keep-table-row";
+import KeepTableToolbar from "../keep-table-toolbar";
+import KeepTableFiltersResult from "../keep-table-filters-result";
+import { KEEP_STATUS_OPTIONS } from "@/config-global";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: "id", label: "連番", width: 120 },
-  { id: "utm_source", label: "utm_source", width: 140 },
-  { id: "utm_medium", label: "utm_medium", width: 140 },
-  { id: "utm_campaign", label: "utm_campaign", width: 140 },
-  { id: "utm_term", label: "utm_term", width: 140 },
-  { id: "keyword", label: "キーワード", width: 140 },
-  { id: "lp_url", label: "LP", width: 140 },
-  { id: "lp_date", label: "LP日時", width: 140 },
-  { id: "cv_url", label: "CV", width: 140 },
-  { id: "cv_date", label: "CV日時", width: 140 },
-  { id: "cv_row", label: "会員・応募者・問合せ", width: 140 },
+  { id: "id", label: "お気に入りID", width: 120 },
+  { id: "member", label: "会員", width: 140 },
+  { id: "corporation", label: "法人", width: 160 },
+  { id: "office", label: "事業所", width: 160 },
+  { id: "job", label: "求人", width: 160 },
+  { id: "job_category", label: "職種", width: 120 },
+  { id: "position", label: "役職/役割", width: 120 },
+  { id: "employment", label: "雇用形態", width: 120 },
+  { id: "status", label: "状態", width: 120 },
+  { id: "keeped_at", label: "お気に入り日時", width: 140 },
+  { id: "released_at", label: "お気に入り解除日時", width: 140 },
 ];
 
-const defaultFilters: IConversionHistoryTableFilters = {
-  utm_source: "",
-  utm_medium: "",
-  utm_campaign: "",
-  utm_term: "",
-  lp_url: "",
-  lp_start_date: null,
-  lp_end_date: null,
-  cv_url: "",
-  cv_start_date: null,
-  cv_end_date: null,
+const defaultFilters: IKeepTableFilters = {
+  corporation_name: "",
+  office_name: "",
+  job_name: "",
+  job_category: [],
+  position: [],
+  employment: [],
+  status: [],
 };
 
 // ----------------------------------------------------------------------
 
-export default function ConversionHistoryListView() {
+export default function KeepListView() {
+  const router = useRouter();
   const table = useTable({ defaultOrderBy: "id" });
   const settings = useSettingsContext();
-  const [tableData, setTableData] = useState<IConversionHistoryItem[]>([]);
+  const [tableData, setTableData] = useState<IKeepItem[]>([]);
   const [filters, setFilters] = useState(defaultFilters);
 
-  const lpDateError =
-    filters.lp_start_date && filters.lp_end_date
-      ? filters.lp_start_date.getTime() > filters.lp_end_date.getTime()
-      : false;
-
-  const cvDateError =
-    filters.cv_start_date && filters.cv_end_date
-      ? filters.cv_start_date.getTime() > filters.cv_end_date.getTime()
-      : false;
-
-  // CV経路データ取得
-  const {
-    conversionHistories,
-    conversionHistoriesLoading,
-    conversionHistoriesEmpty,
-  } = useGetConversionHistories();
+  // お気に入りデータ取得
+  const { keeps, keepsLoading, keepsEmpty } = useGetKeeps();
+  const { jobCategories } = useGetJobCategories();
+  const { positions } = useGetPositions();
+  const { employments } = useGetEmployments();
 
   useEffect(() => {
-    if (conversionHistories.length) {
-      setTableData(conversionHistories);
+    if (keeps.length) {
+      setTableData(keeps);
     }
-  }, [conversionHistories]);
+  }, [keeps]);
 
   const dataFiltered = applyFilter({
     inputData: tableData,
     comparator: getComparator(table.order, table.orderBy),
     filters,
-    lpDateError,
-    cvDateError,
   });
 
   const denseHeight = table.dense ? 60 : 80;
 
   const canReset = !isEqual(defaultFilters, filters);
 
-  const notFound =
-    (!dataFiltered.length && canReset) || conversionHistoriesEmpty;
+  const notFound = (!dataFiltered.length && canReset) || keepsEmpty;
 
   const handleFilters = useCallback(
-    (title: string, value: IConversionHistoryTableFilterValue) => {
+    (title: string, value: IKeepTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,
@@ -128,16 +116,44 @@ export default function ConversionHistoryListView() {
     setFilters(defaultFilters);
   }, []);
 
+  const handleCorporationViewRow = useCallback(
+    (id: string) => {
+      router.push(paths.admin.corporation.detail(id));
+    },
+    [router]
+  );
+
+  const handleOfficeViewRow = useCallback(
+    (id: string) => {
+      router.push(paths.admin.office.detail(id));
+    },
+    [router]
+  );
+
+  const handleJobViewRow = useCallback(
+    (id: string) => {
+      router.push(paths.admin.job.detail(id));
+    },
+    [router]
+  );
+
+  const handleMemberViewRow = useCallback(
+    (id: string) => {
+      router.push(paths.admin.member.detail(id));
+    },
+    [router]
+  );
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
         <CustomBreadcrumbs
-          heading="CV経路"
+          heading="お気に入り"
           links={[
             { name: "ダッシュボード", href: paths.admin.dashboard },
             {
-              name: "CV経路",
-              href: paths.admin.conversionHistory.root,
+              name: "お気に入り",
+              href: paths.admin.keep.root,
             },
             { name: "一覧" },
           ]}
@@ -145,13 +161,17 @@ export default function ConversionHistoryListView() {
         />
 
         <Card>
-          <ConversionHistoryTableToolbar
+          <KeepTableToolbar
             filters={filters}
             onFilters={handleFilters}
+            jobCategories={jobCategories}
+            positions={positions}
+            employments={employments}
+            statusOptions={KEEP_STATUS_OPTIONS}
           />
 
           {canReset && (
-            <ConversionHistoryTableFiltersResult
+            <KeepTableFiltersResult
               filters={filters}
               onFilters={handleFilters}
               //
@@ -196,7 +216,7 @@ export default function ConversionHistoryListView() {
                 />
 
                 <TableBody>
-                  {conversionHistoriesLoading ? (
+                  {keepsLoading ? (
                     [...Array(table.rowsPerPage)].map((i, index) => (
                       <TableSkeleton key={index} sx={{ height: denseHeight }} />
                     ))
@@ -208,11 +228,21 @@ export default function ConversionHistoryListView() {
                           table.page * table.rowsPerPage + table.rowsPerPage
                         )
                         .map((row) => (
-                          <ConversionHistoryTableRow
+                          <KeepTableRow
                             key={row.id}
                             row={row}
                             selected={table.selected.includes(row.id)}
                             onSelectRow={() => table.onSelectRow(row.id)}
+                            onCorporationViewRow={() =>
+                              handleCorporationViewRow(row.corporation_id)
+                            }
+                            onOfficeViewRow={() =>
+                              handleOfficeViewRow(row.office_id)
+                            }
+                            onJobViewRow={() => handleJobViewRow(row.job_id)}
+                            onMemberViewRow={() =>
+                              handleMemberViewRow(row.member_id)
+                            }
                           />
                         ))}
                     </>
@@ -252,26 +282,19 @@ function applyFilter({
   inputData,
   comparator,
   filters,
-  lpDateError,
-  cvDateError,
 }: {
-  inputData: IConversionHistoryItem[];
+  inputData: IKeepItem[];
   comparator: (a: any, b: any) => number;
-  filters: IConversionHistoryTableFilters;
-  lpDateError: boolean;
-  cvDateError: boolean;
+  filters: IKeepTableFilters;
 }) {
   const {
-    utm_source,
-    utm_medium,
-    utm_campaign,
-    utm_term,
-    lp_url,
-    lp_start_date,
-    lp_end_date,
-    cv_url,
-    cv_start_date,
-    cv_end_date,
+    corporation_name,
+    office_name,
+    job_name,
+    job_category,
+    position,
+    employment,
+    status,
   } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
@@ -284,86 +307,49 @@ function applyFilter({
 
   inputData = stabilizedThis.map((el) => el[0]);
 
-  if (utm_source) {
+  if (corporation_name) {
     inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_source
+      (keep) =>
+        keep.corporation_name
           .toLowerCase()
-          .indexOf(utm_source.toLowerCase()) !== -1
+          .indexOf(corporation_name.toLowerCase()) !== -1
     );
   }
 
-  if (utm_medium) {
+  if (office_name) {
     inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_medium
-          .toLowerCase()
-          .indexOf(utm_medium.toLowerCase()) !== -1
+      (keep) =>
+        keep.office_name.toLowerCase().indexOf(office_name.toLowerCase()) !== -1
     );
   }
 
-  if (utm_campaign) {
+  if (job_name) {
     inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_campaign
-          .toLowerCase()
-          .indexOf(utm_campaign.toLowerCase()) !== -1
+      (keep) =>
+        keep.job_name.toLowerCase().indexOf(job_name.toLowerCase()) !== -1
     );
   }
 
-  if (utm_term) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_term
-          .toLowerCase()
-          .indexOf(utm_term.toLowerCase()) !== -1
+  if (job_category.length) {
+    inputData = inputData.filter((keep) =>
+      job_category.includes(keep.job_category_name)
     );
   }
 
-  if (lp_url) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.lp_url.toLowerCase().indexOf(lp_url.toLowerCase()) !==
-        -1
+  if (position.length) {
+    inputData = inputData.filter((keep) =>
+      position.includes(keep.position_name)
     );
   }
 
-  if (!lpDateError) {
-    if (lp_start_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.lp_date) >= fTimestamp(lp_start_date)
-      );
-    }
-    if (lp_end_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.lp_date) <= fTimestamp(lp_end_date)
-      );
-    }
-  }
-
-  if (cv_url) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.cv_url.toLowerCase().indexOf(cv_url.toLowerCase()) !==
-        -1
+  if (employment.length) {
+    inputData = inputData.filter((keep) =>
+      employment.includes(keep.employment_name)
     );
   }
 
-  if (!cvDateError) {
-    if (cv_start_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.cv_date) >= fTimestamp(cv_start_date)
-      );
-    }
-    if (cv_end_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.cv_date) <= fTimestamp(cv_end_date)
-      );
-    }
+  if (status.length) {
+    inputData = inputData.filter((keep) => status.includes(keep.status_name));
   }
 
   return inputData;

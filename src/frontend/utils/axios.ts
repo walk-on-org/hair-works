@@ -238,4 +238,10 @@ export const endpoints = {
   conversionHistory: {
     list: "/api/conversion_histories",
   },
+  keep: {
+    list: "/api/keeps",
+  },
+  history: {
+    list: "/api/histories",
+  },
 };

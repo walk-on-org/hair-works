@@ -18,7 +18,7 @@ type Props = {
   onFilters: (name: string, value: IConversionHistoryTableFilterValue) => void;
 };
 
-export default function COnversionHistoryTableToolbar({
+export default function ConversionHistoryTableToolbar({
   filters,
   onFilters,
 }: Props) {
