@@ -56,6 +56,9 @@ export const paths = {
       detail: (id: string) => `${ROOTS.ADMIN}/inquiries/${id}`,
       edit: (id: string) => `${ROOTS.ADMIN}/inquiries/${id}/edit`,
     },
+    conversionHistory: {
+      root: `${ROOTS.ADMIN}/conversion_histories`,
+    },
     article: {
       root: `${ROOTS.ADMIN}/articles`,
       new: `${ROOTS.ADMIN}/articles/new`,

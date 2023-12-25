@@ -28,6 +28,7 @@ use App\Http\Controllers\ApplicantController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\ArticleCategoryController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\ConversionHistoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -223,4 +224,6 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::post('/articles/update/{id}', [ArticleController::class, 'update']);
     Route::post('/articles/destroy/{id}', [ArticleController::class, 'destroy']);
     Route::post('/articles/destroy_multiple', [ArticleController::class, 'destroyMultiple']);
+    // CV経路
+    Route::get('/conversion_histories', [ConversionHistoryController::class, 'index']);
 });

@@ -92,6 +92,11 @@ export function useNavData() {
             icon: ICONS.external,
           },
           {
+            title: "CV経路",
+            path: paths.admin.conversionHistory.root,
+            icon: ICONS.external,
+          },
+          {
             title: "特集",
             path: "#",
             icon: ICONS.blog,

@@ -235,4 +235,7 @@ export const endpoints = {
     destroy: (id: string) => `/api/article_categories/destroy/${id}`,
     destroyMultiple: "/api/article_categories/destroy_multiple",
   },
+  conversionHistory: {
+    list: "/api/conversion_histories",
+  },
 };
