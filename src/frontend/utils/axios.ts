@@ -244,4 +244,12 @@ export const endpoints = {
   history: {
     list: "/api/histories",
   },
+  mailmagazineConfig: {
+    list: "/api/mailmagazine_configs",
+    detail: (id: string) => `/api/mailmagazine_configs/${id}`,
+    create: "/api/mailmagazine_configs/create",
+    update: (id: string) => `/api/mailmagazine_configs/update/${id}`,
+    destroy: (id: string) => `/api/mailmagazine_configs/destroy/${id}`,
+    destroyMultiple: "/api/mailmagazine_configs/destroy_multiple",
+  },
 };

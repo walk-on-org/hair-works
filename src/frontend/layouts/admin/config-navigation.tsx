@@ -109,6 +109,10 @@ export function useNavData() {
                 title: "閲覧履歴",
                 path: paths.admin.history.root,
               },
+              {
+                title: "メルマガ送信リスト作成",
+                path: paths.admin.mailmagazineConfig.root,
+              },
             ],
           },
           {

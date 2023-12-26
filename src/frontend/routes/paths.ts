@@ -65,6 +65,12 @@ export const paths = {
     history: {
       root: `${ROOTS.ADMIN}/histories`,
     },
+    mailmagazineConfig: {
+      root: `${ROOTS.ADMIN}/mailmagazine_configs`,
+      new: `${ROOTS.ADMIN}/mailmagazine_configs/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/mailmagazine_configs/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/mailmagazine_configs/${id}/edit`,
+    },
     article: {
       root: `${ROOTS.ADMIN}/articles`,
       new: `${ROOTS.ADMIN}/articles/new`,

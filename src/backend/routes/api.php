@@ -31,6 +31,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ConversionHistoryController;
 use App\Http\Controllers\KeepController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\MailmagazineConfigController;
 
 /*
 |--------------------------------------------------------------------------
@@ -232,4 +233,11 @@ Route::middleware(['middleware' => 'api'])->group(function () {
     Route::get('/keeps', [KeepController::class, 'index']);
     // 閲覧履歴
     Route::get('/histories', [HistoryController::class, 'index']);
+    // メルマガ設定
+    Route::get('/mailmagazine_configs', [MailmagazineConfigController::class, 'index']);
+    Route::get('/mailmagazine_configs/{id}', [MailmagazineConfigController::class, 'show']);
+    Route::post('/mailmagazine_configs/create', [MailmagazineConfigController::class, 'create']);
+    Route::patch('/mailmagazine_configs/update/{id}', [MailmagazineConfigController::class, 'update']);
+    Route::post('/mailmagazine_configs/destroy/{id}', [MailmagazineConfigController::class, 'destroy']);
+    Route::post('/mailmagazine_configs/destroy_multiple', [MailmagazineConfigController::class, 'destroyMultiple']);
 });

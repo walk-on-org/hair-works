@@ -152,3 +152,10 @@ export const KEEP_STATUS_OPTIONS = [
   { value: "1", label: "お気に入り済" },
   { value: "2", label: "お気に入り解除" },
 ];
+
+export const DELIVER_JOB_TYPE_OPTIONS = [
+  { value: "0", label: "新着求人" },
+  { value: "1", label: "半径〇〇km以内の求人" },
+  { value: "2", label: "同じ都道府県の求人" },
+  { value: "3", label: "同じ市区町村の求人" },
+];
