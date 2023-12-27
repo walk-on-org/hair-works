@@ -38,6 +38,10 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     // 政令指定都市
     Route::get('/government_cities', [App\Http\Controllers\Main\GovernmentCityController::class, 'index']);
     Route::get('/government_cities/{id}', [App\Http\Controllers\Main\GovernmentCityController::class, 'show']);
+    // 市区町村
+    Route::get('/cities', [App\Http\Controllers\Main\CityController::class, 'index']);
+    Route::get('/cities/getwithjobcount', [App\Http\Controllers\Main\CityController::class, 'getWithJobCount']);
+    Route::get('/cities/{id}', [App\Http\Controllers\Main\CityController::class, 'show']);
 });
 
 // 管理サイト用API
