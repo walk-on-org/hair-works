@@ -16,6 +16,7 @@ class EmploymentController extends Controller
     public function index()
     {
         $employments = Employment::where('status', 1)
+            ->orderBy('id')
             ->select(
                 'id',
                 'name',
@@ -48,6 +49,7 @@ class EmploymentController extends Controller
     {
         // 雇用形態を全件取得
         $employments = Employment::where('status', 1)
+            ->orderBy('id')
             ->select(
                 'id',
                 'name',

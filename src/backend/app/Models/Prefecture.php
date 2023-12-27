@@ -27,6 +27,17 @@ class Prefecture extends Model
         8 => '九州・沖縄',
     ];
 
+    const REGION_ROMAN = [
+        1 => 'hokkaido_tohoku',
+        2 => 'kanto',
+        3 => 'koushinetsu_hokuriku',
+        4 => 'toukai',
+        5 => 'kansai',
+        6 => 'chugoku',
+        7 => 'sikoku',
+        8 => 'kyusyu_okinawa',
+    ];
+
     public function governmentCities() {
         return $this->hasMany('App\Models\GovernmentCity');
     }

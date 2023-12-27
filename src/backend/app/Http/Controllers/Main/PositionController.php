@@ -16,6 +16,7 @@ class PositionController extends Controller
     public function index()
     {
         $positions = Position::where('status', 1)
+            ->orderBy('id')
             ->select(
                 'id',
                 'name',
@@ -48,6 +49,7 @@ class PositionController extends Controller
     {
         // 役職/役割を全件取得
         $positions = Position::where('status', 1)
+            ->orderBy('id')
             ->select(
                 'id',
                 'name',

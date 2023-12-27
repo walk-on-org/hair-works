@@ -32,6 +32,9 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/employments', [App\Http\Controllers\Main\EmploymentController::class, 'index']);
     Route::get('/employments/getwithjobcount', [App\Http\Controllers\Main\EmploymentController::class, 'getWithJobCount']);
     Route::get('/employments/{id}', [App\Http\Controllers\Main\EmploymentController::class, 'show']);
+    // 都道府県
+    Route::get('/prefectures', [App\Http\Controllers\Main\PrefectureController::class, 'index']);
+    Route::get('/prefectures/{id}', [App\Http\Controllers\Main\PrefectureController::class, 'show']);
 });
 
 // 管理サイト用API

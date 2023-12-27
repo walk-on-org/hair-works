@@ -16,6 +16,7 @@ class JobCategoryController extends Controller
     public function index()
     {
         $job_categories = JobCategory::where('status', 1)
+            ->orderBy('id')
             ->select(
                 'id',
                 'name',
@@ -48,6 +49,7 @@ class JobCategoryController extends Controller
     {
         // 職種を全件取得
         $job_categories = JobCategory::where('status', 1)
+            ->orderBy('id')
             ->select(
                 'id',
                 'name',
