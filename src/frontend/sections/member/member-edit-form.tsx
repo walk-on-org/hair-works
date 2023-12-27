@@ -62,6 +62,7 @@ export default function MemberEditForm({
         excludeEmptyString: true,
       }),
     email: Yup.string(),
+    job_change_feeling: Yup.string(),
     change_time: Yup.string().required("希望転職時期を入力してください。"),
     retirement_time: Yup.string().required("退職意向を入力してください。"),
     employment_id: Yup.string().required("希望勤務体系を入力してください。"),
@@ -90,6 +91,7 @@ export default function MemberEditForm({
       address: currentMember?.address || "",
       phone: currentMember?.phone || "",
       email: currentMember?.email || "",
+      job_change_feeling: currentMember?.job_change_feeling || "",
       change_time: currentMember?.change_time || "",
       retirement_time: currentMember?.retirement_time || "",
       employment_id: currentMember?.employment_id || "",
@@ -143,6 +145,9 @@ export default function MemberEditForm({
         address: data.address,
         phone: data.phone,
         email: data.email,
+        job_change_feeling: data.job_change_feeling
+          ? Number(data.job_change_feeling)
+          : null,
         change_time: Number(data.change_time),
         retirement_time: Number(data.retirement_time),
         employment_id: Number(data.employment_id),

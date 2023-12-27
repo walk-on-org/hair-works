@@ -59,9 +59,9 @@ class ApplicantController extends Controller
         foreach ($applicants as $a) {
             $a->status_name = Applicant::STATUS[$a->status];
             $a->job_recommend_name = $a->job_recommend ? '人材紹介' : '';
-            $a->proposal_type_name = Applicant::PROPOSAL_TYPE[$a->proposal_type];
-            $a->change_time_name = Applicant::CHANGE_TIME[$a->change_time];
-            $a->retirement_time_name = Applicant::RETIREMENT_TIME[$a->retirement_time];
+            $a->proposal_type_name = $a->proposal_type ? Applicant::PROPOSAL_TYPE[$a->proposal_type] : "";
+            $a->change_time_name = $a->change_time ? Applicant::CHANGE_TIME[$a->change_time] : "";
+            $a->retirement_time_name = $a->retirement_time ? Applicant::RETIREMENT_TIME[$a->retirement_time] : "";
         }
         return response()->json(['applicants' => $applicants]);
     }
@@ -89,9 +89,9 @@ class ApplicantController extends Controller
             $applicant['employment_name'] = $applicant->employment->name;
             $applicant['emp_prefecture_name'] = $applicant->empPrefecture->name;
             $applicant['status_name'] = Applicant::STATUS[$applicant->status];
-            $applicant['proposal_type_name'] = Applicant::PROPOSAL_TYPE[$applicant->proposal_type];
-            $applicant['change_time_name'] = Applicant::CHANGE_TIME[$applicant->change_time];
-            $applicant['retirement_time_name'] = Applicant::RETIREMENT_TIME[$applicant->retirement_time];
+            $applicant['proposal_type_name'] = $applicant->proposal_type ? Applicant::PROPOSAL_TYPE[$applicant->proposal_type] : "";
+            $applicant['change_time_name'] = $applicant->change_time ? Applicant::CHANGE_TIME[$applicant->change_time] : "";
+            $applicant['retirement_time_name'] = $applicant->retirement_time ? Applicant::RETIREMENT_TIME[$applicant->retirement_time] : "";
             
              // 応募者資格
              $applicant_qualifications = $applicant->qualifications->toArray();

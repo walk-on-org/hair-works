@@ -24,21 +24,6 @@ class MailmagazineConfigController extends Controller
     public function index()
     {
         $mailmagazine_configs = MailmagazineConfig::all();
-        /*DB::table('mailmagazine_configs')
-            ->select(
-                'mailmagazine_configs.id',
-                'mailmagazine_configs.title',
-                'mailmagazine_configs.deliver_job_type',
-                'mailmagazine_configs.job_keyword',
-                'mailmagazine_configs.member_birthyear_from',
-                'mailmagazine_configs.member_birthyear_to',
-                'mailmagazine_configs.job_match_lp_job_category',
-                'mailmagazine_configs.job_match_employment',
-                'mailmagazine_configs.job_match_distance',
-                'mailmagazine_configs.job_count_limit',
-                'mailmagazine_configs.search_other_corporation',
-            )
-            ->get();*/
         foreach ($mailmagazine_configs as $m) {
             $m['deliver_job_type_name'] = MailmagazineConfig::DELIVER_JOB_TYPE[$m->deliver_job_type];
             $m['job_match_lp_job_category_name'] = MailmagazineConfig::JOB_MATCH_LP_JOB_CATEGORY[$m->job_match_lp_job_category];

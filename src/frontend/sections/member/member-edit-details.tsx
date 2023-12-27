@@ -19,6 +19,7 @@ import {
 import {
   CHANGE_TIME_OPTIONS,
   INTRODUCTION_GIFT_STATUS_OPTIONS,
+  JOB_CHANGE_FEELING_OPTIONS,
   MEMBER_STATUS_OPTIONS,
   RETIREMENT_TIME_OPTIONS,
 } from "@/config-global";
@@ -81,6 +82,27 @@ export default function MemberEditDetails({
       <RHFTextField name="phone" label="電話番号" />
 
       <RHFTextField name="email" label="メールアドレス" />
+
+      <RHFSelect
+        fullWidth
+        name="job_change_feeling"
+        label="転職への気持ち"
+        InputLabelProps={{ shrink: true }}
+        PaperPropsSx={{ textTransform: "capitalize" }}
+      >
+        <MenuItem
+          value=""
+          sx={{ fontStyle: "italic", color: "text.secondary" }}
+        >
+          None
+        </MenuItem>
+        <Divider sx={{ borderStyle: "dashed" }} />
+        {JOB_CHANGE_FEELING_OPTIONS.map((row) => (
+          <MenuItem key={row.value} value={row.value}>
+            {row.label}
+          </MenuItem>
+        ))}
+      </RHFSelect>
 
       <RHFSelect
         fullWidth

@@ -23,6 +23,7 @@ class Member extends Model
         'email',
         'password',
         'auth_token',
+        'job_change_feeling',
         'change_time',
         'retirement_time',
         'employment_id',
@@ -36,6 +37,11 @@ class Member extends Model
         'introduction_gift_status',
         'lat',
         'lng',
+    ];
+
+    const JOB_CHANGE_FEELING = [
+        1 => '近いうちに転職したい',
+        2 => '今は情報収集したい',
     ];
 
     const CHANGE_TIME = [

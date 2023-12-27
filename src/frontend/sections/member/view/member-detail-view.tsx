@@ -177,6 +177,15 @@ export default function MemberDetailView({ id }: Props) {
 
           <Stack direction="row">
             <Typography variant="subtitle2" sx={{ width: 160 }}>
+              転職への気持ち
+            </Typography>
+            <Typography variant="body2" sx={{ flexGrow: 1 }}>
+              {member.job_change_feeling_name}
+            </Typography>
+          </Stack>
+
+          <Stack direction="row">
+            <Typography variant="subtitle2" sx={{ width: 160 }}>
               希望転職時期
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>

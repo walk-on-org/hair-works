@@ -34,6 +34,7 @@ class MemberController extends Controller
                 'members.address',
                 'members.phone',
                 'members.email',
+                'members.job_change_feeling',
                 'members.change_time',
                 'members.retirement_time',
                 'members.employment_id',
@@ -52,8 +53,9 @@ class MemberController extends Controller
             )
             ->get();
         foreach ($members as $m) {
-            $m->change_time_name = Member::CHANGE_TIME[$m->change_time];
-            $m->retirement_time_name = Member::RETIREMENT_TIME[$m->retirement_time];
+            $m->job_change_feeling_name = $m->job_change_feeling ? Member::JOB_CHANGE_FEELING[$m->job_change_feeling] : "";
+            $m->change_time_name = $m->change_time ? Member::CHANGE_TIME[$m->change_time] : "";
+            $m->retirement_time_name = $m->retirement_time ? Member::RETIREMENT_TIME[$m->retirement_time] : "";
             $m->status_name = Member::STATUS[$m->status];
             $m->register_site_name = Member::REGISTER_SITE[$m->register_site];
             $m->register_form_name = Member::REGISTER_FORM[$m->register_form];
@@ -78,8 +80,9 @@ class MemberController extends Controller
             $member['emp_prefecture_name'] = $member->empPrefecture->name;
             $member['job_name'] = $member->job ? $member->job->name : "";
             $member['introduction_member_name'] = $member->introductionMember ? $member->introductionMember->name : "";
-            $member['change_time_name'] = Member::CHANGE_TIME[$member->change_time];
-            $member['retirement_time_name'] = Member::RETIREMENT_TIME[$member->retirement_time];
+            $member['job_change_feeling_name'] = $member->job_change_feeling ? Member::JOB_CHANGE_FEELING[$member->job_change_feeling] : "";
+            $member['change_time_name'] = $member->change_time ? Member::CHANGE_TIME[$member->change_time] : "";
+            $member['retirement_time_name'] = $member->retirement_time ? Member::RETIREMENT_TIME[$member->retirement_time] : "";
             $member['status_name'] = Member::STATUS[$member->status];
             $member['register_site_name'] = Member::REGISTER_SITE[$member->register_site];
             $member['register_form_name'] = Member::REGISTER_FORM[$member->register_form];
@@ -120,6 +123,7 @@ class MemberController extends Controller
                 'address' => 'required|string',
                 'phone' => 'required|string',
                 'email' => '',
+                'job_change_feeling' => 'nullable|numeric|regex:/^[1-2]{1}$/',
                 'change_time' => 'numeric|regex:/^[0-5]{1}$/',
                 'retirement_time' => 'numeric|regex:/^[0-5]{1}$/',
                 'employment_id' => 'numeric|exists:employments,id',

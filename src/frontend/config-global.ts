@@ -69,6 +69,11 @@ export const JOB_STATUS_OPTIONS = [
   { value: "20", label: "掲載停止" },
 ];
 
+export const JOB_CHANGE_FEELING_OPTIONS = [
+  { value: "1", label: "近いうちに転職したい" },
+  { value: "2", label: "今は情報収集したい" },
+];
+
 export const CHANGE_TIME_OPTIONS = [
   { value: "0", label: "1ヶ月以内" },
   { value: "1", label: "3ヶ月以内" },

@@ -9,6 +9,8 @@ export type IMemberItem = {
   address: string;
   phone: string;
   email: string;
+  job_change_feeling: string;
+  job_change_feeling_name: string;
   change_time: string;
   change_time_name: string;
   retirement_time: string;
