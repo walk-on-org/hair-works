@@ -32,6 +32,8 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/employments', [App\Http\Controllers\Main\EmploymentController::class, 'index']);
     Route::get('/employments/getwithjobcount', [App\Http\Controllers\Main\EmploymentController::class, 'getWithJobCount']);
     Route::get('/employments/{id}', [App\Http\Controllers\Main\EmploymentController::class, 'show']);
+    // 雇用形態気になるポイント
+    // TODO
     // 都道府県
     Route::get('/prefectures', [App\Http\Controllers\Main\PrefectureController::class, 'index']);
     Route::get('/prefectures/{id}', [App\Http\Controllers\Main\PrefectureController::class, 'show']);
@@ -42,6 +44,33 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/cities', [App\Http\Controllers\Main\CityController::class, 'index']);
     Route::get('/cities/getwithjobcount', [App\Http\Controllers\Main\CityController::class, 'getWithJobCount']);
     Route::get('/cities/{id}', [App\Http\Controllers\Main\CityController::class, 'show']);
+    // 路線
+    Route::get('/lines', [App\Http\Controllers\Main\LineController::class, 'index']);
+    Route::get('/lines/{id}', [App\Http\Controllers\Main\LineController::class, 'show']);
+    // 駅
+    // 休日
+    // こだわり条件
+    // 資格
+    // LP職種
+    // HTML追加コンテンツ
+    // 専用LP
+    // 検索条件
+    // 特集記事カテゴリ
+    // 特集記事
+
+    // 求人
+    // 事業所
+
+    // 認証（会員）
+    // 会員連絡可能日時
+    // 応募者
+    // 応募希望日時
+    // 問い合わせ
+    // 閲覧履歴
+    // お気に入り
+    // CV経路
+
+    // アクリートSMS受信
 });
 
 // 管理サイト用API
