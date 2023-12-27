@@ -24,18 +24,22 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/job_categories', [App\Http\Controllers\Main\JobCategoryController::class, 'index']);
     Route::get('/job_categories/getwithjobcount', [App\Http\Controllers\Main\JobCategoryController::class, 'getWithJobCount']);
     Route::get('/job_categories/{id}', [App\Http\Controllers\Main\JobCategoryController::class, 'show']);
+    // 役職/役割
+    Route::get('/positions', [App\Http\Controllers\Main\PositionController::class, 'index']);
+    Route::get('/positions/getwithjobcount', [App\Http\Controllers\Main\PositionController::class, 'getWithJobCount']);
+    Route::get('/positions/{id}', [App\Http\Controllers\Main\PositionController::class, 'show']);
 });
 
 // 管理サイト用API
 Route::middleware(['middleware' => 'api'])->prefix('admin')->group(function () {
-    # 職種
+    // 職種
     Route::get('/job_categories', [App\Http\Controllers\Admin\JobCategoryController::class, 'index']);
     Route::get('/job_categories/{id}', [App\Http\Controllers\Admin\JobCategoryController::class, 'show']);
     Route::post('/job_categories/create', [App\Http\Controllers\Admin\JobCategoryController::class, 'create']);
     Route::patch('/job_categories/update/{id}' , [JobCategoryController::class, 'update']);
     Route::post('/job_categories/destroy/{id}' , [JobCategoryController::class, 'destroy']);
     Route::post('/job_categories/destroy_multiple' , [JobCategoryController::class, 'destroyMultiple']);
-    # 役職/役割
+    // 役職/役割
     Route::get('/positions', [App\Http\Controllers\Admin\PositionController::class, 'index']);
     Route::get('/positions/{id}', [App\Http\Controllers\Admin\PositionController::class, 'show']);
     Route::post('/positions/create', [App\Http\Controllers\Admin\PositionController::class, 'create']);
