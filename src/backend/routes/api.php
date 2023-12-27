@@ -28,6 +28,10 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/positions', [App\Http\Controllers\Main\PositionController::class, 'index']);
     Route::get('/positions/getwithjobcount', [App\Http\Controllers\Main\PositionController::class, 'getWithJobCount']);
     Route::get('/positions/{id}', [App\Http\Controllers\Main\PositionController::class, 'show']);
+    // 雇用形態
+    Route::get('/employments', [App\Http\Controllers\Main\EmploymentController::class, 'index']);
+    Route::get('/employments/getwithjobcount', [App\Http\Controllers\Main\EmploymentController::class, 'getWithJobCount']);
+    Route::get('/employments/{id}', [App\Http\Controllers\Main\EmploymentController::class, 'show']);
 });
 
 // 管理サイト用API
