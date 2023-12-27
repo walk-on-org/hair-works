@@ -1,55 +1,57 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Models\Holiday;
+use App\Http\Controllers\Controller;
+use App\Models\Plan;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
-class HolidayController extends Controller
+class PlanController extends Controller
 {
     /**
-     * 休日マスタ一覧取得
+     * プランマスタ一覧取得
      */
     public function index()
     {
-        $holidays = Holiday::all();
-        foreach ($holidays as $h) {
-            $h['status_name'] = Holiday::STATUS[$h->status];
+        $plans = Plan::all();
+        foreach ($plans as $p) {
+            $p['status_name'] = Plan::STATUS[$p->status];
         }
-        return response()->json(['holidays' => $holidays]);
+        return response()->json(['plans' => $plans]);
     }
 
     /**
-     * 休日マスタ取得
+     * プランマスタ取得
      */
     public function show($id)
     {
         try {
-            $holiday = Holiday::find($id);
-            if (!$holiday) {
+            $plan = Plan::find($id);
+            if (!$plan) {
                 throw new ModelNotFoundException();
             }
-            $holiday['status_name'] = Holiday::STATUS[$holiday->status];
-            return response()->json(['holiday' => $holiday]);
+            $plan['status_name'] = Plan::STATUS[$plan->status];
+            return response()->json(['plan' => $plan]);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Holiday not found'], 404);
+            return response()->json(['error' => 'Plan not found'], 404);
         }
     }
 
     /**
-     * 休日マスタ登録
+     * プランマスタ登録
      */
     public function create(Request $request)
     {
         try {
             $data = $request->validate([
                 'name' => 'required|string',
-                'permalink' => 'required|string',
+                'term' => 'numeric',
+                'amount' => 'numeric',
                 'status' => 'required',
             ]);
-            Holiday::create($data);
+            Plan::create($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -57,18 +59,19 @@ class HolidayController extends Controller
     }
 
     /**
-     * 休日マスタ更新
+     * プランマスタ更新
      */
     public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
                 'name' => 'required|string',
-                'permalink' => 'required|string',
+                'term' => 'numeric',
+                'amount' => 'numeric',
                 'status' => 'required',
             ]);
-            $holiday = Holiday::findOrFail($id);
-            $holiday->update($data);
+            $plan = Plan::findOrFail($id);
+            $plan->update($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -76,24 +79,24 @@ class HolidayController extends Controller
     }
 
     /**
-     * 休日マスタ削除
+     * プランマスタ削除
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $holiday = Holiday::find($id);
-            if (!$holiday) {
+            $plan = Plan::find($id);
+            if (!$plan) {
                 throw new ModelNotFoundException();
             }
-            $holiday->delete();
+            $plan->delete();
             return response()->json(['result' => 'ok']);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Holiday not found'], 404);
+            return response()->json(['error' => 'Plan not found'], 404);
         }
     }
 
     /**
-     * 休日マスタ複数削除
+     * プランマスタ複数削除
      */
     public function destroyMultiple(Request $request)
     {
@@ -104,13 +107,13 @@ class HolidayController extends Controller
             }
             
             // 削除
-            $deleted_count = Holiday::whereIn('id', $ids)
+            $deleted_count = Plan::whereIn('id', $ids)
                 ->delete();
             return response()->json(['result' => 'ok']);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'One or more holidays not found'], 404);
+            return response()->json(['error' => 'One or more plans not found'], 404);
         }
     }
 }

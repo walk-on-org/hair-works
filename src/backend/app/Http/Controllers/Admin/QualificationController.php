@@ -1,56 +1,56 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Models\Plan;
+use App\Http\Controllers\Controller;
+use App\Models\Qualification;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
-class PlanController extends Controller
+class QualificationController extends Controller
 {
     /**
-     * プランマスタ一覧取得
+     * 資格マスタ一覧取得
      */
     public function index()
     {
-        $plans = Plan::all();
-        foreach ($plans as $p) {
-            $p['status_name'] = Plan::STATUS[$p->status];
+        $qualifications = Qualification::all();
+        foreach ($qualifications as $q) {
+            $q['status_name'] = Qualification::STATUS[$q->status];
         }
-        return response()->json(['plans' => $plans]);
+        return response()->json(['qualifications' => $qualifications]);
     }
 
     /**
-     * プランマスタ取得
+     * 資格マスタ取得
      */
     public function show($id)
     {
         try {
-            $plan = Plan::find($id);
-            if (!$plan) {
+            $qualification = Qualification::find($id);
+            if (!$qualification) {
                 throw new ModelNotFoundException();
             }
-            $plan['status_name'] = Plan::STATUS[$plan->status];
-            return response()->json(['plan' => $plan]);
+            $qualification['status_name'] = Qualification::STATUS[$qualification->status];
+            return response()->json(['qualification' => $qualification]);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Plan not found'], 404);
+            return response()->json(['error' => 'Qualification not found'], 404);
         }
     }
 
     /**
-     * プランマスタ登録
+     * 資格マスタ登録
      */
     public function create(Request $request)
     {
         try {
             $data = $request->validate([
                 'name' => 'required|string',
-                'term' => 'numeric',
-                'amount' => 'numeric',
                 'status' => 'required',
+                'sort' => 'numeric',
             ]);
-            Plan::create($data);
+            Qualification::create($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -58,19 +58,18 @@ class PlanController extends Controller
     }
 
     /**
-     * プランマスタ更新
+     * 資格マスタ更新
      */
     public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
                 'name' => 'required|string',
-                'term' => 'numeric',
-                'amount' => 'numeric',
                 'status' => 'required',
+                'sort' => 'numeric',
             ]);
-            $plan = Plan::findOrFail($id);
-            $plan->update($data);
+            $qualification = Qualification::findOrFail($id);
+            $qualification->update($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -78,24 +77,24 @@ class PlanController extends Controller
     }
 
     /**
-     * プランマスタ削除
+     * 資格マスタ削除
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $plan = Plan::find($id);
-            if (!$plan) {
+            $qualification = Qualification::find($id);
+            if (!$qualification) {
                 throw new ModelNotFoundException();
             }
-            $plan->delete();
+            $qualification->delete();
             return response()->json(['result' => 'ok']);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Plan not found'], 404);
+            return response()->json(['error' => 'Qualification not found'], 404);
         }
     }
 
     /**
-     * プランマスタ複数削除
+     * 資格マスタ複数削除
      */
     public function destroyMultiple(Request $request)
     {
@@ -106,13 +105,13 @@ class PlanController extends Controller
             }
             
             // 削除
-            $deleted_count = Plan::whereIn('id', $ids)
+            $deleted_count = Qualification::whereIn('id', $ids)
                 ->delete();
             return response()->json(['result' => 'ok']);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'One or more plans not found'], 404);
+            return response()->json(['error' => 'One or more qualifications not found'], 404);
         }
     }
 }

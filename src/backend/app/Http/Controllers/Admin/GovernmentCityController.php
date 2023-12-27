@@ -1,45 +1,54 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Models\ArticleCategory;
+use App\Http\Controllers\Controller;
+use App\Models\GovernmentCity;
+use App\Models\Prefecture;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
-class ArticleCategoryController extends Controller
+class GovernmentCityController extends Controller
 {
     /**
-     * 特集記事カテゴリ一覧取得
+     * 政令指定都市マスタ一覧取得
      */
     public function index()
     {
-        $article_categories = ArticleCategory::all();
-        foreach ($article_categories as $a) {
-            $a['status_name'] = ArticleCategory::STATUS[$a->status];
-        }
-        return response()->json(['article_categories' => $article_categories]);
+        $government_cities = DB::table('government_cities')
+            ->join('prefectures', 'government_cities.prefecture_id', '=', 'prefectures.id')
+            ->select(
+                'government_cities.id',
+                'government_cities.name',
+                'government_cities.permalink',
+                'government_cities.prefecture_id',
+                'prefectures.name as prefecture_name',
+            )
+            ->get();
+        return response()->json(['government_cities' => $government_cities]);
     }
 
     /**
-     * 特集記事カテゴリ取得
+     * 政令指定都市マスタ取得
      */
     public function show($id)
     {
         try {
-            $article_category = ArticleCategory::find($id);
-            if (!$article_category) {
+            $government_city = GovernmentCity::find($id);
+            if (!$government_city) {
                 throw new ModelNotFoundException();
             }
-            $article_category['status_name'] = ArticleCategory::STATUS[$article_category->status];
-            return response()->json(['article_category' => $article_category]);
+            $government_city['prefecture_name'] = $government_city->prefecture->name;
+            return response()->json(['government_city' => $government_city]);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Article category not found'], 404);
+            return response()->json(['error' => 'GovernmentCity not found'], 404);
         }
     }
 
     /**
-     * 特集記事カテゴリ登録
+     * 政令指定都市マスタ登録
      */
     public function create(Request $request)
     {
@@ -47,9 +56,10 @@ class ArticleCategoryController extends Controller
             $data = $request->validate([
                 'name' => 'required|string',
                 'permalink' => 'required|string',
-                'status' => 'required',
+                'prefecture_id' => 'numeric|exists:prefectures,id',
             ]);
-            ArticleCategory::create($data);
+
+            GovernmentCity::create($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -57,7 +67,7 @@ class ArticleCategoryController extends Controller
     }
 
     /**
-     * 特集記事カテゴリ更新
+     * 政令指定都市マスタ更新
      */
     public function update(Request $request, $id)
     {
@@ -65,10 +75,11 @@ class ArticleCategoryController extends Controller
             $data = $request->validate([
                 'name' => 'required|string',
                 'permalink' => 'required|string',
-                'status' => 'required',
+                'prefecture_id' => 'numeric|exists:prefectures,id',
             ]);
-            $article_category = ArticleCategory::findOrFail($id);
-            $article_category->update($data);
+
+            $government_city = GovernmentCity::findOrFail($id);
+            $government_city->update($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -76,24 +87,24 @@ class ArticleCategoryController extends Controller
     }
 
     /**
-     * 特集記事カテゴリ削除
+     * 政令指定都市マスタ削除
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $article_category = ArticleCategory::find($id);
-            if (!$article_category) {
+            $government_city = GovernmentCity::find($id);
+            if (!$government_city) {
                 throw new ModelNotFoundException();
             }
-            $article_category->delete();
+            $government_city->delete();
             return response()->json(['result' => 'ok']);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Article category not found'], 404);
+            return response()->json(['error' => 'GovernmentCity not found'], 404);
         }
     }
 
     /**
-     * 特集記事カテゴリ複数削除
+     * 政令指定都市マスタ複数削除
      */
     public function destroyMultiple(Request $request)
     {
@@ -104,13 +115,13 @@ class ArticleCategoryController extends Controller
             }
             
             // 削除
-            $deleted_count = ArticleCategory::whereIn('id', $ids)
+            $deleted_count = GovernmentCity::whereIn('id', $ids)
                 ->delete();
             return response()->json(['result' => 'ok']);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'One or more article categories not found'], 404);
+            return response()->json(['error' => 'One or more government cities not found'], 404);
         }
     }
 }

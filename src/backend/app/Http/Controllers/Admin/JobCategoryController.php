@@ -1,56 +1,56 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Models\TrainCompany;
+use App\Http\Controllers\Controller;
+use App\Models\JobCategory;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
-class TrainCompanyController extends Controller
+class JobCategoryController extends Controller
 {
     /**
-     * 鉄道事業者マスタ一覧取得
+     * 職種マスタ一覧取得
      */
     public function index()
     {
-        $train_companies = TrainCompany::all();
-        foreach ($train_companies as $c) {
-            $c['status_name'] = TrainCompany::STATUS[$c->status];
+        $job_categories = JobCategory::all();
+        foreach ($job_categories as $j) {
+            $j['status_name'] = JobCategory::STATUS[$j->status];
         }
-        return response()->json(['train_companies' => $train_companies]);
+        return response()->json(['job_categories' => $job_categories]);
     }
 
     /**
-     * 鉄道事業者マスタ取得
+     * 職種マスタ取得
      */
     public function show($id)
     {
         try {
-            $train_company = TrainCompany::find($id);
-            if (!$train_company) {
+            $job_category = JobCategory::find($id);
+            if (!$job_category) {
                 throw new ModelNotFoundException();
             }
-            $train_company['status_name'] = TrainCompany::STATUS[$train_company->status];
-            return response()->json(['train_company' => $train_company]);
+            $job_category['status_name'] = JobCategory::STATUS[$job_category->status];
+            return response()->json(['job_category' => $job_category]);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'TrainCompany not found'], 404);
+            return response()->json(['error' => 'Job category not found'], 404);
         }
     }
 
     /**
-     * 鉄道事業者マスタ登録
+     * 職種マスタ登録
      */
     public function create(Request $request)
     {
         try {
             $data = $request->validate([
                 'name' => 'required|string',
-                'name_r' => 'required|string',
-                'status' => 'numeric|regex:/^[0-2]{1}$/',
-                'sort' => 'numeric',
+                'permalink' => 'required|string',
+                'status' => 'required',
             ]);
-            TrainCompany::create($data);
+            JobCategory::create($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -58,19 +58,18 @@ class TrainCompanyController extends Controller
     }
 
     /**
-     * 鉄道事業者マスタ更新
+     * 職種マスタ更新
      */
     public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
                 'name' => 'required|string',
-                'name_r' => 'required|string',
-                'status' => 'numeric|regex:/^[0-2]{1}$/',
-                'sort' => 'numeric',
+                'permalink' => 'required|string',
+                'status' => 'required',
             ]);
-            $train_company = TrainCompany::findOrFail($id);
-            $train_company->update($data);
+            $job_category = JobCategory::findOrFail($id);
+            $job_category->update($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -78,24 +77,24 @@ class TrainCompanyController extends Controller
     }
 
     /**
-     * 鉄道事業者マスタ削除
+     * 職種マスタ削除
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $train_company = TrainCompany::find($id);
-            if (!$train_company) {
+            $job_category = JobCategory::find($id);
+            if (!$job_category) {
                 throw new ModelNotFoundException();
             }
-            $train_company->delete();
+            $job_category->delete();
             return response()->json(['result' => 'ok']);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'TrainCompany not found'], 404);
+            return response()->json(['error' => 'Job category not found'], 404);
         }
     }
 
     /**
-     * 鉄道事業者マスタ複数削除
+     * 職種マスタ複数削除
      */
     public function destroyMultiple(Request $request)
     {
@@ -106,13 +105,13 @@ class TrainCompanyController extends Controller
             }
             
             // 削除
-            $deleted_count = TrainCompany::whereIn('id', $ids)
+            $deleted_count = JobCategory::whereIn('id', $ids)
                 ->delete();
             return response()->json(['result' => 'ok']);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'One or more train companies not found'], 404);
+            return response()->json(['error' => 'One or more job categories not found'], 404);
         }
     }
 }

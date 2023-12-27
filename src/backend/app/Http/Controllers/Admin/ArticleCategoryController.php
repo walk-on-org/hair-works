@@ -1,45 +1,46 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Models\Position;
+use App\Http\Controllers\Controller;
+use App\Models\ArticleCategory;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
-class PositionController extends Controller
+class ArticleCategoryController extends Controller
 {
     /**
-     * 役職/役割マスタ一覧取得
+     * 特集記事カテゴリ一覧取得
      */
     public function index()
     {
-        $positions = Position::all();
-        foreach ($positions as $p) {
-            $p['status_name'] = Position::STATUS[$p->status];
+        $article_categories = ArticleCategory::all();
+        foreach ($article_categories as $a) {
+            $a['status_name'] = ArticleCategory::STATUS[$a->status];
         }
-        return response()->json(['positions' => $positions]);
+        return response()->json(['article_categories' => $article_categories]);
     }
 
     /**
-     * 役職/役割マスタ取得
+     * 特集記事カテゴリ取得
      */
     public function show($id)
     {
         try {
-            $position = Position::find($id);
-            if (!$position) {
+            $article_category = ArticleCategory::find($id);
+            if (!$article_category) {
                 throw new ModelNotFoundException();
             }
-            $position['status_name'] = Position::STATUS[$position->status];
-            return response()->json(['position' => $position]);
+            $article_category['status_name'] = ArticleCategory::STATUS[$article_category->status];
+            return response()->json(['article_category' => $article_category]);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Position not found'], 404);
+            return response()->json(['error' => 'Article category not found'], 404);
         }
     }
 
     /**
-     * 役職/役割マスタ登録
+     * 特集記事カテゴリ登録
      */
     public function create(Request $request)
     {
@@ -49,7 +50,7 @@ class PositionController extends Controller
                 'permalink' => 'required|string',
                 'status' => 'required',
             ]);
-            Position::create($data);
+            ArticleCategory::create($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -57,7 +58,7 @@ class PositionController extends Controller
     }
 
     /**
-     * 役職/役割マスタ更新
+     * 特集記事カテゴリ更新
      */
     public function update(Request $request, $id)
     {
@@ -67,8 +68,8 @@ class PositionController extends Controller
                 'permalink' => 'required|string',
                 'status' => 'required',
             ]);
-            $position = Position::findOrFail($id);
-            $position->update($data);
+            $article_category = ArticleCategory::findOrFail($id);
+            $article_category->update($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -76,24 +77,24 @@ class PositionController extends Controller
     }
 
     /**
-     * 役職/役割マスタ削除
+     * 特集記事カテゴリ削除
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $position = Position::find($id);
-            if (!$position) {
+            $article_category = ArticleCategory::find($id);
+            if (!$article_category) {
                 throw new ModelNotFoundException();
             }
-            $position->delete();
+            $article_category->delete();
             return response()->json(['result' => 'ok']);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Position not found'], 404);
+            return response()->json(['error' => 'Article category not found'], 404);
         }
     }
 
     /**
-     * 役職/役割マスタ複数削除
+     * 特集記事カテゴリ複数削除
      */
     public function destroyMultiple(Request $request)
     {
@@ -104,13 +105,13 @@ class PositionController extends Controller
             }
             
             // 削除
-            $deleted_count = Position::whereIn('id', $ids)
+            $deleted_count = ArticleCategory::whereIn('id', $ids)
                 ->delete();
             return response()->json(['result' => 'ok']);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'One or more positions not found'], 404);
+            return response()->json(['error' => 'One or more article categories not found'], 404);
         }
     }
 }

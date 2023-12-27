@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Job;
 use App\Models\JobCommitmentTerm;
 use App\Models\JobHoliday;

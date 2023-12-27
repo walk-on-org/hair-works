@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Member;
 use App\Models\MemberQualification;
 use App\Models\MemberLpJobCategory;

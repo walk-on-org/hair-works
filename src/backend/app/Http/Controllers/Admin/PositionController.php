@@ -1,57 +1,56 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Models\Prefecture;
+use App\Http\Controllers\Controller;
+use App\Models\Position;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
-class PrefectureController extends Controller
+class PositionController extends Controller
 {
     /**
-     * 都道府県マスタ一覧取得
+     * 役職/役割マスタ一覧取得
      */
     public function index()
     {
-        $prefectures = Prefecture::all();
-        foreach ($prefectures as $p) {
-            $p['region_name'] = Prefecture::REGION[$p->region];
+        $positions = Position::all();
+        foreach ($positions as $p) {
+            $p['status_name'] = Position::STATUS[$p->status];
         }
-        return response()->json(['prefectures' => $prefectures]);
+        return response()->json(['positions' => $positions]);
     }
 
     /**
-     * 都道府県マスタ取得
+     * 役職/役割マスタ取得
      */
     public function show($id)
     {
         try {
-            $prefecture = Prefecture::find($id);
-            if (!$prefecture) {
+            $position = Position::find($id);
+            if (!$position) {
                 throw new ModelNotFoundException();
             }
-            $prefecture['region_name'] = Prefecture::REGION[$prefecture->region];
-            return response()->json(['prefecture' => $prefecture]);
+            $position['status_name'] = Position::STATUS[$position->status];
+            return response()->json(['position' => $position]);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Prefecture not found'], 404);
+            return response()->json(['error' => 'Position not found'], 404);
         }
     }
 
     /**
-     * 都道府県マスタ登録
+     * 役職/役割マスタ登録
      */
     public function create(Request $request)
     {
         try {
             $data = $request->validate([
                 'name' => 'required|string',
-                'name_kana' => 'required|string',
                 'permalink' => 'required|string',
-                'minimum_wage' => 'numeric',
-                'region' => 'numeric|regex:/^[1-8]{1}$/',
+                'status' => 'required',
             ]);
-            Prefecture::create($data);
+            Position::create($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -59,20 +58,18 @@ class PrefectureController extends Controller
     }
 
     /**
-     * 都道府県マスタ更新
+     * 役職/役割マスタ更新
      */
     public function update(Request $request, $id)
     {
         try {
             $data = $request->validate([
                 'name' => 'required|string',
-                'name_kana' => 'required|string',
                 'permalink' => 'required|string',
-                'minimum_wage' => 'numeric',
-                'region' => 'numeric|regex:/^[1-8]{1}$/',
+                'status' => 'required',
             ]);
-            $prefecture = Prefecture::findOrFail($id);
-            $prefecture->update($data);
+            $position = Position::findOrFail($id);
+            $position->update($data);
             return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
@@ -80,24 +77,24 @@ class PrefectureController extends Controller
     }
 
     /**
-     * 都道府県マスタ削除
+     * 役職/役割マスタ削除
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $prefecture = Prefecture::find($id);
-            if (!$prefecture) {
+            $position = Position::find($id);
+            if (!$position) {
                 throw new ModelNotFoundException();
             }
-            $prefecture->delete();
+            $position->delete();
             return response()->json(['result' => 'ok']);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Prefecture not found'], 404);
+            return response()->json(['error' => 'Position not found'], 404);
         }
     }
 
     /**
-     * 都道府県マスタ複数削除
+     * 役職/役割マスタ複数削除
      */
     public function destroyMultiple(Request $request)
     {
@@ -108,13 +105,13 @@ class PrefectureController extends Controller
             }
             
             // 削除
-            $deleted_count = Prefecture::whereIn('id', $ids)
+            $deleted_count = Position::whereIn('id', $ids)
                 ->delete();
             return response()->json(['result' => 'ok']);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'One or more prefectures not found'], 404);
+            return response()->json(['error' => 'One or more positions not found'], 404);
         }
     }
 }
