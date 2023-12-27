@@ -18,6 +18,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// 公開サイト用API
+Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
+    // 職種
+    Route::get('/job_categories', [App\Http\Controllers\Main\JobCategoryController::class, 'index']);
+    Route::get('/job_categories/getwithjobcount', [App\Http\Controllers\Main\JobCategoryController::class, 'getWithJobCount']);
+    Route::get('/job_categories/{id}', [App\Http\Controllers\Main\JobCategoryController::class, 'show']);
+});
+
+// 管理サイト用API
 Route::middleware(['middleware' => 'api'])->prefix('admin')->group(function () {
     # 職種
     Route::get('/job_categories', [App\Http\Controllers\Admin\JobCategoryController::class, 'index']);
