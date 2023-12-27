@@ -35,6 +35,9 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     // 都道府県
     Route::get('/prefectures', [App\Http\Controllers\Main\PrefectureController::class, 'index']);
     Route::get('/prefectures/{id}', [App\Http\Controllers\Main\PrefectureController::class, 'show']);
+    // 政令指定都市
+    Route::get('/government_cities', [App\Http\Controllers\Main\GovernmentCityController::class, 'index']);
+    Route::get('/government_cities/{id}', [App\Http\Controllers\Main\GovernmentCityController::class, 'show']);
 });
 
 // 管理サイト用API
