@@ -23,6 +23,6 @@ return [
   'office_image_relative_path' => '/storage/uploads/office_image/',
   'office_feature_relative_path' => '/storage/uploads/office_feature/',
   'job_image_relative_path' => '/storage/uploads/job_image/',
-  'article_imagerelative__path' => '/storage/uploads/article/',
+  'article_image_relative_path' => '/storage/uploads/article/',
   'custom_lp_logo_relative_path' => '/storage/uploads/custom_lp/',
 ];

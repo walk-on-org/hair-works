@@ -73,7 +73,11 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     // 特集記事カテゴリ
     Route::get('/article_categories', [App\Http\Controllers\Main\ArticleCategoryController::class, 'index']);
     // 特集記事
-
+    Route::get('/articles', [App\Http\Controllers\Main\ArticleController::class, 'index']);
+    Route::get('/articles/new_arrival', [App\Http\Controllers\Main\ArticleController::class, 'getNewArrival']);
+    Route::get('/articles/relation', [App\Http\Controllers\Main\ArticleController::class, 'getRelation']);
+    Route::get('/articles/archive', [App\Http\Controllers\Main\ArticleController::class, 'getArchive']);
+    Route::get('/articles/count', [App\Http\Controllers\Main\ArticleController::class, 'getCount']);
     // 求人
     // 事業所
 
