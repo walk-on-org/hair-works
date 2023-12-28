@@ -55,6 +55,8 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/holidays', [App\Http\Controllers\Main\HolidayController::class, 'index']);
     Route::get('/holidays/{id}', [App\Http\Controllers\Main\HolidayController::class, 'show']);
     // こだわり条件
+    Route::get('/commitment_terms', [App\Http\Controllers\Main\CommitmentTermController::class, 'index']);
+    Route::get('/commitment_terms/{id}', [App\Http\Controllers\Main\CommitmentTermController::class, 'show']);
     // 資格
     // LP職種
     // HTML追加コンテンツ
