@@ -52,6 +52,8 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/stations/getwithjobcount', [App\Http\Controllers\Main\StationController::class, 'getWithJobCount']);
     Route::get('/stations/{id}', [App\Http\Controllers\Main\StationController::class, 'show']);
     // 休日
+    Route::get('/holidays', [App\Http\Controllers\Main\HolidayController::class, 'index']);
+    Route::get('/holidays/{id}', [App\Http\Controllers\Main\HolidayController::class, 'show']);
     // こだわり条件
     // 資格
     // LP職種
