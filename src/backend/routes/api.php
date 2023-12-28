@@ -65,6 +65,7 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/lp_job_categories/{id}', [App\Http\Controllers\Main\LpJobCategoryController::class, 'show']);
     // HTML追加コンテンツ
     // 専用LP
+    Route::get('/custom_lps', [App\Http\Controllers\Main\CustomLpController::class, 'index']);
     // 検索条件
     // 特集記事カテゴリ
     // 特集記事
