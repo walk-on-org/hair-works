@@ -64,7 +64,7 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/lp_job_categories', [App\Http\Controllers\Main\LpJobCategoryController::class, 'index']);
     Route::get('/lp_job_categories/{id}', [App\Http\Controllers\Main\LpJobCategoryController::class, 'show']);
     // HTML追加コンテンツ
-    // TODO
+    Route::get('/html_add_contents/getcontent', [App\Http\Controllers\Main\HtmlAddContentController::class, 'getContent']);
     // 専用LP
     Route::get('/custom_lps', [App\Http\Controllers\Main\CustomLpController::class, 'index']);
     // 検索条件
