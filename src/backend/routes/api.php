@@ -33,7 +33,7 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/employments/getwithjobcount', [App\Http\Controllers\Main\EmploymentController::class, 'getWithJobCount']);
     Route::get('/employments/{id}', [App\Http\Controllers\Main\EmploymentController::class, 'show']);
     // 雇用形態気になるポイント
-    // TODO
+    Route::get('/employment_concern_points', [App\Http\Controllers\Main\EmploymentConcernPointController::class, 'index']);
     // 都道府県
     Route::get('/prefectures', [App\Http\Controllers\Main\PrefectureController::class, 'index']);
     Route::get('/prefectures/{id}', [App\Http\Controllers\Main\PrefectureController::class, 'show']);
@@ -64,9 +64,11 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/lp_job_categories', [App\Http\Controllers\Main\LpJobCategoryController::class, 'index']);
     Route::get('/lp_job_categories/{id}', [App\Http\Controllers\Main\LpJobCategoryController::class, 'show']);
     // HTML追加コンテンツ
+    // TODO
     // 専用LP
     Route::get('/custom_lps', [App\Http\Controllers\Main\CustomLpController::class, 'index']);
     // 検索条件
+    // TODO
     // 特集記事カテゴリ
     Route::get('/article_categories', [App\Http\Controllers\Main\ArticleCategoryController::class, 'index']);
     // 特集記事
