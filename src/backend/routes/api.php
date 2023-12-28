@@ -48,6 +48,9 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/lines', [App\Http\Controllers\Main\LineController::class, 'index']);
     Route::get('/lines/{id}', [App\Http\Controllers\Main\LineController::class, 'show']);
     // 駅
+    Route::get('/stations', [App\Http\Controllers\Main\StationController::class, 'index']);
+    Route::get('/stations/getwithjobcount', [App\Http\Controllers\Main\StationController::class, 'getWithJobCount']);
+    Route::get('/stations/{id}', [App\Http\Controllers\Main\StationController::class, 'show']);
     // 休日
     // こだわり条件
     // 資格
