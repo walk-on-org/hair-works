@@ -61,6 +61,8 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/qualifications', [App\Http\Controllers\Main\QualificationController::class, 'index']);
     Route::get('/qualifications/{id}', [App\Http\Controllers\Main\QualificationController::class, 'show']);
     // LP職種
+    Route::get('/lp_job_categories', [App\Http\Controllers\Main\LpJobCategoryController::class, 'index']);
+    Route::get('/lp_job_categories/{id}', [App\Http\Controllers\Main\LpJobCategoryController::class, 'show']);
     // HTML追加コンテンツ
     // 専用LP
     // 検索条件
