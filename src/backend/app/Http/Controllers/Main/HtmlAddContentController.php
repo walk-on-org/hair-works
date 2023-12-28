@@ -96,7 +96,7 @@ class HtmlAddContentController extends Controller
             if ($request->station_id) {
                 $station = Station::where('id', $request->station_id)->where('status', 0)-first();
             }
-            $setting = (object) [
+            $setting = [
                 'prefecture_id' => $request->prefecture_id,
                 'government_city_id' => $request->government_city_id,
                 'city_id' => $request->city_id,
@@ -158,7 +158,7 @@ class HtmlAddContentController extends Controller
             )
             ->first();
         if ($average_salary_result) {
-            $average_salary = (object) [
+            $average_salary = [
                 'job_count' => $average_salary_result->job_count,
                 'avg_m_salary' => $average_salary_result->avg_m_salary,
                 'min_m_salary' => $average_salary_result->min_m_salary,
@@ -167,20 +167,20 @@ class HtmlAddContentController extends Controller
                 'min_t_salary' => $average_salary_result->min_t_salary,
                 'max_t_salary' => $average_salary_result->max_t_salary,
                 'm_salary_chart' => [
-                    (object) ['label' => '〜18万円', 'count' => $average_salary_result->m_salary_18],
-                    (object) ['label' => '', 'count' => $average_salary_result->m_salary_18_20],
-                    (object) ['label' => '', 'count' => $average_salary_result->m_salary_20_24],
-                    (object) ['label' => '', 'count' => $average_salary_result->m_salary_24_27],
-                    (object) ['label' => '', 'count' => $average_salary_result->m_salary_27_30],
-                    (object) ['label' => '30万円〜', 'count' => $average_salary_result->m_salary_30],
+                    ['label' => '〜18万円', 'count' => $average_salary_result->m_salary_18],
+                    ['label' => '', 'count' => $average_salary_result->m_salary_18_20],
+                    ['label' => '', 'count' => $average_salary_result->m_salary_20_24],
+                    ['label' => '', 'count' => $average_salary_result->m_salary_24_27],
+                    ['label' => '', 'count' => $average_salary_result->m_salary_27_30],
+                    ['label' => '30万円〜', 'count' => $average_salary_result->m_salary_30],
                 ],
-                't_salary_chart' => (object) [
-                    (object) ['label' => '〜1,000円', 'count' => $average_salary_result->t_salary_1000],
-                    (object) ['label' => '', 'count' => $average_salary_result->t_salary_1000_1200],
-                    (object) ['label' => '', 'count' => $average_salary_result->t_salary_1200_1400],
-                    (object) ['label' => '', 'count' => $average_salary_result->t_salary_1400_1600],
-                    (object) ['label' => '', 'count' => $average_salary_result->t_salary_1600_2000],
-                    (object) ['label' => '2,000円〜', 'count' => $average_salary_result->t_salary_2000],
+                't_salary_chart' => [
+                    ['label' => '〜1,000円', 'count' => $average_salary_result->t_salary_1000],
+                    ['label' => '', 'count' => $average_salary_result->t_salary_1000_1200],
+                    ['label' => '', 'count' => $average_salary_result->t_salary_1200_1400],
+                    ['label' => '', 'count' => $average_salary_result->t_salary_1400_1600],
+                    ['label' => '', 'count' => $average_salary_result->t_salary_1600_2000],
+                    ['label' => '2,000円〜', 'count' => $average_salary_result->t_salary_2000],
                 ],
             ];
         } else {

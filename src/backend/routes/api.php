@@ -68,7 +68,8 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     // 専用LP
     Route::get('/custom_lps', [App\Http\Controllers\Main\CustomLpController::class, 'index']);
     // 検索条件
-    // TODO
+    Route::get('/conditions/all', [App\Http\Controllers\Main\ConditionController::class, 'all']);
+    Route::get('/conditions/canonicalize_param', [App\Http\Controllers\Main\ConditionController::class, 'canonicalizeParam']);
     // 特集記事カテゴリ
     Route::get('/article_categories', [App\Http\Controllers\Main\ArticleCategoryController::class, 'index']);
     // 特集記事
