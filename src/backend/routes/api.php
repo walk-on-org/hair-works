@@ -79,9 +79,28 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/articles/archive', [App\Http\Controllers\Main\ArticleController::class, 'getArchive']);
     Route::get('/articles/count', [App\Http\Controllers\Main\ArticleController::class, 'getCount']);
     // 求人
+    Route::get('/jobs', [App\Http\Controllers\Main\JobController::class, 'index']);
+    Route::get('/jobs/count', [App\Http\Controllers\Main\JobController::class, 'getCount']);
+    Route::get('/jobs/allcount', [App\Http\Controllers\Main\JobController::class, 'getAllCount']);
+    Route::get('/jobs/pickup', [App\Http\Controllers\Main\JobController::class, 'getPickup']);
+    Route::get('/jobs/selection', [App\Http\Controllers\Main\JobController::class, 'getSelection']);
+    Route::get('/jobs/relationlink', [App\Http\Controllers\Main\JobController::class, 'getRelationLink']);
+    Route::get('/jobs/popularcmtrelationlink', [App\Http\Controllers\Main\JobController::class, 'getPopularCmtRelationLink']);
+    Route::get('/jobs/popularrelationlink', [App\Http\Controllers\Main\JobController::class, 'getPopularRelationLink']);
+    Route::get('/jobs/recommendjob', [App\Http\Controllers\Main\JobController::class, 'getRecommendJob']);
+    Route::get('/jobs/{id}', [App\Http\Controllers\Main\JobController::class, 'show']);
+    Route::get('/jobs/{id}/preview', [App\Http\Controllers\Main\JobController::class, 'preview']);
+    Route::get('/jobs/{id}/othersameoffice', [App\Http\Controllers\Main\JobController::class, 'getOtherSameOffice']);
+    Route::get('/jobs/{id}/alike', [App\Http\Controllers\Main\JobController::class, 'getAlike']);
     // 事業所
 
     // 認証（会員）
+    Route::post('/auth/login', [App\Http\Controllers\Main\AuthController::class, 'login']);
+    Route::post('/auth/signup', [App\Http\Controllers\Main\AuthController::class, 'signup']);
+    Route::post('/auth/edit', [App\Http\Controllers\Main\AuthController::class, 'edit']);
+    Route::post('/auth/member', [App\Http\Controllers\Main\AuthController::class, 'member']);
+    Route::post('/auth/signupagent', [App\Http\Controllers\Main\AuthController::class, 'signupagent']);
+
     // 会員連絡可能日時
     // 応募者
     // 応募希望日時
