@@ -131,6 +131,21 @@ export function useNavData() {
             ],
           },
           {
+            title: "アカウント",
+            path: "#",
+            icon: ICONS.user,
+            children: [
+              {
+                title: "管理者ユーザ",
+                path: paths.admin.adminUser.root,
+              },
+              {
+                title: "管理者ロール",
+                path: paths.admin.adminRole.root,
+              },
+            ],
+          },
+          {
             title: "マスタ設定",
             path: "#",
             icon: ICONS.menuItem,

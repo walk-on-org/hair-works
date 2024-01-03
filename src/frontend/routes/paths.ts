@@ -83,6 +83,18 @@ export const paths = {
       detail: (id: string) => `${ROOTS.ADMIN}/article_categories/${id}`,
       edit: (id: string) => `${ROOTS.ADMIN}/article_categories/${id}/edit`,
     },
+    adminUser: {
+      root: `${ROOTS.ADMIN}/admin_users`,
+      new: `${ROOTS.ADMIN}/admin_users/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/admin_users/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/admin_users/${id}/edit`,
+    },
+    adminRole: {
+      root: `${ROOTS.ADMIN}/admin_roles`,
+      new: `${ROOTS.ADMIN}/admin_roles/new`,
+      detail: (id: string) => `${ROOTS.ADMIN}/admin_roles/${id}`,
+      edit: (id: string) => `${ROOTS.ADMIN}/admin_roles/${id}/edit`,
+    },
     jobCategory: {
       root: `${ROOTS.ADMIN}/settings/job_categories`,
       new: `${ROOTS.ADMIN}/settings/job_categories/new`,

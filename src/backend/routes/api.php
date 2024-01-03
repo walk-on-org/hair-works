@@ -240,6 +240,20 @@ Route::middleware(['middleware' => 'api'])->prefix('admin')->group(function () {
     Route::post('/custom_lps/update/{id}', [App\Http\Controllers\Admin\CustomLpController::class, 'update']);
     Route::post('/custom_lps/destroy/{id}', [App\Http\Controllers\Admin\CustomLpController::class, 'destroy']);
     Route::post('/custom_lps/destroy_multiple', [App\Http\Controllers\Admin\CustomLpController::class, 'destroyMultiple']);
+    // 管理者ロール
+    Route::get('/admin_roles', [App\Http\Controllers\Admin\AdminRoleController::class, 'index']);
+    Route::get('/admin_roles/{id}', [App\Http\Controllers\Admin\AdminRoleController::class, 'show']);
+    Route::post('/admin_roles/create', [App\Http\Controllers\Admin\AdminRoleController::class, 'create']);
+    Route::patch('/admin_roles/update/{id}', [App\Http\Controllers\Admin\AdminRoleController::class, 'update']);
+    Route::post('/admin_roles/destroy/{id}', [App\Http\Controllers\Admin\AdminRoleController::class, 'destroy']);
+    Route::post('/admin_roles/destroy_multiple', [App\Http\Controllers\Admin\AdminRoleController::class, 'destroyMultiple']);
+    // 管理者ユーザ
+    Route::get('/admin_users', [App\Http\Controllers\Admin\AdminUserController::class, 'index']);
+    Route::get('/admin_users/{id}', [App\Http\Controllers\Admin\AdminUserController::class, 'show']);
+    Route::post('/admin_users/create', [App\Http\Controllers\Admin\AdminUserController::class, 'create']);
+    Route::patch('/admin_users/update/{id}', [App\Http\Controllers\Admin\AdminUserController::class, 'update']);
+    Route::post('/admin_users/destroy/{id}', [App\Http\Controllers\Admin\AdminUserController::class, 'destroy']);
+    Route::post('/admin_users/destroy_multiple', [App\Http\Controllers\Admin\AdminUserController::class, 'destroyMultiple']);
 
     // 法人
     Route::get('/corporations', [App\Http\Controllers\Admin\CorporationController::class, 'index']);

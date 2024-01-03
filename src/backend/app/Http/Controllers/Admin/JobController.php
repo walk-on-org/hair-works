@@ -221,6 +221,8 @@ class JobController extends Controller
                     }
                 }
             });
+
+            return response()->json(['result' => 'ok']);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
         }

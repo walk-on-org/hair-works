@@ -252,4 +252,20 @@ export const endpoints = {
     destroy: (id: string) => `/api/admin/mailmagazine_configs/destroy/${id}`,
     destroyMultiple: "/api/admin/mailmagazine_configs/destroy_multiple",
   },
+  adminRole: {
+    list: "/api/admin/admin_roles",
+    detail: (id: string) => `/api/admin/admin_roles/${id}`,
+    create: "/api/admin/admin_roles/create",
+    update: (id: string) => `/api/admin/admin_roles/update/${id}`,
+    destroy: (id: string) => `/api/admin/admin_roles/destroy/${id}`,
+    destroyMultiple: "/api/admin/admin_roles/destroy_multiple",
+  },
+  adminUser: {
+    list: "/api/admin/admin_users",
+    detail: (id: string) => `/api/admin/admin_users/${id}`,
+    create: "/api/admin/admin_users/create",
+    update: (id: string) => `/api/admin/admin_users/update/${id}`,
+    destroy: (id: string) => `/api/admin/admin_users/destroy/${id}`,
+    destroyMultiple: "/api/admin/admin_users/destroy_multiple",
+  },
 };
