@@ -44,6 +44,7 @@ const ICONS = {
   ecommerce: icon("ic_ecommerce"),
   analytics: icon("ic_analytics"),
   dashboard: icon("ic_dashboard"),
+  setting: icon("ic_setting"),
 };
 
 // ----------------------------------------------------------------------
@@ -148,7 +149,7 @@ export function useNavData() {
           {
             title: "マスタ設定",
             path: "#",
-            icon: ICONS.menuItem,
+            icon: ICONS.setting,
             children: [
               {
                 title: "職種",
