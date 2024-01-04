@@ -50,7 +50,6 @@ export default function HolidayTableRow({
         <TableCell>
           <Link
             noWrap
-            color="inherit"
             variant="subtitle2"
             onClick={onViewRow}
             sx={{ cursor: "pointer" }}

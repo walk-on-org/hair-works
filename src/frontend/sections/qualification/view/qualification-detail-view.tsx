@@ -75,8 +75,14 @@ export default function QualificationDetailView({ id }: Props) {
       />
 
       <Card>
-        <Stack spacing={3} sx={{ p: 3 }}>
-          <Stack direction="row">
+        <Stack spacing={3} sx={{ p: 2 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               保有資格名
             </Typography>
@@ -85,19 +91,32 @@ export default function QualificationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               状態
             </Typography>
             <Label
               variant="soft"
               color={(qualification.status == "1" && "info") || "default"}
+              width="fit-content"
             >
               {qualification.status_name}
             </Label>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               ソート順
             </Typography>

@@ -49,7 +49,6 @@ export default function CityTableRow({
         <TableCell>
           <Link
             noWrap
-            color="inherit"
             variant="subtitle2"
             onClick={onViewRow}
             sx={{ cursor: "pointer" }}

@@ -19,6 +19,7 @@ import { useSettingsContext } from "@/components/settings";
 
 import PlanDetailToolbar from "../plan-detail-toolbar";
 import { PlanDetailSkeleton } from "../plan-skelton";
+import { fCurrency } from "@/utils/format-number";
 
 // ----------------------------------------------------------------------
 
@@ -74,8 +75,14 @@ export default function PlanDetailView({ id }: Props) {
       />
 
       <Card>
-        <Stack spacing={3} sx={{ p: 3 }}>
-          <Stack direction="row">
+        <Stack spacing={3} sx={{ p: 2 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               プラン名
             </Typography>
@@ -84,7 +91,13 @@ export default function PlanDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               期間(月数)
             </Typography>
@@ -93,22 +106,35 @@ export default function PlanDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               金額
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {plan.amount}
+              {fCurrency(plan.amount)}円
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               状態
             </Typography>
             <Label
               variant="soft"
               color={(plan.status == "1" && "info") || "default"}
+              width="fit-content"
             >
               {plan.status_name}
             </Label>

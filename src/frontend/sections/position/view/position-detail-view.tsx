@@ -74,8 +74,14 @@ export default function PositionDetailView({ id }: Props) {
       />
 
       <Card>
-        <Stack spacing={3} sx={{ p: 3 }}>
-          <Stack direction="row">
+        <Stack spacing={3} sx={{ p: 2 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               役職/役割名
             </Typography>
@@ -84,7 +90,13 @@ export default function PositionDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               パーマリンク
             </Typography>
@@ -93,13 +105,20 @@ export default function PositionDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               状態
             </Typography>
             <Label
               variant="soft"
               color={(position.status == "1" && "info") || "default"}
+              width="fit-content"
             >
               {position.status_name}
             </Label>

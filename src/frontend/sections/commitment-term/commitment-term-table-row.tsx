@@ -59,7 +59,6 @@ export default function CommitmentTermTableRow({
         <TableCell>
           <Link
             noWrap
-            color="inherit"
             variant="subtitle2"
             onClick={onViewRow}
             sx={{ cursor: "pointer" }}

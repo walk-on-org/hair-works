@@ -51,7 +51,6 @@ export default function PlanTableRow({
         <TableCell>
           <Link
             noWrap
-            color="inherit"
             variant="subtitle2"
             onClick={onViewRow}
             sx={{ cursor: "pointer" }}
@@ -62,7 +61,7 @@ export default function PlanTableRow({
 
         <TableCell>{term}</TableCell>
 
-        <TableCell>{fCurrency(amount)}</TableCell>
+        <TableCell>{fCurrency(amount)}円</TableCell>
 
         <TableCell>
           <Label variant="soft" color={(status == "1" && "info") || "default"}>

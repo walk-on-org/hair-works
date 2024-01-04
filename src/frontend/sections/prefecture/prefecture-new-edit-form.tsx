@@ -41,7 +41,6 @@ export default function PrefectureNewEditForm({ currentPrefecture }: Props) {
       .required("最低賃金を入力してください。")
       .moreThan(0, "最低賃金は0円より大きい値で入力してください。"),
     region: Yup.string().required("地方を入力してください。"),
-    status: Yup.boolean(),
   });
 
   const defaultValues = useMemo(

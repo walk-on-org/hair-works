@@ -72,7 +72,11 @@ export default function EmploymentNewEditForm({
       permalink: currentEmployment?.permalink || "",
       status: currentEmployment?.status == "1" ? true : false || false,
       employment_concern_points:
-        currentEmployment?.employment_concern_points || [],
+        currentEmployment?.employment_concern_points.map((row) => {
+          row.position_id = row.position_id || "";
+          row.commitment_term_id = row.commitment_term_id || "";
+          return row;
+        }) || [],
     }),
     [currentEmployment]
   );

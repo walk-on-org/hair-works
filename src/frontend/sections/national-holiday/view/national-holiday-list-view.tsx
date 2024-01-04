@@ -54,7 +54,7 @@ import axios, { endpoints } from "@/utils/axios";
 const TABLE_HEAD = [
   { id: "id", label: "祝日ID", width: 160 },
   { id: "name", label: "祝日名" },
-  { id: "date", label: "日付", width: 160 },
+  { id: "date", label: "日付" },
   { id: "", width: 88 },
 ];
 

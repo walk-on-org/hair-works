@@ -160,6 +160,8 @@ export default function HtmlAddContentNewEditForm({
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setValue("prefecture_id", event.target.value);
+    setValue("city_id", "");
+    setValue("station_id", "");
     // 市区町村
     const filterCities = cities.filter(
       (city) => city.prefecture_id == event.target.value

@@ -75,8 +75,14 @@ export default function TrainCompanyDetailView({ id }: Props) {
       />
 
       <Card>
-        <Stack spacing={3} sx={{ p: 3 }}>
-          <Stack direction="row">
+        <Stack spacing={3} sx={{ p: 2 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               鉄道事業者名
             </Typography>
@@ -85,7 +91,13 @@ export default function TrainCompanyDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               鉄道事業者名（略称）
             </Typography>
@@ -94,7 +106,13 @@ export default function TrainCompanyDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               状態
             </Typography>
@@ -105,12 +123,19 @@ export default function TrainCompanyDetailView({ id }: Props) {
                 (trainCompany.status == "1" && "default") ||
                 "warning"
               }
+              width="fit-content"
             >
               {trainCompany.status_name}
             </Label>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               ソート順
             </Typography>

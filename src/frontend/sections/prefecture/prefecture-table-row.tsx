@@ -50,7 +50,6 @@ export default function PrefectureTableRow({
         <TableCell>
           <Link
             noWrap
-            color="inherit"
             variant="subtitle2"
             onClick={onViewRow}
             sx={{ cursor: "pointer" }}
@@ -63,7 +62,7 @@ export default function PrefectureTableRow({
 
         <TableCell>{permalink}</TableCell>
 
-        <TableCell>{fCurrency(minimum_wage)}</TableCell>
+        <TableCell>{fCurrency(minimum_wage)}円</TableCell>
 
         <TableCell>{region_name}</TableCell>
 
