@@ -6,8 +6,8 @@ export type IPrefectureItem = {
   minimum_wage: number;
   region: string;
   region_name: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type IPrefectureTableFilterValue = string;

@@ -8,8 +8,8 @@ export type ICommitmentTermItem = {
   recommend_name: string;
   status: string;
   status_name: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type ICommitmentTermTableFilterValue = string | string[];

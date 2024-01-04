@@ -4,8 +4,8 @@ export type IGovernmentCityItem = {
   permalink: string;
   prefecture_id: string;
   prefecture_name: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type IGovernmentCityTableFilterValue = string;

@@ -8,8 +8,8 @@ export type IAdKeywordItem = {
   keyword: string;
   match_type: string;
   match_type_name: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type IAdKeywordTableFilterValue = string;

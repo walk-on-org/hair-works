@@ -4,8 +4,8 @@ export type IQualificationItem = {
   status: string;
   status_name: string;
   sort: number;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type IQualificationTableFilterValue = string | string[];

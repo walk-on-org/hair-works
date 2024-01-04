@@ -13,8 +13,8 @@ export type IHtmlAddContentItem = {
   display_feature: string;
   display_feature_name: string;
   feature: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type IHtmlAddContentTableFilterValue = string[];

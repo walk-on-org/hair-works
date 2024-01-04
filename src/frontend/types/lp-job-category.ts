@@ -3,8 +3,8 @@ export type ILpJobCategoryItem = {
   name: string;
   status: string;
   status_name: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type ILpJobCategoryTableFilterValue = string | string[];

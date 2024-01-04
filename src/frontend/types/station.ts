@@ -14,8 +14,8 @@ export type IStationItem = {
   sort: number;
   lat: number;
   lng: number;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type IStationTableFilterValue = string | string[];

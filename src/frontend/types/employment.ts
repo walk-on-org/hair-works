@@ -5,8 +5,8 @@ export type IEmploymentItem = {
   status: string;
   status_name: string;
   employment_concern_points: IEmploymentConcernPointItem[];
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type IEmploymentTableFilterValue = string | string[];

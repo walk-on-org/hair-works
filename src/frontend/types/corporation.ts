@@ -34,8 +34,8 @@ export type ICorporationItem = {
   end_date: Date | null;
   office_count: number;
   job_count: number;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };
 
 export type ICorporationTableFilterValue = string;
