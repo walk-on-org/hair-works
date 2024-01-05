@@ -48,13 +48,6 @@ export default function OfficeNewEditAccesses() {
 
   const [searchIndex, setSearchIndex] = useState(0);
   const search = useBoolean();
-  const handleOpenStationListDialog = useCallback(
-    (index: number) => {
-      search.onTrue;
-      setSearchIndex(index);
-    },
-    [search, searchIndex]
-  );
   const handleSelectStation = useCallback(
     (station: IStationItem | null, index: number) => {
       if (station) {
@@ -99,7 +92,12 @@ export default function OfficeNewEditAccesses() {
                   >
                     駅：
                   </Typography>
-                  <IconButton onClick={search.onTrue}>
+                  <IconButton
+                    onClick={() => {
+                      search.onTrue();
+                      setSearchIndex(index);
+                    }}
+                  >
                     <Iconify icon="solar:pen-bold" />
                   </IconButton>
                 </Stack>

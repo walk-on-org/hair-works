@@ -71,7 +71,7 @@ const defaultFilters: IOfficeTableFilters = {
 
 export default function OfficeListView() {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id" });
+  const table = useTable({ defaultOrderBy: "id", defaultOrder: "desc" });
   const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IOfficeItem[]>([]);

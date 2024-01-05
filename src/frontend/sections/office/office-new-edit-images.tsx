@@ -74,7 +74,7 @@ export default function OfficeNewEditImages() {
               sx={{ width: 1 }}
             >
               <Stack spacing={1.5} width={{ xs: "auto", md: 400 }}>
-                <Typography variant="subtitle2">ロゴ</Typography>
+                <Typography variant="subtitle2">画像</Typography>
                 <RHFUpload
                   thumbnail
                   name={`office_images.${index}.image`}

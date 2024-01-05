@@ -60,6 +60,7 @@ export default function OfficeTableRow({
         <TableCell>
           <Link
             noWrap
+            variant="subtitle2"
             onClick={onCorporationViewRow}
             sx={{ cursor: "pointer" }}
           >
@@ -68,7 +69,12 @@ export default function OfficeTableRow({
         </TableCell>
 
         <TableCell>
-          <Link noWrap onClick={onViewRow} sx={{ cursor: "pointer" }}>
+          <Link
+            noWrap
+            variant="subtitle2"
+            onClick={onViewRow}
+            sx={{ cursor: "pointer" }}
+          >
             {name}
           </Link>
         </TableCell>

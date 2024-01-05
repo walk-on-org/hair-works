@@ -103,7 +103,9 @@ export default function OfficeNewEditForm({
         id: Yup.string(),
         image: Yup.mixed<any>().required("画像を設定してください。"),
         alttext: Yup.string(),
-        sort: Yup.number().required("ソート順を入力してください。"),
+        sort: Yup.number()
+          .required("ソート順を入力してください。")
+          .moreThan(0, "ソート順は0より大きい値で入力してください。"),
       })
     ),
     office_features: Yup.array().of(
@@ -138,9 +140,21 @@ export default function OfficeNewEditForm({
       passive_smoking: currentOffice?.passive_smoking || "",
       external_url: currentOffice?.external_url || "",
       sns_url: currentOffice?.sns_url || "",
-      office_accesses: currentOffice?.office_accesses || [],
-      office_clienteles: currentOffice?.office_clienteles || [],
-      office_images: currentOffice?.office_images || [],
+      office_accesses:
+        currentOffice?.office_accesses.map((row) => {
+          row.note = row.note || "";
+          return row;
+        }) || [],
+      office_clienteles:
+        currentOffice?.office_clienteles.map((row) => {
+          row.othertext = row.othertext || "";
+          return row;
+        }) || [],
+      office_images:
+        currentOffice?.office_images.map((row) => {
+          row.alttext = row.alttext || "";
+          return row;
+        }) || [],
       office_features: currentOffice?.office_features || [],
     }),
     [currentOffice]
@@ -165,6 +179,7 @@ export default function OfficeNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      console.log(data);
       if (currentOffice) {
         await axios.post(
           endpoints.office.update(currentOffice.id),
@@ -180,16 +195,15 @@ export default function OfficeNewEditForm({
             open_date: data.open_date,
             business_time: data.business_time,
             regular_holiday: data.regular_holiday,
-            floor_space: data.floor_space != 0 ? data.floor_space : null,
-            seat_num: data.seat_num != 0 ? data.seat_num : null,
+            floor_space: data.floor_space != 0 ? data.floor_space : "",
+            seat_num: data.seat_num != 0 ? data.seat_num : "",
             shampoo_stand: data.shampoo_stand,
-            staff: data.staff != 0 ? data.staff : null,
+            staff: data.staff != 0 ? data.staff : "",
             new_customer_ratio:
-              data.new_customer_ratio != 0 ? data.new_customer_ratio : null,
-            cut_unit_price:
-              data.cut_unit_price != 0 ? data.cut_unit_price : null,
+              data.new_customer_ratio != 0 ? data.new_customer_ratio : "",
+            cut_unit_price: data.cut_unit_price != 0 ? data.cut_unit_price : "",
             customer_unit_price:
-              data.customer_unit_price != 0 ? data.customer_unit_price : null,
+              data.customer_unit_price != 0 ? data.customer_unit_price : "",
             passive_smoking: Number(data.passive_smoking),
             external_url: data.external_url,
             sns_url: data.sns_url,
@@ -219,16 +233,15 @@ export default function OfficeNewEditForm({
             open_date: data.open_date,
             business_time: data.business_time,
             regular_holiday: data.regular_holiday,
-            floor_space: data.floor_space != 0 ? data.floor_space : null,
-            seat_num: data.seat_num != 0 ? data.seat_num : null,
+            floor_space: data.floor_space != 0 ? data.floor_space : "",
+            seat_num: data.seat_num != 0 ? data.seat_num : "",
             shampoo_stand: data.shampoo_stand,
-            staff: data.staff != 0 ? data.staff : null,
+            staff: data.staff != 0 ? data.staff : "",
             new_customer_ratio:
-              data.new_customer_ratio != 0 ? data.new_customer_ratio : null,
-            cut_unit_price:
-              data.cut_unit_price != 0 ? data.cut_unit_price : null,
+              data.new_customer_ratio != 0 ? data.new_customer_ratio : "",
+            cut_unit_price: data.cut_unit_price != 0 ? data.cut_unit_price : "",
             customer_unit_price:
-              data.customer_unit_price != 0 ? data.customer_unit_price : null,
+              data.customer_unit_price != 0 ? data.customer_unit_price : "",
             passive_smoking: Number(data.passive_smoking),
             external_url: data.external_url,
             sns_url: data.sns_url,

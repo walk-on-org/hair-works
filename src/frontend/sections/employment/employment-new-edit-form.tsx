@@ -61,7 +61,9 @@ export default function EmploymentNewEditForm({
         commitment_term_id: Yup.string(),
         title: Yup.string().required("タイトルを入力してください。"),
         description: Yup.string().required("詳細を入力してください。"),
-        sort: Yup.number().required("ソート順を入力してください。"),
+        sort: Yup.number()
+          .required("ソート順を入力してください。")
+          .moreThan(0, "ソート順は0より大きい値で入力してください。"),
       })
     ),
   });
