@@ -118,28 +118,28 @@ Route::middleware(['middleware' => 'api'])->prefix('admin')->group(function () {
     Route::get('/job_categories', [App\Http\Controllers\Admin\JobCategoryController::class, 'index']);
     Route::get('/job_categories/{id}', [App\Http\Controllers\Admin\JobCategoryController::class, 'show']);
     Route::post('/job_categories/create', [App\Http\Controllers\Admin\JobCategoryController::class, 'create']);
-    Route::patch('/job_categories/update/{id}' , [JobCategoryController::class, 'update']);
-    Route::post('/job_categories/destroy/{id}' , [JobCategoryController::class, 'destroy']);
-    Route::post('/job_categories/destroy_multiple' , [JobCategoryController::class, 'destroyMultiple']);
+    Route::patch('/job_categories/update/{id}' , [App\Http\Controllers\Admin\JobCategoryController::class, 'update']);
+    Route::post('/job_categories/destroy/{id}' , [App\Http\Controllers\Admin\JobCategoryController::class, 'destroy']);
+    Route::post('/job_categories/destroy_multiple' , [App\Http\Controllers\Admin\JobCategoryController::class, 'destroyMultiple']);
     // 役職/役割
     Route::get('/positions', [App\Http\Controllers\Admin\PositionController::class, 'index']);
     Route::get('/positions/{id}', [App\Http\Controllers\Admin\PositionController::class, 'show']);
     Route::post('/positions/create', [App\Http\Controllers\Admin\PositionController::class, 'create']);
-    Route::patch('/positions/update/{id}' , [PositionController::class, 'update']);
+    Route::patch('/positions/update/{id}' , [App\Http\Controllers\Admin\PositionController::class, 'update']);
     Route::post('/positions/destroy/{id}', [App\Http\Controllers\Admin\PositionController::class, 'destroy']);
     Route::post('/positions/destroy_multiple', [App\Http\Controllers\Admin\PositionController::class, 'destroyMultiple']);
     // 雇用形態
     Route::get('/employments', [App\Http\Controllers\Admin\EmploymentController::class, 'index']);
     Route::get('/employments/{id}', [App\Http\Controllers\Admin\EmploymentController::class, 'show']);
     Route::post('/employments/create', [App\Http\Controllers\Admin\EmploymentController::class, 'create']);
-    Route::patch('/employments/update/{id}' , [EmploymentController::class, 'update']);
+    Route::patch('/employments/update/{id}' , [App\Http\Controllers\Admin\EmploymentController::class, 'update']);
     Route::post('/employments/destroy/{id}', [App\Http\Controllers\Admin\EmploymentController::class, 'destroy']);
     Route::post('/employments/destroy_multiple', [App\Http\Controllers\Admin\EmploymentController::class, 'destroyMultiple']);
     // 都道府県
     Route::get('/prefectures', [App\Http\Controllers\Admin\PrefectureController::class, 'index']);
     Route::get('/prefectures/{id}', [App\Http\Controllers\Admin\PrefectureController::class, 'show']);
     Route::post('/prefectures/create', [App\Http\Controllers\Admin\PrefectureController::class, 'create']);
-    Route::patch('/prefectures/update/{id}' , [PrefectureController::class, 'update']);
+    Route::patch('/prefectures/update/{id}' , [App\Http\Controllers\Admin\PrefectureController::class, 'update']);
     Route::post('/prefectures/destroy/{id}', [App\Http\Controllers\Admin\PrefectureController::class, 'destroy']);
     Route::post('/prefectures/destroy_multiple', [App\Http\Controllers\Admin\PrefectureController::class, 'destroyMultiple']);
     // 政令指定都市
