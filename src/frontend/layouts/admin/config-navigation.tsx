@@ -99,7 +99,7 @@ export function useNavData() {
           },
           {
             title: "データ分析・活用",
-            path: "#",
+            path: "/admin/analysis",
             icon: ICONS.analytics,
             children: [
               {
@@ -118,7 +118,7 @@ export function useNavData() {
           },
           {
             title: "特集",
-            path: "#",
+            path: "/admin/article",
             icon: ICONS.blog,
             children: [
               {
@@ -133,7 +133,7 @@ export function useNavData() {
           },
           {
             title: "アカウント",
-            path: "#",
+            path: "/admin/account",
             icon: ICONS.user,
             children: [
               {
@@ -148,7 +148,7 @@ export function useNavData() {
           },
           {
             title: "マスタ設定",
-            path: "#",
+            path: "/admin/settings",
             icon: ICONS.setting,
             children: [
               {

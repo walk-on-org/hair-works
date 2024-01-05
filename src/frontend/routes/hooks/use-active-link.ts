@@ -9,8 +9,6 @@ export function useActiveLink(path: string, deep = true): ReturnType {
 
   const checkPath = path.startsWith("#");
 
-  // TODO 最後にスラッシュいらない
-  //const currentPath = path === "/" ? "/" : `${path}/`;
   const currentPath = path === "/" ? "/" : `${path}`;
 
   const normalActive = !checkPath && pathname === currentPath;
