@@ -48,10 +48,11 @@ export function useGetStation(stationId: string) {
 
 // ----------------------------------------------------------------------
 
-export function useSearchStations(prefecture_id: string) {
-  const URL = prefecture_id
-    ? [endpoints.station.list, { params: { prefecture_id } }]
-    : "";
+export function useSearchStations(prefecture_id: string, station_name: string) {
+  const URL =
+    prefecture_id || station_name
+      ? [endpoints.station.list, { params: { prefecture_id, station_name } }]
+      : "";
 
   const { data, isLoading, error, isValidating } = useSWR(URL, fetcher);
 

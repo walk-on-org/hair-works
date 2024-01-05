@@ -7,7 +7,6 @@ import { paths } from "@/routes/paths";
 import { useGetCorporations } from "@/api/corporation";
 import { useGetPrefectures } from "@/api/prefecture";
 import { useGetCities } from "@/api/city";
-import { useGetStations } from "@/api/station";
 
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
@@ -22,7 +21,6 @@ export default function OfficeCreateView() {
   const { prefectures } = useGetPrefectures();
   const { cities } = useGetCities();
   const { corporations } = useGetCorporations();
-  const { stations } = useGetStations();
 
   return (
     <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -45,7 +43,6 @@ export default function OfficeCreateView() {
         corporations={corporations}
         prefectures={prefectures}
         cities={cities}
-        stations={stations}
       />
     </Container>
   );

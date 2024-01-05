@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
 import Box from "@mui/material/Box";
@@ -6,21 +6,20 @@ import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
+import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 
 import Iconify from "@/components/iconify";
 import { RHFTextField, RHFSelect } from "@/components/hook-form";
+import { useBoolean } from "@/hooks/use-boolean";
 
 import { IStationItem } from "@/types/station";
 import { MOVE_TYPE } from "@/config-global";
+import { StationListDialog } from "../dialog";
 
 // ----------------------------------------------------------------------
 
-type Props = {
-  stations: IStationItem[];
-};
-
-export default function OfficeNewEditAccesses({ stations }: Props) {
+export default function OfficeNewEditAccesses() {
   const { control, setValue, watch } = useFormContext();
 
   const { fields, append, remove } = useFieldArray({
@@ -34,7 +33,9 @@ export default function OfficeNewEditAccesses({ stations }: Props) {
     append({
       id: "",
       line_id: "",
+      line_name: "",
       station_id: "",
+      station_name: "",
       move_type: "",
       time: 0,
       note: "",
@@ -45,14 +46,28 @@ export default function OfficeNewEditAccesses({ stations }: Props) {
     remove(index);
   };
 
+  const [searchIndex, setSearchIndex] = useState(0);
+  const search = useBoolean();
+  const handleOpenStationListDialog = useCallback(
+    (index: number) => {
+      search.onTrue;
+      setSearchIndex(index);
+    },
+    [search, searchIndex]
+  );
   const handleSelectStation = useCallback(
-    (
-      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-      index: number
-    ) => {
-      const stationId = event.target.value;
-      const lineId = stationId && String(stationId).substring(0, 5);
-      setValue(`office_accesses.${index}.line_id`, lineId);
+    (station: IStationItem | null, index: number) => {
+      if (station) {
+        setValue(`office_accesses.${index}.line_id`, station.line_id);
+        setValue(`office_accesses.${index}.line_name`, station.line_name);
+        setValue(`office_accesses.${index}.station_id`, station.id);
+        setValue(`office_accesses.${index}.station_name`, station.name);
+      } else {
+        setValue(`office_accesses.${index}.line_id`, "");
+        setValue(`office_accesses.${index}.line_name`, "");
+        setValue(`office_accesses.${index}.station_id`, "");
+        setValue(`office_accesses.${index}.station_name`, "");
+      }
     },
     [setValue, values.office_accesses]
   );
@@ -73,29 +88,28 @@ export default function OfficeNewEditAccesses({ stations }: Props) {
               spacing={2}
               sx={{ width: 1 }}
             >
-              <RHFSelect
-                name={`office_accesses.${index}.station_id`}
-                size="small"
-                label="駅"
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  maxWidth: { md: 160 },
-                }}
-                onChange={(event) => handleSelectStation(event, index)}
+              <Stack
+                direction="column"
+                sx={{ marginLeft: 1, width: { xs: "100%", md: 320 } }}
               >
-                <MenuItem
-                  value=""
-                  sx={{ fontStyle: "italic", color: "text.secondary" }}
-                >
-                  None
-                </MenuItem>
-                <Divider sx={{ borderStyle: "dashed" }} />
-                {stations.map((station) => (
-                  <MenuItem key={station.id} value={station.id}>
-                    {station.line_name} {station.name}
-                  </MenuItem>
-                ))}
-              </RHFSelect>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <Typography
+                    variant="body2"
+                    sx={{ flexGrow: 1, color: "text.disabled" }}
+                  >
+                    駅：
+                  </Typography>
+                  <IconButton onClick={search.onTrue}>
+                    <Iconify icon="solar:pen-bold" />
+                  </IconButton>
+                </Stack>
+                {values.office_accesses[index].station_id && (
+                  <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                    {values.office_accesses[index].line_name}&nbsp;
+                    {values.office_accesses[index].station_name}駅
+                  </Typography>
+                )}
+              </Stack>
 
               <RHFSelect
                 name={`office_accesses.${index}.move_type`}
@@ -127,6 +141,9 @@ export default function OfficeNewEditAccesses({ stations }: Props) {
                 InputLabelProps={{ shrink: true }}
                 type="number"
                 placeholder="0"
+                sx={{
+                  maxWidth: { md: 160 },
+                }}
               />
 
               <RHFTextField
@@ -134,6 +151,9 @@ export default function OfficeNewEditAccesses({ stations }: Props) {
                 name={`office_accesses.${index}.note`}
                 label="備考"
                 InputLabelProps={{ shrink: true }}
+                sx={{
+                  maxWidth: { md: 160 },
+                }}
               />
             </Stack>
 
@@ -166,6 +186,12 @@ export default function OfficeNewEditAccesses({ stations }: Props) {
           事業所アクセスを追加
         </Button>
       </Stack>
+
+      <StationListDialog
+        open={search.value}
+        onClose={search.onFalse}
+        onSelect={(station) => handleSelectStation(station, searchIndex)}
+      />
     </Box>
   );
 }

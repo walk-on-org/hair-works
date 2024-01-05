@@ -19,7 +19,6 @@ import { IOfficeItem } from "@/types/office";
 import { ICorporationItem } from "@/types/corporation";
 import { IPrefectureItem } from "@/types/prefecture";
 import { ICityItem } from "@/types/city";
-import { IStationItem } from "@/types/station";
 import axios, { endpoints } from "@/utils/axios";
 import OfficeNewEditDetails from "./office-new-edit-details";
 import OfficeNewEditAccesses from "./office-new-edit-accesses";
@@ -34,7 +33,6 @@ type Props = {
   corporations: ICorporationItem[];
   prefectures: IPrefectureItem[];
   cities: ICityItem[];
-  stations: IStationItem[];
 };
 
 export default function OfficeNewEditForm({
@@ -42,7 +40,6 @@ export default function OfficeNewEditForm({
   corporations,
   prefectures,
   cities,
-  stations,
 }: Props) {
   const router = useRouter();
 
@@ -267,7 +264,7 @@ export default function OfficeNewEditForm({
             cities={cities}
           />
 
-          <OfficeNewEditAccesses stations={stations} />
+          <OfficeNewEditAccesses />
 
           <OfficeNewEditClienteles />
 

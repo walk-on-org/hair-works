@@ -40,6 +40,10 @@ class StationController extends Controller
             $query = $query->where('stations.prefecture_id', $request->prefecture_id)
                 ->orderBy('stations.sort', 'asc');
         }
+        if ($request->station_name) {
+            $query = $query->where('stations.name', 'LIKE', '%' . $request->station_name . '%')
+                ->orderBy('stations.sort', 'asc');
+        }
         $stations = $query->get();
         foreach ($stations as $s) {
             $s->status_name = Station::STATUS[$s->status];
