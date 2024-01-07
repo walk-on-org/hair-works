@@ -35,6 +35,7 @@ export type IOfficeItem = {
   office_features: IOfficeFeatureItem[];
   jobs: IJobItem[];
   job_count: number;
+  applicant_count: number;
   created_at: Date;
   updated_at: Date;
 };

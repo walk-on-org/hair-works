@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Corporation;
+use App\Models\Office;
 use App\Models\Contract;
 use App\Models\CorporationImage;
 use App\Models\CorporationFeature;
@@ -36,12 +37,12 @@ class CorporationController extends Controller
                 'contracts1.end_plan_date',
                 'contracts1.end_date',
             );
-        $corporations = DB::table('corporations')
-            ->join('prefectures', 'corporations.prefecture_id', '=', 'prefectures.id')
+        $corporations = Corporation::join('prefectures', 'corporations.prefecture_id', '=', 'prefectures.id')
             ->join('cities', 'corporations.city_id', '=', 'cities.id')
             ->leftJoin(DB::raw("({$contract_subquery->toSql()}) as latest_contracts"), 'corporations.id', '=', 'latest_contracts.corporation_id')
             ->leftJoin('offices', 'corporations.id', '=', 'offices.corporation_id')
             ->leftJoin('jobs', 'offices.id', '=', 'jobs.office_id')
+            ->leftJoin('applicants', 'jobs.id', '=', 'applicants.job_id')
             ->groupBy('corporations.id')
             ->groupBy('latest_contracts.id')
             ->select(
@@ -69,8 +70,9 @@ class CorporationController extends Controller
                 'latest_contracts.start_date',
                 'latest_contracts.end_plan_date',
                 'latest_contracts.end_date',
-                DB::raw('count(distinct offices.id) as office_count'),
-                DB::raw('count(distinct jobs.id) as job_count'),
+                DB::raw('count(distinct case when offices.deleted_at is null then offices.id else null end) as office_count'),
+                DB::raw('count(distinct case when jobs.deleted_at is null then jobs.id else null end) as job_count'),
+                DB::raw('count(distinct case when applicants.deleted_at is null then applicants.id else null end) as applicant_count'),
             )
             ->get();
         foreach ($corporations as $c) {
@@ -130,10 +132,26 @@ class CorporationController extends Controller
 
             // 事業所
             $corporation['offices'] = $corporation->offices;
+            $office_ids = array_column($corporation->offices->toArray(), 'id');
+            $applicant_count_groupby_office = Office::join('jobs', 'offices.id', '=', 'jobs.office_id')
+                ->join('applicants', 'jobs.id', '=', 'applicants.job_id')
+                ->whereNull('jobs.deleted_at')
+                ->whereNull('applicants.deleted_at')
+                ->groupBy('offices.id')
+                ->select(
+                    'offices.id as office_id',
+                    DB::raw('COUNT(distinct applicants.id) as applicant_count')
+                )
+                ->get();
             foreach ($corporation['offices'] as $office) {
                 $office['prefecture_name'] = $office->prefecture->name;
                 $office['city_name'] = $office->city->name;
+                $count_index = array_search($office->id, array_column($applicant_count_groupby_office->toArray(), 'office_id'));
+                $office['applicant_count'] = $count_index !== false ? $applicant_count_groupby_office[$count_index]->applicant_count : 0;
             }
+
+            // 担当者
+            $corporation['admin_users'] = $corporation->adminUsers;
 
             return response()->json(['corporation' => $corporation]);
         } catch (ModelNotFoundException $e) {

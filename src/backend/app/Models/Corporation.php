@@ -64,4 +64,8 @@ class Corporation extends Model
     public function offices() {
         return $this->hasMany('App\Models\Office');
     }
+
+    public function adminUsers() {
+        return $this->belongsToMany('App\Models\AdminUser', 'admin_user_corporations');
+    }
 }

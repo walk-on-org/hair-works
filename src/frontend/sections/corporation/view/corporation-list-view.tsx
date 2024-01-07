@@ -51,17 +51,17 @@ import axios, { endpoints } from "@/utils/axios";
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: "id", label: "法人ID", width: 160 },
+  { id: "id", label: "法人ID", width: 120 },
   { id: "name", label: "法人名" },
-  { id: "address", label: "住所", width: 160 },
+  { id: "address", label: "住所", width: 160, minWidth: 160 },
   { id: "tel", label: "電話番号", width: 120 },
   { id: "office_count", label: "事業所数", width: 80 },
   { id: "job_count", label: "求人数", width: 80 },
   { id: "applicant_count", label: "応募数", width: 80 },
-  { id: "plan", label: "契約プラン", width: 120 },
-  { id: "start_date", label: "掲載開始日", width: 120 },
-  { id: "end_plan_date", label: "掲載終了日", width: 120 },
-  { id: "end_date", label: "掲載停止日", width: 120 },
+  { id: "plan", label: "契約プラン", width: 120, minWidth: 120 },
+  { id: "start_date", label: "掲載開始日", width: 120, minWidth: 80 },
+  { id: "end_plan_date", label: "掲載終了日", width: 120, minWidth: 80 },
+  { id: "end_date", label: "掲載停止日", width: 120, minWidth: 80 },
   { id: "higher_display", label: "優先表示", width: 80 },
   { id: "", width: 88 },
 ];
@@ -74,7 +74,7 @@ const defaultFilters: ICorporationTableFilters = {
 
 export default function CorporationListView() {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id" });
+  const table = useTable({ defaultOrderBy: "id", defaultOrder: "desc" });
   const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<ICorporationItem[]>([]);

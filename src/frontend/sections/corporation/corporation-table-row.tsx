@@ -44,6 +44,7 @@ export default function CorporationTableRow({
     tel,
     office_count,
     job_count,
+    applicant_count,
     higher_display,
     higher_display_name,
     plan_name,
@@ -64,7 +65,12 @@ export default function CorporationTableRow({
         <TableCell>{id}</TableCell>
 
         <TableCell>
-          <Link noWrap onClick={onViewRow} sx={{ cursor: "pointer" }}>
+          <Link
+            noWrap
+            variant="subtitle2"
+            onClick={onViewRow}
+            sx={{ cursor: "pointer" }}
+          >
             {name}
           </Link>
         </TableCell>
@@ -77,7 +83,7 @@ export default function CorporationTableRow({
 
         <TableCell>{job_count}</TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{applicant_count}</TableCell>
 
         <TableCell>{plan_name}</TableCell>
 

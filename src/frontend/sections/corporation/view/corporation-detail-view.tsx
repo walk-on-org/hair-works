@@ -96,8 +96,14 @@ export default function CorporationDetailView({ id }: Props) {
       />
 
       <Card>
-        <Stack spacing={3} sx={{ p: 3 }}>
-          <Stack direction="row">
+        <Stack spacing={3} sx={{ p: 2 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               法人ID
             </Typography>
@@ -106,7 +112,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               法人名
             </Typography>
@@ -115,19 +127,32 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               法人名非公開
             </Typography>
             <Label
               variant="soft"
               color={(corporation.name_private == "1" && "info") || "default"}
+              width="fit-content"
             >
               {corporation.name_private_name}
             </Label>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               郵便番号
             </Typography>
@@ -136,7 +161,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               都道府県
             </Typography>
@@ -145,7 +176,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               市区町村
             </Typography>
@@ -154,7 +191,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               住所
             </Typography>
@@ -163,7 +206,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               電話番号
             </Typography>
@@ -172,7 +221,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               FAX番号
             </Typography>
@@ -181,7 +236,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               サロン数（店舗）
             </Typography>
@@ -190,7 +251,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               社員数（人）
             </Typography>
@@ -199,7 +266,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               年商
             </Typography>
@@ -208,7 +281,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               スタッフ平均年齢
             </Typography>
@@ -217,7 +296,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               主な薬剤メーカー
             </Typography>
@@ -226,7 +311,13 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               会社ホームページ
             </Typography>
@@ -235,13 +326,20 @@ export default function CorporationDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               優先表示（PICKUPやおすすめなど）
             </Typography>
             <Label
               variant="soft"
               color={(corporation.higher_display == "1" && "info") || "default"}
+              width="fit-content"
             >
               {corporation.higher_display_name}
             </Label>
@@ -421,7 +519,7 @@ export default function CorporationDetailView({ id }: Props) {
 
                       <TableCell>{row.tel}</TableCell>
 
-                      <TableCell>TODO</TableCell>
+                      <TableCell>{row.applicant_count}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -446,15 +544,17 @@ export default function CorporationDetailView({ id }: Props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>TODO</TableCell>
+                  {corporation.admin_users.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{row.id}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.name}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.tel}</TableCell>
 
-                    <TableCell>TODO</TableCell>
-                  </TableRow>
+                      <TableCell>{row.email}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </Scrollbar>

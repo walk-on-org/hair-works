@@ -87,7 +87,9 @@ export default function CorporationNewEditForm({
         id: Yup.string(),
         image: Yup.mixed<any>().required("画像を設定してください。"),
         alttext: Yup.string(),
-        sort: Yup.number().required("ソート順を入力してください。"),
+        sort: Yup.number()
+          .required("ソート順を入力してください。")
+          .moreThan(0, "ソート順は0より大きい値で入力してください。"),
       })
     ),
     corporation_features: Yup.array().of(
@@ -119,7 +121,11 @@ export default function CorporationNewEditForm({
       higher_display:
         currentCorporation?.higher_display == "1" ? true : false || false,
       contracts: currentCorporation?.contracts || [],
-      corporation_images: currentCorporation?.corporation_images || [],
+      corporation_images:
+        currentCorporation?.corporation_images.map((row) => {
+          row.alttext = row.alttext || "";
+          return row;
+        }) || [],
       corporation_features: currentCorporation?.corporation_features || [],
     }),
     [currentCorporation]
@@ -159,8 +165,8 @@ export default function CorporationNewEditForm({
             address: data.address,
             tel: data.tel,
             fax: data.fax,
-            salon_num: data.salon_num != 0 ? data.salon_num : null,
-            employee_num: data.employee_num != 0 ? data.employee_num : null,
+            salon_num: data.salon_num != 0 ? data.salon_num : "",
+            employee_num: data.employee_num != 0 ? data.employee_num : "",
             yearly_turnover: data.yearly_turnover,
             average_age: data.average_age,
             drug_maker: data.drug_maker,
@@ -188,8 +194,8 @@ export default function CorporationNewEditForm({
             address: data.address,
             tel: data.tel,
             fax: data.fax,
-            salon_num: data.salon_num != 0 ? data.salon_num : null,
-            employee_num: data.employee_num != 0 ? data.employee_num : null,
+            salon_num: data.salon_num != 0 ? data.salon_num : "",
+            employee_num: data.employee_num != 0 ? data.employee_num : "",
             yearly_turnover: data.yearly_turnover,
             average_age: data.average_age,
             drug_maker: data.drug_maker,

@@ -1,3 +1,4 @@
+import { IAdminUserItem } from "./admin-user";
 import { IOfficeItem } from "./office";
 
 export type ICorporationItem = {
@@ -34,6 +35,8 @@ export type ICorporationItem = {
   end_date: Date | null;
   office_count: number;
   job_count: number;
+  applicant_count: number;
+  admin_users: IAdminUserItem[];
   created_at: Date;
   updated_at: Date;
 };
