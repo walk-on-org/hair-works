@@ -21,11 +21,11 @@ class OfficeController extends Controller
      */
     public function index()
     {
-        $offices = DB::table('offices')
-            ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+        $offices = Office::join('corporations', 'offices.corporation_id', '=', 'corporations.id')
             ->join('prefectures', 'offices.prefecture_id', '=', 'prefectures.id')
             ->join('cities', 'offices.city_id', '=', 'cities.id')
             ->leftJoin('jobs', 'offices.id', '=', 'jobs.office_id')
+            ->whereNull('corporations.deleted_at')
             ->groupBy('offices.id')
             ->select(
                 'offices.id',
@@ -52,7 +52,7 @@ class OfficeController extends Controller
                 'offices.passive_smoking',
                 'offices.external_url',
                 'offices.sns_url',
-                DB::raw('count(distinct jobs.id) as job_count'),
+                DB::raw('count(distinct case when jobs.deleted_at is null then jobs.id else null end) as job_count'),
             )
             ->get();
         foreach ($offices as $o) {

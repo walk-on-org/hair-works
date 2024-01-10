@@ -122,7 +122,66 @@ export default function JobTableToolbar({
         }}
       >
         <Stack
-          direction="row"
+          direction={{ xs: "column", md: "row" }}
+          alignItems="center"
+          spacing={2}
+          flexGrow={1}
+          sx={{ width: 1 }}
+        >
+          <TextField
+            fullWidth
+            value={filters.corporation_name}
+            onChange={handleFilterCorporationName}
+            placeholder="法人名より探す"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Iconify
+                    icon="eva:search-fill"
+                    sx={{ color: "text.disabled" }}
+                  />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <TextField
+            fullWidth
+            value={filters.name}
+            onChange={handleFilterOfficeName}
+            placeholder="事業所名より探す"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Iconify
+                    icon="eva:search-fill"
+                    sx={{ color: "text.disabled" }}
+                  />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <TextField
+            fullWidth
+            value={filters.name}
+            onChange={handleFilterName}
+            placeholder="求人名より探す"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Iconify
+                    icon="eva:search-fill"
+                    sx={{ color: "text.disabled" }}
+                  />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Stack>
+
+        <Stack
+          direction={{ xs: "column", md: "row" }}
           alignItems="center"
           spacing={2}
           flexGrow={1}
@@ -251,65 +310,6 @@ export default function JobTableToolbar({
               ))}
             </Select>
           </FormControl>
-        </Stack>
-
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={2}
-          flexGrow={1}
-          sx={{ width: 1 }}
-        >
-          <TextField
-            fullWidth
-            value={filters.corporation_name}
-            onChange={handleFilterCorporationName}
-            placeholder="法人名より探す"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Iconify
-                    icon="eva:search-fill"
-                    sx={{ color: "text.disabled" }}
-                  />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TextField
-            fullWidth
-            value={filters.name}
-            onChange={handleFilterOfficeName}
-            placeholder="事業所名より探す"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Iconify
-                    icon="eva:search-fill"
-                    sx={{ color: "text.disabled" }}
-                  />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TextField
-            fullWidth
-            value={filters.name}
-            onChange={handleFilterName}
-            placeholder="求人名より探す"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Iconify
-                    icon="eva:search-fill"
-                    sx={{ color: "text.disabled" }}
-                  />
-                </InputAdornment>
-              ),
-            }}
-          />
         </Stack>
       </Stack>
     </>

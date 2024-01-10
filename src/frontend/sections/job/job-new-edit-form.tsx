@@ -93,7 +93,9 @@ export default function JobNewEditForm({
         id: Yup.string(),
         image: Yup.mixed<any>().required("画像を設定してください。"),
         alttext: Yup.string(),
-        sort: Yup.number().required("ソート順を入力してください。"),
+        sort: Yup.number()
+          .required("ソート順を入力してください。")
+          .moreThan(0, "ソート順は0より大きい値で入力してください。"),
       })
     ),
   });
@@ -102,7 +104,7 @@ export default function JobNewEditForm({
     () => ({
       name: currentJob?.name || "",
       office_id: currentJob?.office_id || "",
-      status: currentJob?.status || "",
+      status: String(currentJob?.status) || "",
       pickup: currentJob?.pickup == "1" ? true : false || false,
       private: currentJob?.private == "1" ? true : false || false,
       recommend: currentJob?.recommend == "1" ? true : false || false,
@@ -132,7 +134,11 @@ export default function JobNewEditForm({
       recommend_point: currentJob?.recommend_point || "",
       salon_message: currentJob?.salon_message || "",
       commitment_term_names: currentJob?.commitment_term_names || [],
-      job_images: currentJob?.job_images || [],
+      job_images:
+        currentJob?.job_images.map((row) => {
+          row.alttext = row.alttext || "";
+          return row;
+        }) || [],
     }),
     [currentJob]
   );
@@ -171,8 +177,9 @@ export default function JobNewEditForm({
           return data.qualification_names?.includes(row.name);
         })
         .map((row) => row.id);
+      let res;
       if (currentJob) {
-        await axios.post(
+        res = await axios.post(
           endpoints.job.update(currentJob.id),
           {
             name: data.name,
@@ -223,7 +230,7 @@ export default function JobNewEditForm({
           }
         );
       } else {
-        await axios.post(
+        res = await axios.post(
           endpoints.job.create,
           {
             name: data.name,
@@ -275,10 +282,24 @@ export default function JobNewEditForm({
         );
       }
       reset();
-      enqueueSnackbar(currentJob ? "更新しました！" : "作成しました！");
+      if (res.data.message) {
+        enqueueSnackbar(res.data.message, {
+          variant: "error",
+          persist: true,
+        });
+      } else {
+        enqueueSnackbar(currentJob ? "更新しました！" : "作成しました！");
+      }
       router.push(paths.admin.job.root);
-    } catch (error) {
-      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+    } catch (error: any) {
+      if (error.alert) {
+        enqueueSnackbar(error.message, {
+          variant: "error",
+          persist: true,
+        });
+      } else {
+        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      }
       console.error(error);
     }
   });
@@ -312,7 +333,6 @@ export default function JobNewEditForm({
           variant="contained"
           size="large"
           loading={isSubmitting}
-          onClick={() => console.log(errors)}
         >
           {!currentJob ? "求人を作成" : "求人を変更"}
         </LoadingButton>

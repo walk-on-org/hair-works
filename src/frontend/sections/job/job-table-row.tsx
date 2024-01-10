@@ -66,6 +66,7 @@ export default function JobTableRow({
         <TableCell>
           <Link
             noWrap
+            variant="subtitle2"
             onClick={onCorporationViewRow}
             sx={{ cursor: "pointer" }}
           >
@@ -74,13 +75,23 @@ export default function JobTableRow({
         </TableCell>
 
         <TableCell>
-          <Link noWrap onClick={onOfficeViewRow} sx={{ cursor: "pointer" }}>
+          <Link
+            noWrap
+            variant="subtitle2"
+            onClick={onOfficeViewRow}
+            sx={{ cursor: "pointer" }}
+          >
             {office_name}
           </Link>
         </TableCell>
 
         <TableCell>
-          <Link noWrap onClick={onViewRow} sx={{ cursor: "pointer" }}>
+          <Link
+            noWrap
+            variant="subtitle2"
+            onClick={onViewRow}
+            sx={{ cursor: "pointer" }}
+          >
             {name}
           </Link>
         </TableCell>

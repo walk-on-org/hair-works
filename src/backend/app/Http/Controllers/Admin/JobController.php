@@ -8,6 +8,8 @@ use App\Models\JobCommitmentTerm;
 use App\Models\JobHoliday;
 use App\Models\JobQualification;
 use App\Models\JobImage;
+use App\Models\Office;
+use App\Models\Contract;
 use App\Library\UploadImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,12 +23,13 @@ class JobController extends Controller
      */
     public function index()
     {
-        $jobs = DB::table('jobs')
-            ->join('offices', 'jobs.office_id', '=', 'offices.id')
+        $jobs = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
             ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
             ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
             ->join('positions', 'jobs.position_id', '=', 'positions.id')
             ->join('employments', 'jobs.employment_id', '=', 'employments.id')
+            ->whereNull('offices.deleted_at')
+            ->whereNull('corporations.deleted_at')
             ->select(
                 'jobs.id',
                 'jobs.name',
@@ -173,7 +176,20 @@ class JobController extends Controller
                 'job_images.*.sort' => 'numeric',
             ]);
 
-            DB::transaction(function () use ($data) {
+            // 最低賃金チェック
+
+            // 掲載中の場合、有効な契約プランが存在しない場合、エラー
+            $contract = self::getActiveContract($data['office_id']);
+            if ($data['status'] == 10 && !$contract) {
+                return response()->json(['alert' => 1, 'message' => '契約プランが存在しないため、掲載中で求人を作成できません。'], 422);
+            }
+            // 掲載開始日、終了日の設定
+            if ($data['status'] == 10) {
+                $data['publish_start_date'] = date('Y-m-d H:i:s');
+                $data['publish_end_date'] = null;
+            }
+
+            DB::transaction(function () use ($data, $contract) {
                 // 求人登録
                 $job = Job::create($data);
 
@@ -220,6 +236,19 @@ class JobController extends Controller
                         ]);
                     }
                 }
+
+                // 掲載中にした場合、まだ開始していない契約プランの開始日および終了日を設定
+                if ($data['status'] == 10) {
+                    if (is_null($contract->start_date) || is_null($contract->end_plan_date)) {
+                        Contract::where('id', $contract->contract_id)
+                            ->update([
+                                'start_date' => date('Y-m-d'),
+                                'end_plan_date' => date("Y-m-d", strtotime("YYYY-mm-dd +{$contract->term} month +1 day")), // 開始した日付は除くため、+1日
+                            ]);
+                    }
+                }
+
+                // TODO IndexingAPI送信
             });
 
             return response()->json(['result' => 'ok']);
@@ -273,8 +302,35 @@ class JobController extends Controller
                 'job_images.*.sort' => 'numeric',
             ]);
 
-            DB::transaction(function () use ($data, $id) {
-                $job = Job::findOrFail($id);
+            $job = Job::findOrFail($id);
+
+            // 最低賃金のチェック
+            $minimum_wage_alert = self::isUpperMinimumWage(
+                $data['employment_id'],
+                $data['office_id'],
+                isset($data['m_salary_lower']) ? $data['m_salary_lower'] : null,
+                isset($data['t_salary_lower']) ? $data['t_salary_lower'] : null,
+                isset($data['holiday_ids']) ? $data['holiday_ids'] : [],
+                $data['holiday'],
+                $data['minimum_wage_ok']
+            );
+
+            // 掲載中の場合、有効な契約プランが存在しない場合、エラー
+            $contract = self::getActiveContract($data['office_id']);
+            if ($data['status'] == 10 && !$contract) {
+                return response()->json(['alert' => 1, 'message' => '契約プランが存在しないため、掲載中で求人を作成できません。'], 422);
+            }
+
+            // 掲載開始日、終了日の設定
+            if ($data['status'] == 10 && $job->status != 10) {
+                $data['publish_start_date'] = date('Y-m-d H:i:s');
+                $data['publish_end_date'] = null;
+            } else if ($data['status'] != 10 && $job->status == 10) {
+                $data['publish_end_date'] = date('Y-m-d H:i:s');
+            }
+
+            DB::transaction(function () use ($job, $data, $id, $contract) {
+                // 求人情報更新
                 $job->update($data);
 
                 // 求人一括設定画像
@@ -357,9 +413,25 @@ class JobController extends Controller
                 } else {
                     $job->jobQualifications()->delete();
                 }
+
+                // 掲載中にした場合、まだ開始していない契約プランの開始日および終了日を設定
+                if ($data['status'] == 10) {
+                    if (is_null($contract->start_date) || is_null($contract->end_plan_date)) {
+                        Contract::where('id', $contract->contract_id)
+                            ->update([
+                                'start_date' => date('Y-m-d'),
+                                'end_plan_date' => date("Y-m-d", strtotime("+{$contract->term} month +1 day")), // 開始した日付は除くため、+1日
+                            ]);
+                    }
+                }
+
+                // TODO IndexingAPI送信
             });
 
-            return response()->json(['result' => 'ok']);
+            return response()->json([
+                'result' => 'ok',
+                'message' => $minimum_wage_alert !== true ? $minimum_wage_alert : '',
+            ]);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
         }
@@ -487,5 +559,93 @@ class JobController extends Controller
             }
             $job->jobImages()->delete();
         }
+    }
+
+    /**
+     * 有効な契約プランを取得
+     */
+    private function getActiveContract($office_id)
+    {
+        $contract = Office::join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+            ->join('contracts', 'corporations.id', '=', 'contracts.corporation_id')
+            ->join('plans', 'contracts.plan_id', '=', 'plans.id')
+            ->whereNull('corporations.deleted_at')
+            ->where('offices.id', $office_id)
+            ->where('contracts.expire', 0)
+            ->select(
+                'contracts.id as contract_id',
+                'contracts.corporation_id',
+                'contracts.plan_id',
+                'contracts.start_date',
+                'contracts.end_date',
+                'contracts.end_plan_date',
+                'plans.term',
+            )
+            ->orderBy('contracts.id')
+            ->first();
+        return $contract;
+    }
+
+    /**
+     * 最低賃金チェック
+     */
+    private function isUpperMinimumWage($employment_id, $office_id, $m_salary_lower, $t_salary_lower, $holiday_ids, $holiday, $minimum_wage_ok)
+    {
+        // 最低賃金チェックをしないにチェックがある場合、チェックしない
+        if ($minimum_wage_ok) return true;
+        // 業務委託・フリーランス or 紹介・派遣の場合、チェックしない
+        if (in_array($employment_id, ['4', '5'])) return true;
+        // 該当の都道府県の最低賃金を取得
+        $office = Office::find($office_id);
+        if (!$office) return true;
+        $prefecture = $office->prefecture;
+        if (!$prefecture) return true;
+
+        if (in_array($employment_id, ['1', '2'])) {
+            // 正社員（中途）or 正社員（新卒）の場合
+            if (!$m_salary_lower) return true;
+            // 休日数を算出
+            $holiday_count = 0;
+            if (in_array('2', $holiday_ids)) {
+                $holiday_count = preg_match('/完全週休2日/', $holiday) ? 9 : 8;
+            } else if (in_array('1', $holiday_ids)) {
+                $holiday_count = preg_match('/完全週休2日/', $holiday) ? 8 : 6;
+            } else {
+                if (preg_match('/完全週休2日/', $holiday)) {
+                    $holiday_count = 8;
+                } else if (preg_match('/隔週休2日/', $holiday)) {
+                    $holiday_count = 6;
+                } else if (preg_match('/週休2日/', $holiday)) {
+                    $holiday_count = 5;
+                } else if (preg_match('/4週(\d+)休/', $holiday, $match)) {
+                    $holiday_count = $match[1];
+                } else if (preg_match('/月(\d+)日休み/', $holiday, $match)) {
+                    $holiday_count = $match[1];
+                } else if (preg_match('/月(\d+)日〜/', $holiday, $match)) {
+                    $holiday_count = $match[1];
+                } else if (preg_match('/月(\d+)〜/', $holiday, $match)) {
+                    $holiday_count = $match[1];
+                } else {
+                    return '休日数が算出できません。休日か休日メモを入力してください。';
+                }
+            }
+            \Log::debug("休日数：{$holiday_count}");
+            // 休日数から稼働時間を算出
+            $operating_time = (31 - intval($holiday_count)) * 8;
+            \Log::debug("稼働時間：{$operating_time}");
+            // 月給÷稼働時間と最低賃金をチェック
+            $t_salary = round($m_salary_lower / $operating_time, 2);
+            if ($t_salary < $prefecture->minimum_wage) {
+                return "最低賃金を下回っています。（{$prefecture->name}の最低賃金：{$prefecture->minimum_wage}円、休日数：{$holiday_count}、稼働時間：{$operating_time}時間、月給を時給変換：{$t_salary}円）";
+            }
+        } else if (in_array($employment_id, ['3'])) {
+            // 契約社員・パートの場合、時給下限と比較
+            if (!$t_salary_lower) return true;
+            if ($t_salary_lower < $prefecture->minimum_wage) {
+                return "最低賃金を下回っています。（{$prefecture->name}の最低賃金：{$prefecture->minimum_wage}円）";
+            }
+        }
+
+        return true;
     }
 }

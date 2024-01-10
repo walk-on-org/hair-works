@@ -52,9 +52,9 @@ import { JOB_STATUS_OPTIONS } from "@/config-global";
 
 const TABLE_HEAD = [
   { id: "id", label: "求人ID", width: 160 },
-  { id: "corporation", label: "法人", width: 160 },
-  { id: "office", label: "事業所", width: 160 },
-  { id: "name", label: "求人名" },
+  { id: "corporation", label: "法人", minWidth: 160 },
+  { id: "office", label: "事業所", minWidth: 160 },
+  { id: "name", label: "求人名", minWidth: 160 },
   { id: "job_category", label: "職種", width: 120 },
   { id: "position", label: "役職/役割", width: 120 },
   { id: "employment", label: "雇用形態", width: 120 },
@@ -76,7 +76,7 @@ const defaultFilters: IJobTableFilters = {
 
 export default function JobListView() {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id" });
+  const table = useTable({ defaultOrderBy: "id", defaultOrder: "desc" });
   const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IJobItem[]>([]);
