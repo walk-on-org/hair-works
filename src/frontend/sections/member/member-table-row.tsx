@@ -45,10 +45,10 @@ export default function MemberTableRow({
     employment_name,
     emp_prefecture_name,
     status_name,
-    // TODO 応募数
+    applicant_count,
     register_site_name,
     register_form_name,
-    // TODO 登録経路
+    register_root,
     job_id,
     job_name,
     member_proposal_datetimes_text,
@@ -66,7 +66,12 @@ export default function MemberTableRow({
         <TableCell>{id}</TableCell>
 
         <TableCell>
-          <Link noWrap onClick={onViewRow} sx={{ cursor: "pointer" }}>
+          <Link
+            noWrap
+            variant="subtitle2"
+            onClick={onViewRow}
+            sx={{ cursor: "pointer" }}
+          >
             {name}
           </Link>
         </TableCell>
@@ -87,13 +92,13 @@ export default function MemberTableRow({
           </Label>
         </TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{applicant_count}</TableCell>
 
         <TableCell>{register_site_name}</TableCell>
 
         <TableCell>{register_form_name}</TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{register_root}</TableCell>
 
         <TableCell>
           {job_id && (

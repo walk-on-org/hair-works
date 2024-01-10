@@ -12,7 +12,7 @@ class ConversionHistory extends Model
         'unique_id',
         'utm_source',
         'utm_medium',
-        'utm_campaign'
+        'utm_campaign',
         'utm_term',
         'lp_url',
         'lp_date',

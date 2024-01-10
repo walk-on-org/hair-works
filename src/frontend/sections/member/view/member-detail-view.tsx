@@ -16,6 +16,7 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
+import Link from "@mui/material/Link";
 
 import { paths } from "@/routes/paths";
 import { RouterLink } from "@/routes/components";
@@ -31,7 +32,7 @@ import { useSettingsContext } from "@/components/settings";
 
 import MemberDetailToolbar from "../member-detail-toolbar";
 import { MemberDetailSkeleton } from "../member-skelton";
-import { Link } from "@mui/material";
+import { fDateTime } from "@/utils/format-time";
 
 // ----------------------------------------------------------------------
 
@@ -243,7 +244,7 @@ export default function MemberDetailView({ id }: Props) {
               応募数
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              TODO
+              {member.applicant_count}
             </Typography>
           </Stack>
 
@@ -291,7 +292,7 @@ export default function MemberDetailView({ id }: Props) {
               登録経路
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              TODO
+              {member.register_root}
             </Typography>
           </Stack>
 
@@ -395,27 +396,31 @@ export default function MemberDetailView({ id }: Props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>TODO</TableCell>
+                  {member.applicants.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{fDateTime(row.created_at)}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.corporation_name}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.office_name}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.job_name}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>TODO</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>TODO</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>TODO</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell>{row.proposal_type_name}</TableCell>
 
-                    <TableCell>TODO</TableCell>
+                      <TableCell sx={{ whiteSpace: "pre-wrap" }}>
+                        {row.applicant_proposal_datetimes_text}
+                      </TableCell>
 
-                    <TableCell>TODO</TableCell>
-                  </TableRow>
+                      <TableCell>TODO</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </Scrollbar>

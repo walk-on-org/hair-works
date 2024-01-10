@@ -1,3 +1,5 @@
+import { IApplicantItem } from "./applicant";
+
 export type IMemberItem = {
   id: string;
   name: string;
@@ -39,8 +41,9 @@ export type IMemberItem = {
   lp_job_category_ids: string[];
   lp_job_category_names: string[];
   member_proposal_datetimes_text: string;
-  // TODO 登録経歴
-  // TODO 応募履歴
+  applicant_count: number;
+  register_root: string;
+  applicants: IApplicantItem[];
   created_at: Date;
   updated_at: Date;
 };

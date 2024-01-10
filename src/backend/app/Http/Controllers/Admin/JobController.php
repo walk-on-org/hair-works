@@ -177,6 +177,15 @@ class JobController extends Controller
             ]);
 
             // 最低賃金チェック
+            $minimum_wage_alert = self::isUpperMinimumWage(
+                $data['employment_id'],
+                $data['office_id'],
+                isset($data['m_salary_lower']) ? $data['m_salary_lower'] : null,
+                isset($data['t_salary_lower']) ? $data['t_salary_lower'] : null,
+                isset($data['holiday_ids']) ? $data['holiday_ids'] : [],
+                $data['holiday'],
+                $data['minimum_wage_ok']
+            );
 
             // 掲載中の場合、有効な契約プランが存在しない場合、エラー
             $contract = self::getActiveContract($data['office_id']);

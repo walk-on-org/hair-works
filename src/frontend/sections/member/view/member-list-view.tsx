@@ -58,16 +58,16 @@ import {
 const TABLE_HEAD = [
   { id: "id", label: "会員ID", width: 160 },
   { id: "name", label: "氏名" },
-  { id: "email", label: "メールアドレス", width: 120 },
-  { id: "phone", label: "電話番号", width: 120 },
-  { id: "change_time", label: "希望転職時期", width: 120 },
-  { id: "employment", label: "希望勤務体系", width: 120 },
-  { id: "emp_prefecture", label: "希望勤務地", width: 120 },
+  { id: "email", label: "メールアドレス", width: 120, minWidth: 80 },
+  { id: "phone", label: "電話番号", width: 120, minWidth: 80 },
+  { id: "change_time", label: "希望転職時期", width: 120, minWidth: 80 },
+  { id: "employment", label: "希望勤務体系", width: 120, minWidth: 80 },
+  { id: "emp_prefecture", label: "希望勤務地", width: 120, minWidth: 80 },
   { id: "status", label: "状態", width: 120 },
   { id: "applicant_count", label: "応募数", width: 80 },
-  { id: "register_site", label: "登録サイト", width: 120 },
-  { id: "register_form", label: "登録フォーム", width: 120 },
-  { id: "register_route", label: "登録経路", width: 120 },
+  { id: "register_site", label: "登録サイト", width: 120, minWidth: 80 },
+  { id: "register_form", label: "登録フォーム", width: 120, minWidth: 80 },
+  { id: "register_route", label: "登録経路", width: 120, minWidth: 80 },
   { id: "job", label: "登録経緯求人", width: 160 },
   { id: "proposal_datetimes", label: "連絡可能日時", width: 160 },
   { id: "", width: 88 },
@@ -88,7 +88,7 @@ const defaultFilters: IMemberTableFilters = {
 
 export default function MemberListView() {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id" });
+  const table = useTable({ defaultOrderBy: "id", defaultOrder: "desc" });
   const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IMemberItem[]>([]);

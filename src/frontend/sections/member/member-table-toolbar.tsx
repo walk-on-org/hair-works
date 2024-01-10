@@ -127,7 +127,66 @@ export default function MemberTableToolbar({
         }}
       >
         <Stack
-          direction="row"
+          direction={{ xs: "column", md: "row" }}
+          alignItems="center"
+          spacing={2}
+          flexGrow={1}
+          sx={{ width: 1 }}
+        >
+          <TextField
+            fullWidth
+            value={filters.name}
+            onChange={handleFilterName}
+            placeholder="氏名より探す"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Iconify
+                    icon="eva:search-fill"
+                    sx={{ color: "text.disabled" }}
+                  />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <TextField
+            fullWidth
+            value={filters.email}
+            onChange={handleFilterEmail}
+            placeholder="メールアドレスより探す"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Iconify
+                    icon="eva:search-fill"
+                    sx={{ color: "text.disabled" }}
+                  />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <TextField
+            fullWidth
+            value={filters.phone}
+            onChange={handleFilterPhone}
+            placeholder="電話番号より探す"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Iconify
+                    icon="eva:search-fill"
+                    sx={{ color: "text.disabled" }}
+                  />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Stack>
+
+        <Stack
+          direction={{ xs: "column", md: "row" }}
           alignItems="center"
           spacing={2}
           flexGrow={1}
@@ -258,65 +317,6 @@ export default function MemberTableToolbar({
               ))}
             </Select>
           </FormControl>
-        </Stack>
-
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={2}
-          flexGrow={1}
-          sx={{ width: 1 }}
-        >
-          <TextField
-            fullWidth
-            value={filters.name}
-            onChange={handleFilterName}
-            placeholder="氏名より探す"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Iconify
-                    icon="eva:search-fill"
-                    sx={{ color: "text.disabled" }}
-                  />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TextField
-            fullWidth
-            value={filters.email}
-            onChange={handleFilterEmail}
-            placeholder="メールアドレスより探す"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Iconify
-                    icon="eva:search-fill"
-                    sx={{ color: "text.disabled" }}
-                  />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TextField
-            fullWidth
-            value={filters.phone}
-            onChange={handleFilterPhone}
-            placeholder="電話番号より探す"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Iconify
-                    icon="eva:search-fill"
-                    sx={{ color: "text.disabled" }}
-                  />
-                </InputAdornment>
-              ),
-            }}
-          />
         </Stack>
       </Stack>
     </>

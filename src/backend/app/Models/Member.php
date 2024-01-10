@@ -177,4 +177,8 @@ class Member extends Model
     public function applicants() {
         return $this->hasMany('App\Models\Applicant');
     }
+
+    public function conversionHistories() {
+        return $this->hasMany('App\Models\ConversionHistory');
+    }
 }

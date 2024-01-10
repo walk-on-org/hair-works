@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Member;
 use App\Models\MemberQualification;
 use App\Models\MemberLpJobCategory;
+use App\Models\Applicant;
+use App\Library\RegisterRoot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -18,12 +20,17 @@ class MemberController extends Controller
      */
     public function index()
     {
-        $members = DB::table('members')
-            ->join('prefectures', 'members.prefecture_id', '=', 'prefectures.id')
+        $members = Member::join('prefectures', 'members.prefecture_id', '=', 'prefectures.id')
             ->join('employments', 'members.employment_id', '=', 'employments.id')
             ->join('prefectures as emp_prefectures', 'members.emp_prefecture_id', '=', 'emp_prefectures.id')
             ->leftJoin('jobs', 'members.job_id', '=', 'jobs.id')
             ->leftJoin('members as introduction_members', 'members.introduction_member_id', '=', 'introduction_members.id')
+            ->leftJoin('applicants', function ($join) {
+                $join->on('members.id', '=', 'applicants.member_id')
+                    ->whereNull('applicants.deleted_at');
+            })
+            ->leftJoin('conversion_histories', 'members.id', '=', 'conversion_histories.member_id')
+            ->groupBy('members.id')
             ->select(
                 'members.id',
                 'members.name',
@@ -51,6 +58,10 @@ class MemberController extends Controller
                 'members.introduction_member_id',
                 'introduction_members.name as introduction_member_name',
                 'members.introduction_gift_status',
+                DB::raw('count(distinct applicants.id) as applicant_count'),
+                DB::raw('max(conversion_histories.utm_source) as utm_source'),
+                DB::raw('max(conversion_histories.utm_medium) as utm_medium'),
+                DB::raw('max(conversion_histories.utm_campaign) as utm_campaign'),
             )
             ->get();
         foreach ($members as $m) {
@@ -61,6 +72,7 @@ class MemberController extends Controller
             $m->register_site_name = Member::REGISTER_SITE[$m->register_site];
             $m->register_form_name = Member::REGISTER_FORM[$m->register_form];
             $m->introduction_gift_status_name = Member::INTRODUCTION_GIFT_STATUS[$m->introduction_gift_status];
+            $m->register_root = RegisterRoot::getRegisterRootByUtmParams($m->utm_source, $m->utm_medium, $m->utm_campaign, true);
         }
         return response()->json(['members' => $members]);
     }
@@ -102,6 +114,24 @@ class MemberController extends Controller
             // 会員連絡可能日時
             $member['member_proposal_datetimes'] = $member->memberProposalDatetimes;
             $member['member_proposal_datetimes_text'] = $member->memberProposalDatetimesText();
+
+            // 登録経路
+            $conversion_histories = $member->conversionHistories;
+            foreach ($conversion_histories as $cvh) {
+                $member['register_root'] = RegisterRoot::getRegisterRootByUtmParams($cvh->utm_source, $cvh->utm_medium, $cvh->utm_campaign, true);
+                break;
+            }
+
+            // 応募履歴
+            $member['applicant_count'] = count($member->applicants);
+            $member['applicants'] = $member->applicants;
+            foreach ($member['applicants'] as $applicant) {
+                $applicant['corporation_name'] = $applicant->job->office->corporation->name;
+                $applicant['office_name'] = $applicant->job->office->name;
+                $applicant['job_name'] = $applicant->job->name;
+                $applicant['proposal_type_name'] = $applicant->proposal_type ? Applicant::PROPOSAL_TYPE[$applicant->proposal_type] : "";
+                $applicant['applicant_proposal_datetimes_text'] = $applicant->applicantProposalDatetimesText();
+            }
 
             return response()->json(['member' => $member]);
         } catch (ModelNotFoundException $e) {
