@@ -1,6 +1,5 @@
 "use client";
 
-import isEqual from "lodash/isEqual";
 import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
@@ -17,7 +16,7 @@ import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
 import { useBoolean } from "@/hooks/use-boolean";
-import { useGetCorporations } from "@/api/corporation";
+import { useSearchCorporations } from "@/api/corporation";
 
 import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
@@ -28,7 +27,6 @@ import {
   useTable,
   emptyRows,
   TableNoData,
-  getComparator,
   TableSkeleton,
   TableEmptyRows,
   TableHeadCustom,
@@ -40,12 +38,10 @@ import { useSnackbar } from "@/components/snackbar";
 import {
   ICorporationItem,
   ICorporationTableFilters,
-  ICorporationTableFilterValue,
 } from "@/types/corporation";
 
 import CorporationTableRow from "../corporation-table-row";
 import CorporationTableToolbar from "../corporation-table-toolbar";
-import CorporationTableFiltersResult from "../corporation-table-filters-result";
 import axios, { endpoints } from "@/utils/axios";
 
 // ----------------------------------------------------------------------
@@ -58,7 +54,7 @@ const TABLE_HEAD = [
   { id: "office_count", label: "事業所数", width: 80 },
   { id: "job_count", label: "求人数", width: 80 },
   { id: "applicant_count", label: "応募数", width: 80 },
-  { id: "plan", label: "契約プラン", width: 120, minWidth: 120 },
+  { id: "plan_name", label: "契約プラン", width: 120, minWidth: 120 },
   { id: "start_date", label: "掲載開始日", width: 120, minWidth: 80 },
   { id: "end_plan_date", label: "掲載終了日", width: 120, minWidth: 80 },
   { id: "end_date", label: "掲載停止日", width: 120, minWidth: 80 },
@@ -70,20 +66,47 @@ const defaultFilters: ICorporationTableFilters = {
   name: "",
 };
 
+type Props = {
+  corporationName: string;
+  page: number;
+  limit: number;
+  orderBy: string;
+  order: "asc" | "desc";
+};
+
 // ----------------------------------------------------------------------
 
-export default function CorporationListView() {
+export default function CorporationListView({
+  corporationName,
+  page,
+  limit,
+  orderBy,
+  order,
+}: Props) {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id", defaultOrder: "desc" });
+  const table = useTable({
+    defaultOrderBy: orderBy,
+    defaultOrder: order,
+    defaultCurrentPage: 0,
+    defaultRowsPerPage: limit,
+  });
   const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<ICorporationItem[]>([]);
-  const [filters, setFilters] = useState(defaultFilters);
   const { enqueueSnackbar } = useSnackbar();
 
+  // パラメータより検索条件を設定
+  let initFilters = defaultFilters;
+  initFilters.name = corporationName || "";
+  const [filters, setFilters] = useState(initFilters);
+
   // 法人データ取得
-  const { corporations, corporationsLoading, corporationsEmpty } =
-    useGetCorporations();
+  const {
+    corporations,
+    corporationsCount,
+    corporationsLoading,
+    corporationsEmpty,
+  } = useSearchCorporations(filters.name, limit, page, orderBy, order);
 
   useEffect(() => {
     if (corporations.length) {
@@ -91,33 +114,86 @@ export default function CorporationListView() {
     }
   }, [corporations]);
 
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
-
-  const dataInPage = dataFiltered.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
-
   const denseHeight = table.dense ? 60 : 80;
 
-  const canReset = !isEqual(defaultFilters, filters);
+  const notFound = !corporationsLoading && corporationsEmpty;
 
-  const notFound = (!dataFiltered.length && canReset) || corporationsEmpty;
-
+  // 検索
   const handleFilters = useCallback(
-    (name: string, value: ICorporationTableFilterValue) => {
-      table.onResetPage();
-      setFilters((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
+    (newFilters: ICorporationTableFilters) => {
+      setFilters(newFilters);
+      corporationName = filters.name;
+      router.push(createListUrl());
     },
-    [table]
+    [router]
   );
+
+  // 検索条件クリア
+  const handleResetFilters = useCallback(() => {
+    setFilters(defaultFilters);
+    table.setPage(0);
+    table.setOrder("desc");
+    table.setOrderBy("id");
+    router.push(paths.admin.corporation.root);
+  }, [router, table]);
+
+  // ページ変更
+  const handleChangePage = useCallback(
+    (newPage: number) => {
+      if (page > newPage + 1) {
+        // 前へ
+        page -= 1;
+      } else {
+        // 次へ
+        page += 1;
+      }
+      router.push(createListUrl());
+    },
+    [router, page]
+  );
+
+  // １ページあたりの行数変更
+  const handleCangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      limit = parseInt(event.target.value);
+      page = 1;
+      table.setRowsPerPage(limit);
+      table.setPage(0);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // ソート順変更
+  const handleChangeSort = useCallback(
+    (id: string) => {
+      const isAsc = table.orderBy === id && table.order === "asc";
+      if (id !== "") {
+        order = isAsc ? "desc" : "asc";
+        orderBy = id;
+      }
+      table.setOrderBy(orderBy);
+      table.setOrder(order);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // 検索後のURLを作成
+  const createListUrl = () => {
+    let url = paths.admin.corporation.root;
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (corporationName) params.corporation_name = corporationName;
+    if (page > 1) params.page = page;
+    params.limit = limit;
+    params.order = order == "asc" ? "asc" : "desc";
+    params.orderBy = orderBy;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    if (urlSearchParam) url += "?" + urlSearchParam;
+    return url;
+  };
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
@@ -126,14 +202,14 @@ export default function CorporationListView() {
 
         const deleteRow = tableData.filter((row) => row.id !== id);
         setTableData(deleteRow);
-        table.onUpdatePageDeleteRow(dataInPage.length);
+        table.onUpdatePageDeleteRow(tableData.length);
         enqueueSnackbar("削除しました！");
       } catch (error) {
         enqueueSnackbar("エラーが発生しました。", { variant: "error" });
         console.error(error);
       }
     },
-    [dataInPage.length, table, tableData]
+    [table, tableData]
   );
 
   const handleDeleteRows = useCallback(async () => {
@@ -147,16 +223,16 @@ export default function CorporationListView() {
       );
       setTableData(deleteRows);
       table.onUpdatePageDeleteRows({
-        totalRows: tableData.length,
-        totalRowsInPage: dataInPage.length,
-        totalRowsFiltered: dataFiltered.length,
+        totalRows: corporationsCount,
+        totalRowsInPage: tableData.length,
+        totalRowsFiltered: tableData.length,
       });
       enqueueSnackbar("削除しました！");
     } catch (error) {
       enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.log(error);
     }
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
+  }, [corporationsCount, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -171,10 +247,6 @@ export default function CorporationListView() {
     },
     [router]
   );
-
-  const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
 
   return (
     <>
@@ -206,25 +278,15 @@ export default function CorporationListView() {
           <CorporationTableToolbar
             filters={filters}
             onFilters={handleFilters}
+            searchLoading={corporationsLoading}
+            onClearFilters={handleResetFilters}
           />
-
-          {canReset && (
-            <CorporationTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={dataFiltered.length}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
 
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
-              rowCount={tableData.length}
+              rowCount={corporationsCount}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
@@ -251,9 +313,11 @@ export default function CorporationListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={tableData.length}
+                  rowCount={corporationsCount}
                   numSelected={table.selected.length}
-                  onSort={table.onSort}
+                  onSort={(id) => {
+                    handleChangeSort(id);
+                  }}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
@@ -269,31 +333,26 @@ export default function CorporationListView() {
                     ))
                   ) : (
                     <>
-                      {dataFiltered
-                        .slice(
-                          table.page * table.rowsPerPage,
-                          table.page * table.rowsPerPage + table.rowsPerPage
-                        )
-                        .map((row) => (
-                          <CorporationTableRow
-                            key={row.id}
-                            row={row}
-                            selected={table.selected.includes(row.id)}
-                            onSelectRow={() => table.onSelectRow(row.id)}
-                            onEditRow={() => handleEditRow(row.id)}
-                            onViewRow={() => handleViewRow(row.id)}
-                            onDeleteRow={() => handleDeleteRow(row.id)}
-                          />
-                        ))}
+                      {tableData.map((row) => (
+                        <CorporationTableRow
+                          key={row.id}
+                          row={row}
+                          selected={table.selected.includes(row.id)}
+                          onSelectRow={() => table.onSelectRow(row.id)}
+                          onEditRow={() => handleEditRow(row.id)}
+                          onViewRow={() => handleViewRow(row.id)}
+                          onDeleteRow={() => handleDeleteRow(row.id)}
+                        />
+                      ))}
                     </>
                   )}
 
                   <TableEmptyRows
                     height={denseHeight}
                     emptyRows={emptyRows(
-                      table.page,
+                      0,
                       table.rowsPerPage,
-                      tableData.length
+                      corporationsCount
                     )}
                   />
 
@@ -304,11 +363,15 @@ export default function CorporationListView() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
-            page={table.page}
+            count={corporationsCount}
+            page={page - 1}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
+            onPageChange={(event, newPage) => {
+              handleChangePage(newPage);
+            }}
+            onRowsPerPageChange={(event) => {
+              handleCangeRowsPerPage(event);
+            }}
           />
         </Card>
       </Container>
@@ -338,37 +401,4 @@ export default function CorporationListView() {
       />
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: ICorporationItem[];
-  comparator: (a: any, b: any) => number;
-  filters: ICorporationTableFilters;
-}) {
-  const { name } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (name) {
-    inputData = inputData.filter(
-      (corporation) =>
-        corporation.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
-  return inputData;
 }

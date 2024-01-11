@@ -19,7 +19,7 @@ class CorporationController extends Controller
     /**
      * 法人データ一覧取得
      */
-    public function index()
+    public function index(Request $request)
     {
         $contract_subquery = DB::table('contracts as contracts1')
             ->leftJoin('contracts as contracts2', function ($join) {
@@ -37,12 +37,31 @@ class CorporationController extends Controller
                 'contracts1.end_plan_date',
                 'contracts1.end_date',
             );
-        $corporations = Corporation::join('prefectures', 'corporations.prefecture_id', '=', 'prefectures.id')
-            ->join('cities', 'corporations.city_id', '=', 'cities.id')
-            ->leftJoin(DB::raw("({$contract_subquery->toSql()}) as latest_contracts"), 'corporations.id', '=', 'latest_contracts.corporation_id')
-            ->leftJoin('offices', 'corporations.id', '=', 'offices.corporation_id')
-            ->leftJoin('jobs', 'offices.id', '=', 'jobs.office_id')
-            ->leftJoin('applicants', 'jobs.id', '=', 'applicants.job_id')
+        $query = Corporation::join('prefectures', 'corporations.prefecture_id', '=', 'prefectures.id')
+            ->join('cities', 'corporations.city_id', '=', 'cities.id');
+
+        // 検索条件指定
+        if ($request->corporation_name) {
+            $query = $query->where('corporations.name', 'LIKE', '%' . $request->corporation_name . '%');
+        }
+
+        // 件数取得
+        $count = $query->count();
+        
+        // データ取得
+        $query = $query->leftJoin(DB::raw("({$contract_subquery->toSql()}) as latest_contracts"), 'corporations.id', '=', 'latest_contracts.corporation_id')
+            ->leftJoin('offices', function ($join) {
+                $join->on('corporations.id', '=', 'offices.corporation_id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->leftJoin('jobs', function ($join) {
+                $join->on('offices.id', '=', 'jobs.office_id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->leftJoin('applicants', function ($join) {
+                $join->on('jobs.id', '=', 'applicants.job_id')
+                    ->whereNull('applicants.deleted_at');
+            })
             ->groupBy('corporations.id')
             ->groupBy('latest_contracts.id')
             ->select(
@@ -70,16 +89,24 @@ class CorporationController extends Controller
                 'latest_contracts.start_date',
                 'latest_contracts.end_plan_date',
                 'latest_contracts.end_date',
-                DB::raw('count(distinct case when offices.deleted_at is null then offices.id else null end) as office_count'),
-                DB::raw('count(distinct case when jobs.deleted_at is null then jobs.id else null end) as job_count'),
-                DB::raw('count(distinct case when applicants.deleted_at is null then applicants.id else null end) as applicant_count'),
-            )
+                DB::raw('count(distinct offices.id) as office_count'),
+                DB::raw('count(distinct jobs.id) as job_count'),
+                DB::raw('count(distinct applicants.id) as applicant_count'),
+            );
+        if ($request->order && $request->orderBy) {
+            $query = $query->orderBy($request->orderBy, $request->order);
+        }
+        $limit = $request->limit ? intval($request->limit) : 10;
+        $page = $request->page ? intval($request->page) : 1;
+        $corporations = $query->offset(($page - 1) * $limit)
+            ->limit($limit)
             ->get();
+
         foreach ($corporations as $c) {
             $c->name_private_name = Corporation::NAME_PRIVATE[$c->name_private];
             $c->higher_display_name = Corporation::HIGHER_DISPLAY[$c->higher_display];
         }
-        return response()->json(['corporations' => $corporations]);
+        return response()->json(['corporations' => $corporations, 'corporations_count' => $count]);
     }
 
     /**
@@ -321,7 +348,7 @@ class CorporationController extends Controller
     public function destroy(Request $request, $id)
     {
         try {
-            $corporation = Coporation::find($id);
+            $corporation = Corporation::find($id);
             if (!$corporation) {
                 throw new ModelNotFoundException();
             }

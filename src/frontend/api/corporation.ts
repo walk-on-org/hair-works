@@ -45,3 +45,34 @@ export function useGetCorporation(corporationId: string) {
 
   return memoizedValue;
 }
+
+// ----------------------------------------------------------------------
+
+export function useSearchCorporations(
+  corporation_name: string,
+  limit: number = 30,
+  page: number = 1,
+  orderBy: string = "id",
+  order: "asc" | "desc" = "desc"
+) {
+  const URL = [
+    endpoints.corporation.list,
+    { params: { corporation_name, limit, page, orderBy, order } },
+  ];
+
+  const { data, isLoading, error, isValidating } = useSWR(URL, fetcher);
+
+  const memoizedValue = useMemo(
+    () => ({
+      corporations: (data?.corporations as ICorporationItem[]) || [],
+      corporationsCount: data?.corporations_count || 0,
+      corporationsLoading: isLoading,
+      corporationsError: error,
+      corporationsValidating: isValidating,
+      corporationsEmpty: !isLoading && !data?.corporations.length,
+    }),
+    [data?.corporations, error, isLoading, isValidating]
+  );
+
+  return memoizedValue;
+}
