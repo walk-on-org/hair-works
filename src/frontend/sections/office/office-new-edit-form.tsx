@@ -179,7 +179,6 @@ export default function OfficeNewEditForm({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      console.log(data);
       if (currentOffice) {
         await axios.post(
           endpoints.office.update(currentOffice.id),

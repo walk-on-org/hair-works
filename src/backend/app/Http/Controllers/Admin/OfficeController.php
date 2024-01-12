@@ -19,13 +19,30 @@ class OfficeController extends Controller
     /**
      * 事業所データ一覧取得
      */
-    public function index()
+    public function index(Request $request)
     {
-        $offices = Office::join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+        $query = Office::join('corporations', 'offices.corporation_id', '=', 'corporations.id')
             ->join('prefectures', 'offices.prefecture_id', '=', 'prefectures.id')
             ->join('cities', 'offices.city_id', '=', 'cities.id')
-            ->leftJoin('jobs', 'offices.id', '=', 'jobs.office_id')
-            ->whereNull('corporations.deleted_at')
+            ->whereNull('corporations.deleted_at');
+
+        // 検索条件指定
+        if ($request->corporation_name) {
+            $query = $query->where('corporations.name', 'LIKE', '%' . $request->corporation_name . '%');
+        }
+        if ($request->office_name) {
+            $query = $query->where('offices.name', 'LIKE', '%' . $request->office_name . '%');
+        }
+
+        // 件数取得
+        $count = $query->count();
+
+        // データ取得
+        $query = $query
+            ->leftJoin('jobs', function ($join) {
+                $join->on('offices.id', '=', 'jobs.office_id')
+                    ->whereNull('jobs.deleted_at');
+            })
             ->groupBy('offices.id')
             ->select(
                 'offices.id',
@@ -52,13 +69,20 @@ class OfficeController extends Controller
                 'offices.passive_smoking',
                 'offices.external_url',
                 'offices.sns_url',
-                DB::raw('count(distinct case when jobs.deleted_at is null then jobs.id else null end) as job_count'),
-            )
+                DB::raw('count(distinct jobs.id) as job_count'),
+            );
+        if ($request->order && $request->orderBy) {
+            $query = $query->orderBy($request->orderBy, $request->order);
+        }
+        $limit = $request->limit ? intval($request->limit) : 10;
+        $page = $request->page ? intval($request->page) : 1;
+        $offices = $query->offset(($page - 1) * $limit)
+            ->limit($limit)
             ->get();
         foreach ($offices as $o) {
             $o->passive_smoking_name = Office::PASSIVE_SMOKING[$o->passive_smoking];
         }
-        return response()->json(['offices' => $offices]);
+        return response()->json(['offices' => $offices, 'offices_count' => $count]);
     }
 
     /**

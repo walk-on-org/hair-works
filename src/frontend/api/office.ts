@@ -45,3 +45,35 @@ export function useGetOffice(officeId: string) {
 
   return memoizedValue;
 }
+
+// ----------------------------------------------------------------------
+
+export function useSearchOffices(
+  corporation_name: string,
+  office_name: string,
+  limit: number = 30,
+  page: number = 1,
+  orderBy: string = "id",
+  order: "asc" | "desc" = "desc"
+) {
+  const URL = [
+    endpoints.office.list,
+    { params: { corporation_name, office_name, limit, page, orderBy, order } },
+  ];
+
+  const { data, isLoading, error, isValidating } = useSWR(URL, fetcher);
+
+  const memoizedValue = useMemo(
+    () => ({
+      offices: (data?.offices as IOfficeItem[]) || [],
+      officesCount: data?.offices_count || 0,
+      officesLoading: isLoading,
+      officesError: error,
+      officesValidating: isValidating,
+      officesEmpty: !isLoading && !data?.offices.length,
+    }),
+    [data?.offices, error, isLoading, isValidating]
+  );
+
+  return memoizedValue;
+}

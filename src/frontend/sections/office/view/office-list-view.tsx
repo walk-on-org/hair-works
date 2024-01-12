@@ -1,6 +1,5 @@
 "use client";
 
-import isEqual from "lodash/isEqual";
 import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
@@ -17,7 +16,7 @@ import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
 import { useBoolean } from "@/hooks/use-boolean";
-import { useGetOffices } from "@/api/office";
+import { useSearchOffices } from "@/api/office";
 
 import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
@@ -28,7 +27,6 @@ import {
   useTable,
   emptyRows,
   TableNoData,
-  getComparator,
   TableSkeleton,
   TableEmptyRows,
   TableHeadCustom,
@@ -37,25 +35,20 @@ import {
 } from "@/components/table";
 import { useSnackbar } from "@/components/snackbar";
 
-import {
-  IOfficeItem,
-  IOfficeTableFilters,
-  IOfficeTableFilterValue,
-} from "@/types/office";
+import { IOfficeItem, IOfficeTableFilters } from "@/types/office";
 
 import OfficeTableRow from "../office-table-row";
 import OfficeTableToolbar from "../office-table-toolbar";
-import OfficeTableFiltersResult from "../office-table-filters-result";
 import axios, { endpoints } from "@/utils/axios";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: "id", label: "事業所ID", width: 160 },
-  { id: "corporation", label: "法人", width: 160 },
+  { id: "corporation_name", label: "法人", width: 160 },
   { id: "name", label: "事業所名" },
-  { id: "prefecture", label: "都道府県", width: 120 },
-  { id: "city", label: "市区町村", width: 120 },
+  { id: "prefecture_name", label: "都道府県", width: 120 },
+  { id: "city_name", label: "市区町村", width: 120 },
   { id: "address", label: "住所", width: 160 },
   { id: "tel", label: "電話番号", width: 120 },
   { id: "job_count", label: "求人数", width: 80 },
@@ -67,19 +60,53 @@ const defaultFilters: IOfficeTableFilters = {
   name: "",
 };
 
+type Props = {
+  corporationName: string;
+  officeName: string;
+  page: number;
+  limit: number;
+  orderBy: string;
+  order: "asc" | "desc";
+};
+
 // ----------------------------------------------------------------------
 
-export default function OfficeListView() {
+export default function OfficeListView({
+  corporationName,
+  officeName,
+  page,
+  limit,
+  orderBy,
+  order,
+}: Props) {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id", defaultOrder: "desc" });
+  const table = useTable({
+    defaultOrderBy: orderBy,
+    defaultOrder: order,
+    defaultCurrentPage: 0,
+    defaultRowsPerPage: limit,
+  });
   const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IOfficeItem[]>([]);
-  const [filters, setFilters] = useState(defaultFilters);
   const { enqueueSnackbar } = useSnackbar();
 
+  // パラメータより検索条件を設定
+  let initFilters = defaultFilters;
+  initFilters.corporation_name = corporationName || "";
+  initFilters.name = officeName || "";
+  const [filters, setFilters] = useState(initFilters);
+
   // 事業所データ取得
-  const { offices, officesLoading, officesEmpty } = useGetOffices();
+  const { offices, officesCount, officesLoading, officesEmpty } =
+    useSearchOffices(
+      filters.corporation_name,
+      filters.name,
+      limit,
+      page,
+      orderBy,
+      order
+    );
 
   useEffect(() => {
     if (offices.length) {
@@ -87,33 +114,88 @@ export default function OfficeListView() {
     }
   }, [offices]);
 
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
-
-  const dataInPage = dataFiltered.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
-
   const denseHeight = table.dense ? 60 : 80;
 
-  const canReset = !isEqual(defaultFilters, filters);
+  const notFound = !officesLoading && officesEmpty;
 
-  const notFound = (!dataFiltered.length && canReset) || officesEmpty;
-
+  // 検索
   const handleFilters = useCallback(
-    (name: string, value: IOfficeTableFilterValue) => {
-      table.onResetPage();
-      setFilters((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
+    (newFilters: IOfficeTableFilters) => {
+      setFilters(newFilters);
+      corporationName = filters.corporation_name;
+      officeName = filters.name;
+      router.push(createListUrl());
     },
-    [table]
+    [router]
   );
+
+  // 検索条件クリア
+  const handleResetFilters = useCallback(() => {
+    setFilters(defaultFilters);
+    table.setPage(0);
+    table.setOrder("desc");
+    table.setOrderBy("id");
+    router.push(paths.admin.office.root);
+  }, [router, table]);
+
+  // ページ変更
+  const handleChangePage = useCallback(
+    (newPage: number) => {
+      if (page > newPage + 1) {
+        // 前へ
+        page -= 1;
+      } else {
+        // 次へ
+        page += 1;
+      }
+      router.push(createListUrl());
+    },
+    [router, page]
+  );
+
+  // １ページあたりの行数変更
+  const handleCangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      limit = parseInt(event.target.value);
+      page = 1;
+      table.setRowsPerPage(limit);
+      table.setPage(0);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // ソート順変更
+  const handleChangeSort = useCallback(
+    (id: string) => {
+      const isAsc = table.orderBy === id && table.order === "asc";
+      if (id !== "") {
+        order = isAsc ? "desc" : "asc";
+        orderBy = id;
+      }
+      table.setOrderBy(orderBy);
+      table.setOrder(order);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // 検索後のURLを作成
+  const createListUrl = () => {
+    let url = paths.admin.office.root;
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (corporationName) params.corporation_name = corporationName;
+    if (officeName) params.office_name = officeName;
+    if (page > 1) params.page = page;
+    params.limit = limit;
+    params.order = order == "asc" ? "asc" : "desc";
+    params.orderBy = orderBy;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    if (urlSearchParam) url += "?" + urlSearchParam;
+    return url;
+  };
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
@@ -122,14 +204,14 @@ export default function OfficeListView() {
 
         const deleteRow = tableData.filter((row) => row.id !== id);
         setTableData(deleteRow);
-        table.onUpdatePageDeleteRow(dataInPage.length);
+        table.onUpdatePageDeleteRow(tableData.length);
         enqueueSnackbar("削除しました！");
       } catch (error) {
         enqueueSnackbar("エラーが発生しました。", { variant: "error" });
         console.error(error);
       }
     },
-    [dataInPage.length, table, tableData]
+    [table, tableData]
   );
 
   const handleDeleteRows = useCallback(async () => {
@@ -143,16 +225,16 @@ export default function OfficeListView() {
       );
       setTableData(deleteRows);
       table.onUpdatePageDeleteRows({
-        totalRows: tableData.length,
-        totalRowsInPage: dataInPage.length,
-        totalRowsFiltered: dataFiltered.length,
+        totalRows: officesCount,
+        totalRowsInPage: tableData.length,
+        totalRowsFiltered: tableData.length,
       });
       enqueueSnackbar("削除しました！");
     } catch (error) {
       enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.log(error);
     }
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
+  }, [officesCount, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -174,10 +256,6 @@ export default function OfficeListView() {
     },
     [router]
   );
-
-  const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
 
   return (
     <>
@@ -206,25 +284,18 @@ export default function OfficeListView() {
         />
 
         <Card>
-          <OfficeTableToolbar filters={filters} onFilters={handleFilters} />
-
-          {canReset && (
-            <OfficeTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={dataFiltered.length}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
+          <OfficeTableToolbar
+            filters={filters}
+            onFilters={handleFilters}
+            searchLoading={officesLoading}
+            onClearFilters={handleResetFilters}
+          />
 
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
-              rowCount={tableData.length}
+              rowCount={officesCount}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
@@ -251,9 +322,11 @@ export default function OfficeListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={tableData.length}
+                  rowCount={officesCount}
                   numSelected={table.selected.length}
-                  onSort={table.onSort}
+                  onSort={(id) => {
+                    handleChangeSort(id);
+                  }}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
@@ -269,35 +342,26 @@ export default function OfficeListView() {
                     ))
                   ) : (
                     <>
-                      {dataFiltered
-                        .slice(
-                          table.page * table.rowsPerPage,
-                          table.page * table.rowsPerPage + table.rowsPerPage
-                        )
-                        .map((row) => (
-                          <OfficeTableRow
-                            key={row.id}
-                            row={row}
-                            selected={table.selected.includes(row.id)}
-                            onSelectRow={() => table.onSelectRow(row.id)}
-                            onEditRow={() => handleEditRow(row.id)}
-                            onViewRow={() => handleViewRow(row.id)}
-                            onCorporationViewRow={() =>
-                              handleCorporationViewRow(row.corporation_id)
-                            }
-                            onDeleteRow={() => handleDeleteRow(row.id)}
-                          />
-                        ))}
+                      {tableData.map((row) => (
+                        <OfficeTableRow
+                          key={row.id}
+                          row={row}
+                          selected={table.selected.includes(row.id)}
+                          onSelectRow={() => table.onSelectRow(row.id)}
+                          onEditRow={() => handleEditRow(row.id)}
+                          onViewRow={() => handleViewRow(row.id)}
+                          onCorporationViewRow={() =>
+                            handleCorporationViewRow(row.corporation_id)
+                          }
+                          onDeleteRow={() => handleDeleteRow(row.id)}
+                        />
+                      ))}
                     </>
                   )}
 
                   <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(
-                      table.page,
-                      table.rowsPerPage,
-                      tableData.length
-                    )}
+                    emptyRows={emptyRows(0, table.rowsPerPage, officesCount)}
                   />
 
                   <TableNoData notFound={notFound} />
@@ -307,11 +371,15 @@ export default function OfficeListView() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
-            page={table.page}
+            count={officesCount}
+            page={page - 1}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
+            onPageChange={(event, newPage) => {
+              handleChangePage(newPage);
+            }}
+            onRowsPerPageChange={(event) => {
+              handleCangeRowsPerPage(event);
+            }}
           />
         </Card>
       </Container>
@@ -341,45 +409,4 @@ export default function OfficeListView() {
       />
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IOfficeItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IOfficeTableFilters;
-}) {
-  const { corporation_name, name } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (corporation_name) {
-    inputData = inputData.filter(
-      (office) =>
-        office.corporation_name
-          .toLowerCase()
-          .indexOf(corporation_name.toLowerCase()) !== -1
-    );
-  }
-
-  if (name) {
-    inputData = inputData.filter(
-      (office) => office.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
-  return inputData;
 }
