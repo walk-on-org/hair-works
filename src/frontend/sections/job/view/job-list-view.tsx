@@ -1,6 +1,5 @@
 "use client";
 
-import isEqual from "lodash/isEqual";
 import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
@@ -17,7 +16,7 @@ import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { RouterLink } from "@/routes/components";
 import { useBoolean } from "@/hooks/use-boolean";
-import { useGetJobs } from "@/api/job";
+import { useSearchJobs } from "@/api/job";
 import { useGetJobCategories } from "@/api/job-category";
 import { useGetPositions } from "@/api/position";
 import { useGetEmployments } from "@/api/employment";
@@ -31,7 +30,6 @@ import {
   useTable,
   emptyRows,
   TableNoData,
-  getComparator,
   TableSkeleton,
   TableEmptyRows,
   TableHeadCustom,
@@ -40,11 +38,10 @@ import {
 } from "@/components/table";
 import { useSnackbar } from "@/components/snackbar";
 
-import { IJobItem, IJobTableFilters, IJobTableFilterValue } from "@/types/job";
+import { IJobItem, IJobTableFilters } from "@/types/job";
 
 import JobTableRow from "../job-table-row";
 import JobTableToolbar from "../job-table-toolbar";
-import JobTableFiltersResult from "../job-table-filters-result";
 import axios, { endpoints } from "@/utils/axios";
 import { JOB_STATUS_OPTIONS } from "@/config-global";
 
@@ -52,12 +49,12 @@ import { JOB_STATUS_OPTIONS } from "@/config-global";
 
 const TABLE_HEAD = [
   { id: "id", label: "求人ID", width: 160 },
-  { id: "corporation", label: "法人", minWidth: 160 },
-  { id: "office", label: "事業所", minWidth: 160 },
+  { id: "corporation_name", label: "法人", minWidth: 160 },
+  { id: "office_name", label: "事業所", minWidth: 160 },
   { id: "name", label: "求人名", minWidth: 160 },
-  { id: "job_category", label: "職種", width: 120 },
-  { id: "position", label: "役職/役割", width: 120 },
-  { id: "employment", label: "雇用形態", width: 120 },
+  { id: "job_category_name", label: "職種", width: 120, minWidth: 80 },
+  { id: "position_name", label: "役職/役割", width: 120, minWidth: 80 },
+  { id: "employment_name", label: "雇用形態", width: 120, minWidth: 80 },
   { id: "status", label: "状態", width: 120 },
   { id: "", width: 88 },
 ];
@@ -72,56 +69,215 @@ const defaultFilters: IJobTableFilters = {
   status: [],
 };
 
+type Props = {
+  corporationName: string;
+  officeName: string;
+  jobName: string;
+  jobCategory: string[];
+  position: string[];
+  employment: string[];
+  status: string[];
+  page: number;
+  limit: number;
+  orderBy: string;
+  order: "asc" | "desc";
+};
+
 // ----------------------------------------------------------------------
 
-export default function JobListView() {
+export default function JobListView({
+  corporationName,
+  officeName,
+  jobName,
+  jobCategory,
+  position,
+  employment,
+  status,
+  page,
+  limit,
+  orderBy,
+  order,
+}: Props) {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id", defaultOrder: "desc" });
+  const table = useTable({
+    defaultOrderBy: orderBy,
+    defaultOrder: order,
+    defaultCurrentPage: 0,
+    defaultRowsPerPage: limit,
+  });
   const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IJobItem[]>([]);
-  const [filters, setFilters] = useState(defaultFilters);
   const { enqueueSnackbar } = useSnackbar();
 
-  // 求人データ取得
-  const { jobs, jobsLoading, jobsEmpty } = useGetJobs();
   const { jobCategories } = useGetJobCategories();
   const { positions } = useGetPositions();
   const { employments } = useGetEmployments();
 
-  useEffect(() => {
-    if (jobs.length) {
-      setTableData(jobs);
-    }
-  }, [jobs]);
+  // パラメータより検索条件を設定
+  let initFilters = defaultFilters;
+  initFilters.corporation_name = corporationName || "";
+  initFilters.office_name = officeName || "";
+  initFilters.name = jobName || "";
+  initFilters.job_category = jobCategories
+    .filter((row) => {
+      return jobCategory?.includes(row.name);
+    })
+    .map((row) => row.id);
+  initFilters.position = positions
+    .filter((row) => {
+      return position?.includes(row.name);
+    })
+    .map((row) => row.id);
+  initFilters.employment = employments
+    .filter((row) => {
+      return employment?.includes(row.name);
+    })
+    .map((row) => row.id);
+  initFilters.status = JOB_STATUS_OPTIONS.filter((row) => {
+    return status?.includes(row.value);
+  }).map((row) => row.label);
+  const [filters, setFilters] = useState(initFilters);
 
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
-
-  const dataInPage = dataFiltered.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
+  // 求人データ取得
+  const { jobs, jobsCount, jobsLoading, jobsEmpty } = useSearchJobs(
+    filters.corporation_name,
+    filters.office_name,
+    filters.name,
+    jobCategories
+      .filter((row) => {
+        return filters.job_category.includes(row.name);
+      })
+      .map((row) => row.id),
+    positions
+      .filter((row) => {
+        return filters.position.includes(row.name);
+      })
+      .map((row) => row.id),
+    employments
+      .filter((row) => {
+        return filters.employment.includes(row.name);
+      })
+      .map((row) => row.id),
+    JOB_STATUS_OPTIONS.filter((row) => {
+      return filters.status.includes(row.label);
+    }).map((row) => row.value),
+    limit,
+    page,
+    orderBy,
+    order
   );
+
+  useEffect(() => {
+    setTableData(jobs);
+  }, [jobs]);
 
   const denseHeight = table.dense ? 60 : 80;
 
-  const canReset = !isEqual(defaultFilters, filters);
+  const notFound = !jobsLoading && jobsEmpty;
 
-  const notFound = (!dataFiltered.length && canReset) || jobsEmpty;
-
+  // 検索
   const handleFilters = useCallback(
-    (name: string, value: IJobTableFilterValue) => {
-      table.onResetPage();
-      setFilters((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
+    (newFilters: IJobTableFilters) => {
+      setFilters(newFilters);
+      corporationName = newFilters.corporation_name;
+      officeName = newFilters.office_name;
+      jobName = newFilters.name;
+      jobCategory = jobCategories
+        .filter((row) => {
+          return newFilters.job_category.includes(row.name);
+        })
+        .map((row) => row.id);
+      position = positions
+        .filter((row) => {
+          return newFilters.position.includes(row.name);
+        })
+        .map((row) => row.id);
+      employment = employments
+        .filter((row) => {
+          return newFilters.employment.includes(row.name);
+        })
+        .map((row) => row.id);
+      status = JOB_STATUS_OPTIONS.filter((row) => {
+        return newFilters.status.includes(row.label);
+      }).map((row) => row.value);
+      router.push(createListUrl());
     },
-    [table]
+    [router, jobCategories, positions, employments]
   );
+
+  // 検索条件クリア
+  const handleResetFilters = useCallback(() => {
+    setFilters(defaultFilters);
+    table.setPage(0);
+    table.setOrder("desc");
+    table.setOrderBy("id");
+    router.push(paths.admin.job.root);
+  }, [router, table]);
+
+  // ページ変更
+  const handleChangePage = useCallback(
+    (newPage: number) => {
+      if (page > newPage + 1) {
+        // 前へ
+        page -= 1;
+      } else {
+        // 次へ
+        page += 1;
+      }
+      router.push(createListUrl());
+    },
+    [router, page]
+  );
+
+  // １ページあたりの行数変更
+  const handleCangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      limit = parseInt(event.target.value);
+      page = 1;
+      table.setRowsPerPage(limit);
+      table.setPage(0);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // ソート順変更
+  const handleChangeSort = useCallback(
+    (id: string) => {
+      const isAsc = table.orderBy === id && table.order === "asc";
+      if (id !== "") {
+        order = isAsc ? "desc" : "asc";
+        orderBy = id;
+      }
+      table.setOrderBy(orderBy);
+      table.setOrder(order);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // 検索後のURLを作成
+  const createListUrl = () => {
+    let url = paths.admin.job.root;
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (corporationName) params.corporation_name = corporationName;
+    if (officeName) params.office_name = officeName;
+    if (jobName) params.job_name = jobName;
+    if (jobCategory.length > 0) params.job_category_id = jobCategory;
+    if (position.length > 0) params.position_id = position;
+    if (employment.length > 0) params.employment_id = employment;
+    if (status.length > 0) params.status = status;
+    if (page > 1) params.page = page;
+    params.limit = limit;
+    params.order = order == "asc" ? "asc" : "desc";
+    params.orderBy = orderBy;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    if (urlSearchParam) url += "?" + urlSearchParam;
+    return url;
+  };
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
@@ -130,14 +286,14 @@ export default function JobListView() {
 
         const deleteRow = tableData.filter((row) => row.id !== id);
         setTableData(deleteRow);
-        table.onUpdatePageDeleteRow(dataInPage.length);
+        table.onUpdatePageDeleteRow(tableData.length);
         enqueueSnackbar("削除しました！");
       } catch (error) {
         enqueueSnackbar("エラーが発生しました。", { variant: "error" });
         console.error(error);
       }
     },
-    [dataInPage.length, table, tableData]
+    [table, tableData]
   );
 
   const handleDeleteRows = useCallback(async () => {
@@ -151,16 +307,16 @@ export default function JobListView() {
       );
       setTableData(deleteRows);
       table.onUpdatePageDeleteRows({
-        totalRows: tableData.length,
-        totalRowsInPage: dataInPage.length,
-        totalRowsFiltered: dataFiltered.length,
+        totalRows: jobsCount,
+        totalRowsInPage: tableData.length,
+        totalRowsFiltered: tableData.length,
       });
       enqueueSnackbar("削除しました！");
     } catch (error) {
       enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.log(error);
     }
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
+  }, [jobsCount, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -189,10 +345,6 @@ export default function JobListView() {
     },
     [router]
   );
-
-  const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
 
   return (
     <>
@@ -224,29 +376,19 @@ export default function JobListView() {
           <JobTableToolbar
             filters={filters}
             onFilters={handleFilters}
+            searchLoading={jobsLoading}
+            onClearFilters={handleResetFilters}
             jobCategories={jobCategories}
             positions={positions}
             employments={employments}
             statusOptions={JOB_STATUS_OPTIONS}
           />
 
-          {canReset && (
-            <JobTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={dataFiltered.length}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
-
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
-              rowCount={tableData.length}
+              rowCount={jobsCount}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
@@ -273,9 +415,11 @@ export default function JobListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={tableData.length}
+                  rowCount={jobsCount}
                   numSelected={table.selected.length}
-                  onSort={table.onSort}
+                  onSort={(id) => {
+                    handleChangeSort(id);
+                  }}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
@@ -291,38 +435,29 @@ export default function JobListView() {
                     ))
                   ) : (
                     <>
-                      {dataFiltered
-                        .slice(
-                          table.page * table.rowsPerPage,
-                          table.page * table.rowsPerPage + table.rowsPerPage
-                        )
-                        .map((row) => (
-                          <JobTableRow
-                            key={row.id}
-                            row={row}
-                            selected={table.selected.includes(row.id)}
-                            onSelectRow={() => table.onSelectRow(row.id)}
-                            onEditRow={() => handleEditRow(row.id)}
-                            onViewRow={() => handleViewRow(row.id)}
-                            onCorporationViewRow={() =>
-                              handleCorporationViewRow(row.corporation_id)
-                            }
-                            onOfficeViewRow={() =>
-                              handleOfficeViewRow(row.office_id)
-                            }
-                            onDeleteRow={() => handleDeleteRow(row.id)}
-                          />
-                        ))}
+                      {tableData.map((row) => (
+                        <JobTableRow
+                          key={row.id}
+                          row={row}
+                          selected={table.selected.includes(row.id)}
+                          onSelectRow={() => table.onSelectRow(row.id)}
+                          onEditRow={() => handleEditRow(row.id)}
+                          onViewRow={() => handleViewRow(row.id)}
+                          onCorporationViewRow={() =>
+                            handleCorporationViewRow(row.corporation_id)
+                          }
+                          onOfficeViewRow={() =>
+                            handleOfficeViewRow(row.office_id)
+                          }
+                          onDeleteRow={() => handleDeleteRow(row.id)}
+                        />
+                      ))}
                     </>
                   )}
 
                   <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(
-                      table.page,
-                      table.rowsPerPage,
-                      tableData.length
-                    )}
+                    emptyRows={emptyRows(0, table.rowsPerPage, jobsCount)}
                   />
 
                   <TableNoData notFound={notFound} />
@@ -332,11 +467,15 @@ export default function JobListView() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
-            page={table.page}
+            count={jobsCount}
+            page={page - 1}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
+            onPageChange={(event, newPage) => {
+              handleChangePage(newPage);
+            }}
+            onRowsPerPageChange={(event) => {
+              handleCangeRowsPerPage(event);
+            }}
           />
         </Card>
       </Container>
@@ -366,80 +505,4 @@ export default function JobListView() {
       />
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IJobItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IJobTableFilters;
-}) {
-  const {
-    corporation_name,
-    office_name,
-    name,
-    job_category,
-    position,
-    employment,
-    status,
-  } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (corporation_name) {
-    inputData = inputData.filter(
-      (job) =>
-        job.corporation_name
-          .toLowerCase()
-          .indexOf(corporation_name.toLowerCase()) !== -1
-    );
-  }
-
-  if (office_name) {
-    inputData = inputData.filter(
-      (job) =>
-        job.office_name.toLowerCase().indexOf(office_name.toLowerCase()) !== -1
-    );
-  }
-
-  if (name) {
-    inputData = inputData.filter(
-      (job) => job.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
-  if (status.length) {
-    inputData = inputData.filter((job) => status.includes(job.status_name));
-  }
-
-  if (job_category.length) {
-    inputData = inputData.filter((job) =>
-      job_category.includes(job.job_category_name)
-    );
-  }
-
-  if (position.length) {
-    inputData = inputData.filter((job) => position.includes(job.position_name));
-  }
-
-  if (employment.length) {
-    inputData = inputData.filter((job) =>
-      employment.includes(job.employment_name)
-    );
-  }
-
-  return inputData;
 }

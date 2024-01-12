@@ -109,9 +109,7 @@ export default function CorporationListView({
   } = useSearchCorporations(filters.name, limit, page, orderBy, order);
 
   useEffect(() => {
-    if (corporations.length) {
-      setTableData(corporations);
-    }
+    setTableData(corporations);
   }, [corporations]);
 
   const denseHeight = table.dense ? 60 : 80;
@@ -122,7 +120,7 @@ export default function CorporationListView({
   const handleFilters = useCallback(
     (newFilters: ICorporationTableFilters) => {
       setFilters(newFilters);
-      corporationName = filters.name;
+      corporationName = newFilters.name;
       router.push(createListUrl());
     },
     [router]

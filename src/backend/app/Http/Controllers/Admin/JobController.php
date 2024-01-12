@@ -21,16 +21,48 @@ class JobController extends Controller
     /**
      * 求人データ一覧取得
      */
-    public function index()
+    public function index(Request $request)
     {
-        $jobs = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
             ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
             ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
             ->join('positions', 'jobs.position_id', '=', 'positions.id')
             ->join('employments', 'jobs.employment_id', '=', 'employments.id')
             ->whereNull('offices.deleted_at')
-            ->whereNull('corporations.deleted_at')
-            ->select(
+            ->whereNull('corporations.deleted_at');
+
+        // 検索条件指定
+        if ($request->corporation_name) {
+            $query = $query->where('corporations.name', 'LIKE', '%' . $request->corporation_name . '%');
+        }
+        if ($request->office_name) {
+            $query = $query->where('offices.name', 'LIKE', '%' . $request->office_name . '%');
+        }
+        if ($request->job_name) {
+            $query = $query->where('jobs.name', 'LIKE', '%' . $request->job_name . '%');
+        }
+        if ($request->status) {
+            $status = is_array($request->status) ? $request->status : explode(',', $request->status);
+            $query = $query->whereIn('jobs.status', $status);
+        }
+        if ($request->job_category_id) {
+            $job_category_id = is_array($request->job_category_id) ? $request->job_category_id : explode(',', $request->job_category_id);
+            $query = $query->whereIn('jobs.job_category_id', $job_category_id);
+        }
+        if ($request->position_id) {
+            $position_id = is_array($request->position_id) ? $request->position_id : explode(',', $request->position_id);
+            $query = $query->whereIn('jobs.position_id', $position_id);
+        }
+        if ($request->employment_id) {
+            $employment_id = is_array($request->employment_id) ? $request->employment_id : explode(',', $request->employment_id);
+            $query = $query->whereIn('jobs.employment_id', $employment_id);
+        }
+
+        // 件数取得
+        $count = $query->count();
+
+        // データ取得
+        $query = $query->select(
                 'jobs.id',
                 'jobs.name',
                 'offices.corporation_id',
@@ -68,7 +100,14 @@ class JobController extends Controller
                 'jobs.salon_message',
                 'jobs.publish_start_date',
                 'jobs.publish_end_date',
-            )
+            );
+        if ($request->order && $request->orderBy) {
+            $query = $query->orderBy($request->orderBy, $request->order);
+        }
+        $limit = $request->limit ? intval($request->limit) : 10;
+        $page = $request->page ? intval($request->page) : 1;
+        $jobs = $query->offset(($page - 1) * $limit)
+            ->limit($limit)
             ->get();
         foreach ($jobs as $j) {
             $j->status_name = Job::STATUS[$j->status];
@@ -78,7 +117,7 @@ class JobController extends Controller
             $j->indeed_private_name = Job::INDEED_PRIVATE[$j->indeed_private];
             $j->minimum_wage_ok_name = Job::MINIMUM_WAGE_OK[$j->minimum_wage_ok];
         }
-        return response()->json(['jobs' => $jobs]);
+        return response()->json(['jobs' => $jobs, 'jobs_count' => $count]);
     }
 
     /**

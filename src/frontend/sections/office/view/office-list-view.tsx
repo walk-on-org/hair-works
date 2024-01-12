@@ -109,9 +109,7 @@ export default function OfficeListView({
     );
 
   useEffect(() => {
-    if (offices.length) {
-      setTableData(offices);
-    }
+    setTableData(offices);
   }, [offices]);
 
   const denseHeight = table.dense ? 60 : 80;
@@ -122,8 +120,8 @@ export default function OfficeListView({
   const handleFilters = useCallback(
     (newFilters: IOfficeTableFilters) => {
       setFilters(newFilters);
-      corporationName = filters.corporation_name;
-      officeName = filters.name;
+      corporationName = newFilters.corporation_name;
+      officeName = newFilters.name;
       router.push(createListUrl());
     },
     [router]
