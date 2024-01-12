@@ -18,12 +18,44 @@ class MemberController extends Controller
     /**
      * 会員データ一覧取得
      */
-    public function index()
+    public function index(Request $request)
     {
-        $members = Member::join('prefectures', 'members.prefecture_id', '=', 'prefectures.id')
+        $query = Member::join('prefectures', 'members.prefecture_id', '=', 'prefectures.id')
             ->join('employments', 'members.employment_id', '=', 'employments.id')
-            ->join('prefectures as emp_prefectures', 'members.emp_prefecture_id', '=', 'emp_prefectures.id')
-            ->leftJoin('jobs', 'members.job_id', '=', 'jobs.id')
+            ->join('prefectures as emp_prefectures', 'members.emp_prefecture_id', '=', 'emp_prefectures.id');
+
+        // 検索条件指定
+        if ($request->name) {
+            $query = $query->where('members.name', 'LIKE', '%' . $request->name . '%');
+        }
+        if ($request->email) {
+            $query = $query->where('members.email', 'LIKE', '%' . $request->email . '%');
+        }
+        if ($request->phone) {
+            $query = $query->where('members.phone', 'LIKE', '%' . $request->phone . '%');
+        }
+        if ($request->emp_prefecture_id) {
+            $emp_prefecture_id = is_array($request->emp_prefecture_id) ? $request->emp_prefecture_id : explode(',', $request->emp_prefecture_id);
+            $query = $query->whereIn('members.emp_prefecture_id', $emp_prefecture_id);
+        }
+        if ($request->register_site) {
+            $register_site = is_array($request->register_site) ? $request->register_site : explode(',', $request->register_site);
+            $query = $query->whereIn('members.register_site', $register_site);
+        }
+        if ($request->register_form) {
+            $register_form = is_array($request->register_form) ? $request->register_form : explode(',', $request->register_form);
+            $query = $query->whereIn('members.register_form', $register_form);
+        }
+        if ($request->introduction_gift_status) {
+            $introduction_gift_status = is_array($request->introduction_gift_status) ? $request->introduction_gift_status : explode(',', $request->introduction_gift_status);
+            $query = $query->whereIn('members.introduction_gift_status', $introduction_gift_status);
+        }
+
+        // 件数取得
+        $count = $query->count();
+
+        // データ取得
+        $query = $query->leftJoin('jobs', 'members.job_id', '=', 'jobs.id')
             ->leftJoin('members as introduction_members', 'members.introduction_member_id', '=', 'introduction_members.id')
             ->leftJoin('applicants', function ($join) {
                 $join->on('members.id', '=', 'applicants.member_id')
@@ -62,7 +94,14 @@ class MemberController extends Controller
                 DB::raw('max(conversion_histories.utm_source) as utm_source'),
                 DB::raw('max(conversion_histories.utm_medium) as utm_medium'),
                 DB::raw('max(conversion_histories.utm_campaign) as utm_campaign'),
-            )
+            );
+        if ($request->order && $request->orderBy) {
+            $query = $query->orderBy($request->orderBy, $request->order);
+        }
+        $limit = $request->limit ? intval($request->limit) : 10;
+        $page = $request->page ? intval($request->page) : 1;
+        $members = $query->offset(($page - 1) * $limit)
+            ->limit($limit)
             ->get();
         foreach ($members as $m) {
             $m->job_change_feeling_name = $m->job_change_feeling ? Member::JOB_CHANGE_FEELING[$m->job_change_feeling] : "";
@@ -74,7 +113,7 @@ class MemberController extends Controller
             $m->introduction_gift_status_name = Member::INTRODUCTION_GIFT_STATUS[$m->introduction_gift_status];
             $m->register_root = RegisterRoot::getRegisterRootByUtmParams($m->utm_source, $m->utm_medium, $m->utm_campaign, true);
         }
-        return response()->json(['members' => $members]);
+        return response()->json(['members' => $members, 'members_count' => $count]);
     }
 
     /**

@@ -51,7 +51,6 @@ export default function MemberTableRow({
     register_root,
     job_id,
     job_name,
-    member_proposal_datetimes_text,
   } = row;
   const confirm = useBoolean();
   const popover = usePopover();
@@ -107,8 +106,6 @@ export default function MemberTableRow({
             </Link>
           )}
         </TableCell>
-
-        <TableCell>{member_proposal_datetimes_text}</TableCell>
 
         <TableCell align="right">
           <IconButton

@@ -1,6 +1,5 @@
 "use client";
 
-import isEqual from "lodash/isEqual";
 import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
@@ -16,7 +15,7 @@ import TableContainer from "@mui/material/TableContainer";
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { useBoolean } from "@/hooks/use-boolean";
-import { useGetMembers } from "@/api/member";
+import { useSearchMembers } from "@/api/member";
 import { useGetPrefectures } from "@/api/prefecture";
 
 import Iconify from "@/components/iconify";
@@ -28,7 +27,6 @@ import {
   useTable,
   emptyRows,
   TableNoData,
-  getComparator,
   TableSkeleton,
   TableEmptyRows,
   TableHeadCustom,
@@ -37,15 +35,10 @@ import {
 } from "@/components/table";
 import { useSnackbar } from "@/components/snackbar";
 
-import {
-  IMemberItem,
-  IMemberTableFilters,
-  IMemberTableFilterValue,
-} from "@/types/member";
+import { IMemberItem, IMemberTableFilters } from "@/types/member";
 
 import MemberTableRow from "../member-table-row";
 import MemberTableToolbar from "../member-table-toolbar";
-import MemberTableFiltersResult from "../member-table-filters-result";
 import axios, { endpoints } from "@/utils/axios";
 import {
   REGISTER_SITE_OPTIONS,
@@ -61,15 +54,14 @@ const TABLE_HEAD = [
   { id: "email", label: "メールアドレス", width: 120, minWidth: 80 },
   { id: "phone", label: "電話番号", width: 120, minWidth: 80 },
   { id: "change_time", label: "希望転職時期", width: 120, minWidth: 80 },
-  { id: "employment", label: "希望勤務体系", width: 120, minWidth: 80 },
-  { id: "emp_prefecture", label: "希望勤務地", width: 120, minWidth: 80 },
+  { id: "employment_name", label: "希望勤務体系", width: 120, minWidth: 80 },
+  { id: "emp_prefecture_name", label: "希望勤務地", width: 120, minWidth: 80 },
   { id: "status", label: "状態", width: 120 },
   { id: "applicant_count", label: "応募数", width: 80 },
   { id: "register_site", label: "登録サイト", width: 120, minWidth: 80 },
   { id: "register_form", label: "登録フォーム", width: 120, minWidth: 80 },
-  { id: "register_route", label: "登録経路", width: 120, minWidth: 80 },
-  { id: "job", label: "登録経緯求人", width: 160 },
-  { id: "proposal_datetimes", label: "連絡可能日時", width: 160 },
+  { id: "utm_source", label: "登録経路", width: 120, minWidth: 80 },
+  { id: "job_name", label: "登録経緯求人", width: 160 },
   { id: "", width: 88 },
 ];
 
@@ -84,54 +76,206 @@ const defaultFilters: IMemberTableFilters = {
   introduction_gift_status: [],
 };
 
+type Props = {
+  name: string;
+  email: string;
+  phone: string;
+  empPrefecture: string[];
+  registerSite: string[];
+  registerForm: string[];
+  introductionGiftStatus: string[];
+  page: number;
+  limit: number;
+  orderBy: string;
+  order: "asc" | "desc";
+};
+
 // ----------------------------------------------------------------------
 
-export default function MemberListView() {
+export default function MemberListView({
+  name,
+  email,
+  phone,
+  empPrefecture,
+  registerSite,
+  registerForm,
+  introductionGiftStatus,
+  page,
+  limit,
+  orderBy,
+  order,
+}: Props) {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id", defaultOrder: "desc" });
+  const table = useTable({
+    defaultOrderBy: orderBy,
+    defaultOrder: order,
+    defaultCurrentPage: 0,
+    defaultRowsPerPage: limit,
+  });
   const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IMemberItem[]>([]);
-  const [filters, setFilters] = useState(defaultFilters);
   const { enqueueSnackbar } = useSnackbar();
 
-  // 会員情報データ取得
-  const { members, membersLoading, membersEmpty } = useGetMembers();
   const { prefectures } = useGetPrefectures();
 
+  // パラメータより検索条件を設定
+  let initFilters = defaultFilters;
+  initFilters.name = name || "";
+  initFilters.email = email || "";
+  initFilters.phone = phone || "";
+  initFilters.emp_prefecture = prefectures
+    .filter((row) => {
+      return empPrefecture?.includes(row.name);
+    })
+    .map((row) => row.id);
+  initFilters.register_site = REGISTER_SITE_OPTIONS.filter((row) => {
+    return registerSite?.includes(row.value);
+  }).map((row) => row.label);
+  initFilters.register_form = REGISTER_FORM_OPTIONS.filter((row) => {
+    return registerForm?.includes(row.value);
+  }).map((row) => row.label);
+  initFilters.introduction_gift_status =
+    INTRODUCTION_GIFT_STATUS_OPTIONS.filter((row) => {
+      return introductionGiftStatus?.includes(row.value);
+    }).map((row) => row.label);
+  const [filters, setFilters] = useState(initFilters);
+
+  // 会員情報データ取得
+  const { members, membersCount, membersLoading, membersEmpty } =
+    useSearchMembers(
+      filters.name,
+      filters.email,
+      filters.phone,
+      prefectures
+        .filter((row) => {
+          return filters.emp_prefecture.includes(row.name);
+        })
+        .map((row) => row.id),
+      REGISTER_SITE_OPTIONS.filter((row) => {
+        return filters.register_site.includes(row.label);
+      }).map((row) => row.value),
+      REGISTER_FORM_OPTIONS.filter((row) => {
+        return filters.register_form.includes(row.label);
+      }).map((row) => row.value),
+      INTRODUCTION_GIFT_STATUS_OPTIONS.filter((row) => {
+        return filters.introduction_gift_status.includes(row.label);
+      }).map((row) => row.value),
+      limit,
+      page,
+      orderBy,
+      order
+    );
+
   useEffect(() => {
-    if (members.length) {
-      setTableData(members);
-    }
+    setTableData(members);
   }, [members]);
-
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
-
-  const dataInPage = dataFiltered.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
 
   const denseHeight = table.dense ? 60 : 80;
 
-  const canReset = !isEqual(defaultFilters, filters);
+  const notFound = !membersLoading && membersEmpty;
 
-  const notFound = (!dataFiltered.length && canReset) || membersEmpty;
-
+  // 検索
   const handleFilters = useCallback(
-    (name: string, value: IMemberTableFilterValue) => {
-      table.onResetPage();
-      setFilters((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
+    (newFilters: IMemberTableFilters) => {
+      setFilters(newFilters);
+      name = newFilters.name;
+      email = newFilters.email;
+      phone = newFilters.phone;
+      empPrefecture = prefectures
+        .filter((row) => {
+          return newFilters.emp_prefecture.includes(row.name);
+        })
+        .map((row) => row.id);
+      registerSite = REGISTER_SITE_OPTIONS.filter((row) => {
+        return newFilters.register_site.includes(row.label);
+      }).map((row) => row.value);
+      registerForm = REGISTER_FORM_OPTIONS.filter((row) => {
+        return newFilters.register_form.includes(row.label);
+      }).map((row) => row.value);
+      introductionGiftStatus = INTRODUCTION_GIFT_STATUS_OPTIONS.filter(
+        (row) => {
+          return newFilters.introduction_gift_status.includes(row.label);
+        }
+      ).map((row) => row.value);
+      router.push(createListUrl());
     },
-    [table]
+    [router, prefectures]
   );
+
+  // 検索条件クリア
+  const handleResetFilters = useCallback(() => {
+    setFilters(defaultFilters);
+    table.setPage(0);
+    table.setOrder("desc");
+    table.setOrderBy("id");
+    router.push(paths.admin.member.root);
+  }, [router, table]);
+
+  // ページ変更
+  const handleChangePage = useCallback(
+    (newPage: number) => {
+      if (page > newPage + 1) {
+        // 前へ
+        page -= 1;
+      } else {
+        // 次へ
+        page += 1;
+      }
+      router.push(createListUrl());
+    },
+    [router, page]
+  );
+
+  // １ページあたりの行数変更
+  const handleCangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      limit = parseInt(event.target.value);
+      page = 1;
+      table.setRowsPerPage(limit);
+      table.setPage(0);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // ソート順変更
+  const handleChangeSort = useCallback(
+    (id: string) => {
+      const isAsc = table.orderBy === id && table.order === "asc";
+      if (id !== "") {
+        order = isAsc ? "desc" : "asc";
+        orderBy = id;
+      }
+      table.setOrderBy(orderBy);
+      table.setOrder(order);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // 検索後のURLを作成
+  const createListUrl = () => {
+    let url = paths.admin.member.root;
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (name) params.name = name;
+    if (email) params.email = email;
+    if (phone) params.phone = phone;
+    if (empPrefecture.length > 0) params.emp_prefecture_id = empPrefecture;
+    if (registerSite.length > 0) params.register_site = registerSite;
+    if (registerForm.length > 0) params.register_form = registerForm;
+    if (introductionGiftStatus.length > 0)
+      params.introduction_gift_status = introductionGiftStatus;
+    if (page > 1) params.page = page;
+    params.limit = limit;
+    params.order = order == "asc" ? "asc" : "desc";
+    params.orderBy = orderBy;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    if (urlSearchParam) url += "?" + urlSearchParam;
+    return url;
+  };
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
@@ -140,14 +284,14 @@ export default function MemberListView() {
 
         const deleteRow = tableData.filter((row) => row.id !== id);
         setTableData(deleteRow);
-        table.onUpdatePageDeleteRow(dataInPage.length);
+        table.onUpdatePageDeleteRow(tableData.length);
         enqueueSnackbar("削除しました！");
       } catch (error) {
         enqueueSnackbar("エラーが発生しました。", { variant: "error" });
         console.error(error);
       }
     },
-    [dataInPage.length, table, tableData]
+    [table, tableData]
   );
 
   const handleDeleteRows = useCallback(async () => {
@@ -161,16 +305,16 @@ export default function MemberListView() {
       );
       setTableData(deleteRows);
       table.onUpdatePageDeleteRows({
-        totalRows: tableData.length,
-        totalRowsInPage: dataInPage.length,
-        totalRowsFiltered: dataFiltered.length,
+        totalRows: membersCount,
+        totalRowsInPage: tableData.length,
+        totalRowsFiltered: tableData.length,
       });
       enqueueSnackbar("削除しました！");
     } catch (error) {
       enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.log(error);
     }
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
+  }, [membersCount, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -193,10 +337,6 @@ export default function MemberListView() {
     [router]
   );
 
-  const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
-
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -217,29 +357,19 @@ export default function MemberListView() {
           <MemberTableToolbar
             filters={filters}
             onFilters={handleFilters}
+            searchLoading={membersLoading}
+            onClearFilters={handleResetFilters}
             prefectures={prefectures}
             registerSiteOptions={REGISTER_SITE_OPTIONS}
             registerFormOptions={REGISTER_FORM_OPTIONS}
             introductionGiftStatusOptions={INTRODUCTION_GIFT_STATUS_OPTIONS}
           />
 
-          {canReset && (
-            <MemberTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={dataFiltered.length}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
-
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
-              rowCount={tableData.length}
+              rowCount={membersCount}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
@@ -266,9 +396,11 @@ export default function MemberListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={tableData.length}
+                  rowCount={membersCount}
                   numSelected={table.selected.length}
-                  onSort={table.onSort}
+                  onSort={(id) => {
+                    handleChangeSort(id);
+                  }}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
@@ -284,33 +416,24 @@ export default function MemberListView() {
                     ))
                   ) : (
                     <>
-                      {dataFiltered
-                        .slice(
-                          table.page * table.rowsPerPage,
-                          table.page * table.rowsPerPage + table.rowsPerPage
-                        )
-                        .map((row) => (
-                          <MemberTableRow
-                            key={row.id}
-                            row={row}
-                            selected={table.selected.includes(row.id)}
-                            onSelectRow={() => table.onSelectRow(row.id)}
-                            onEditRow={() => handleEditRow(row.id)}
-                            onViewRow={() => handleViewRow(row.id)}
-                            onJobViewRow={() => handleJobViewRow(row.job_id)}
-                            onDeleteRow={() => handleDeleteRow(row.id)}
-                          />
-                        ))}
+                      {tableData.map((row) => (
+                        <MemberTableRow
+                          key={row.id}
+                          row={row}
+                          selected={table.selected.includes(row.id)}
+                          onSelectRow={() => table.onSelectRow(row.id)}
+                          onEditRow={() => handleEditRow(row.id)}
+                          onViewRow={() => handleViewRow(row.id)}
+                          onJobViewRow={() => handleJobViewRow(row.job_id)}
+                          onDeleteRow={() => handleDeleteRow(row.id)}
+                        />
+                      ))}
                     </>
                   )}
 
                   <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(
-                      table.page,
-                      table.rowsPerPage,
-                      tableData.length
-                    )}
+                    emptyRows={emptyRows(0, table.rowsPerPage, membersCount)}
                   />
 
                   <TableNoData notFound={notFound} />
@@ -320,11 +443,15 @@ export default function MemberListView() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
-            page={table.page}
+            count={membersCount}
+            page={page - 1}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
+            onPageChange={(event, newPage) => {
+              handleChangePage(newPage);
+            }}
+            onRowsPerPageChange={(event) => {
+              handleCangeRowsPerPage(event);
+            }}
           />
         </Card>
       </Container>
@@ -354,80 +481,4 @@ export default function MemberListView() {
       />
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IMemberItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IMemberTableFilters;
-}) {
-  const {
-    name,
-    email,
-    phone,
-    emp_prefecture,
-    register_site,
-    register_form,
-    introduction_gift_status,
-  } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (name) {
-    inputData = inputData.filter(
-      (member) => member.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
-  if (email) {
-    inputData = inputData.filter(
-      (member) => member.email.toLowerCase().indexOf(email.toLowerCase()) !== -1
-    );
-  }
-
-  if (phone) {
-    inputData = inputData.filter(
-      (member) => member.phone.toLowerCase().indexOf(phone.toLowerCase()) !== -1
-    );
-  }
-
-  if (emp_prefecture.length) {
-    inputData = inputData.filter((member) =>
-      emp_prefecture.includes(member.emp_prefecture_name)
-    );
-  }
-
-  if (register_site.length) {
-    inputData = inputData.filter((member) =>
-      register_site.includes(member.register_site_name)
-    );
-  }
-
-  if (register_form.length) {
-    inputData = inputData.filter((member) =>
-      register_form.includes(member.register_form_name)
-    );
-  }
-
-  if (introduction_gift_status.length) {
-    inputData = inputData.filter((member) =>
-      introduction_gift_status.includes(member.introduction_gift_status_name)
-    );
-  }
-
-  return inputData;
 }
