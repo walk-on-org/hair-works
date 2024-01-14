@@ -19,8 +19,6 @@ import { RouterLink } from "@/routes/components";
 import { useBoolean } from "@/hooks/use-boolean";
 import { useGetArticles } from "@/api/article";
 import { useGetArticleCategories } from "@/api/article-category";
-import { useGetPositions } from "@/api/position";
-import { useGetEmployments } from "@/api/employment";
 
 import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
@@ -56,14 +54,24 @@ import { ARTICLE_STATUS_OPTIONS } from "@/config-global";
 
 const TABLE_HEAD = [
   { id: "id", label: "特集記事ID", width: 160 },
-  { id: "title", label: "タイトル" },
-  { id: "article_category", label: "特集記事カテゴリ", width: 120 },
-  { id: "status", label: "状態", width: 120 },
-  { id: "add_cta", label: "共通CTA追加", width: 80 },
-  { id: "commitmen_term", label: "関連こだわり条件", width: 120 },
-  { id: "position", label: "関連役職/役割", width: 120 },
-  { id: "m_salary_lower", label: "関連月給下限", width: 120 },
-  { id: "updated_at", label: "更新日時", width: 120 },
+  { id: "title", label: "タイトル", minWidth: 160 },
+  {
+    id: "article_category_name",
+    label: "特集記事カテゴリ",
+    width: 120,
+    minWidth: 100,
+  },
+  { id: "status", label: "状態", width: 120, minWidth: 100 },
+  { id: "add_cta", label: "共通CTA追加", width: 100, minWidth: 100 },
+  {
+    id: "commitmen_term_name",
+    label: "関連こだわり条件",
+    width: 120,
+    minWidth: 100,
+  },
+  { id: "position_name", label: "関連役職/役割", width: 120, minWidth: 100 },
+  { id: "m_salary_lower", label: "関連月給下限", width: 120, minWidth: 100 },
+  { id: "updated_at", label: "更新日時", width: 120, minWidth: 100 },
   { id: "", width: 88 },
 ];
 

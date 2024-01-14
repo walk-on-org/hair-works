@@ -77,9 +77,15 @@ export default function ArticleDetailView({ id }: Props) {
       />
 
       <Card>
-        <Stack spacing={3} sx={{ p: 3 }}>
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+        <Stack spacing={3} sx={{ p: 2 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               特殊記事ID
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -87,8 +93,14 @@ export default function ArticleDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               タイトル
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -96,8 +108,14 @@ export default function ArticleDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               説明
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -105,8 +123,14 @@ export default function ArticleDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               特集記事カテゴリ
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -114,8 +138,14 @@ export default function ArticleDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               パーマリンク
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -123,8 +153,14 @@ export default function ArticleDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               状態
             </Typography>
             <Label
@@ -134,32 +170,52 @@ export default function ArticleDetailView({ id }: Props) {
                 (article.status == "2" && "warning") ||
                 "default"
               }
+              width="fit-content"
             >
               {article.status_name}
             </Label>
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               メイン画像
             </Typography>
             <Image src={article.main_image} />
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               共通CTA追加
             </Typography>
             <Label
               variant="soft"
               color={(article.add_cta == "1" && "info") || "default"}
+              width="fit-content"
             >
               {article.add_cta_name}
             </Label>
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               関連こだわり条件
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -167,8 +223,14 @@ export default function ArticleDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               関連役職/役割
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -176,8 +238,14 @@ export default function ArticleDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               関連月給下限
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -187,8 +255,14 @@ export default function ArticleDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
-            <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
+            <Typography variant="subtitle2" sx={{ width: 240 }}>
               本文
             </Typography>
             <Markdown
