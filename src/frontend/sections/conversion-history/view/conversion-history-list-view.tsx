@@ -1,6 +1,5 @@
 "use client";
 
-import isEqual from "lodash/isEqual";
 import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
@@ -10,8 +9,8 @@ import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
-import { fTimestamp } from "@/utils/format-time";
-import { useGetConversionHistories } from "@/api/conversion-history";
+import { useRouter } from "@/routes/hooks";
+import { useSearchConversionHistories } from "@/api/conversion-history";
 
 import Scrollbar from "@/components/scrollbar";
 import { useSettingsContext } from "@/components/settings";
@@ -20,7 +19,6 @@ import {
   useTable,
   emptyRows,
   TableNoData,
-  getComparator,
   TableSkeleton,
   TableEmptyRows,
   TableHeadCustom,
@@ -31,12 +29,11 @@ import {
 import {
   IConversionHistoryItem,
   IConversionHistoryTableFilters,
-  IConversionHistoryTableFilterValue,
 } from "@/types/conversion-history";
 
 import ConversionHistoryTableRow from "../conversion-history-table-row";
 import ConversionHistoryTableToolbar from "../conversion-history-table-toolbar";
-import ConversionHistoryTableFiltersResult from "../conversion-history-table-filters-result";
+import { fDate } from "@/utils/format-time";
 
 // ----------------------------------------------------------------------
 
@@ -46,12 +43,12 @@ const TABLE_HEAD = [
   { id: "utm_medium", label: "utm_medium", width: 140 },
   { id: "utm_campaign", label: "utm_campaign", width: 140 },
   { id: "utm_term", label: "utm_term", width: 140 },
-  { id: "keyword", label: "キーワード", width: 140 },
+  { id: "keyword", label: "キーワード", width: 140, minWidth: 100 },
   { id: "lp_url", label: "LP", width: 140 },
   { id: "lp_date", label: "LP日時", width: 140 },
   { id: "cv_url", label: "CV", width: 140 },
   { id: "cv_date", label: "CV日時", width: 140 },
-  { id: "cv_row", label: "会員・応募者・問合せ", width: 140 },
+  { id: "cv_row", label: "会員・応募者・問合せ", width: 140, noSort: true },
 ];
 
 const defaultFilters: IConversionHistoryTableFilters = {
@@ -67,66 +64,190 @@ const defaultFilters: IConversionHistoryTableFilters = {
   cv_end_date: null,
 };
 
+type Props = {
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
+  utmTerm: string;
+  lpUrl: string;
+  lpStartDate: Date | null;
+  lpEndDate: Date | null;
+  cvUrl: string;
+  cvStartDate: Date | null;
+  cvEndDate: Date | null;
+  page: number;
+  limit: number;
+  orderBy: string;
+  order: "asc" | "desc";
+};
+
 // ----------------------------------------------------------------------
 
-export default function ConversionHistoryListView() {
-  const table = useTable({ defaultOrderBy: "id" });
+export default function ConversionHistoryListView({
+  utmSource,
+  utmMedium,
+  utmCampaign,
+  utmTerm,
+  lpUrl,
+  lpStartDate,
+  lpEndDate,
+  cvUrl,
+  cvStartDate,
+  cvEndDate,
+  page,
+  limit,
+  orderBy,
+  order,
+}: Props) {
+  const router = useRouter();
+  const table = useTable({
+    defaultOrderBy: orderBy,
+    defaultOrder: order,
+    defaultCurrentPage: 0,
+    defaultRowsPerPage: limit,
+  });
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IConversionHistoryItem[]>([]);
-  const [filters, setFilters] = useState(defaultFilters);
 
-  const lpDateError =
-    filters.lp_start_date && filters.lp_end_date
-      ? filters.lp_start_date.getTime() > filters.lp_end_date.getTime()
-      : false;
-
-  const cvDateError =
-    filters.cv_start_date && filters.cv_end_date
-      ? filters.cv_start_date.getTime() > filters.cv_end_date.getTime()
-      : false;
+  // パラメータより検索条件を指定
+  let initFilters = defaultFilters;
+  initFilters.utm_source = utmSource || "";
+  initFilters.utm_medium = utmMedium || "";
+  initFilters.utm_campaign = utmCampaign || "";
+  initFilters.utm_term = utmTerm || "";
+  initFilters.lp_url = lpUrl || "";
+  initFilters.lp_start_date = lpStartDate || null;
+  initFilters.lp_end_date = lpEndDate || null;
+  initFilters.cv_url = cvUrl || "";
+  initFilters.cv_start_date = cvStartDate || null;
+  initFilters.cv_end_date = cvEndDate || null;
+  const [filters, setFilters] = useState(initFilters);
 
   // CV経路データ取得
   const {
     conversionHistories,
+    conversionHistoriesCount,
     conversionHistoriesLoading,
     conversionHistoriesEmpty,
-  } = useGetConversionHistories();
+  } = useSearchConversionHistories(
+    filters.utm_source,
+    filters.utm_medium,
+    filters.utm_campaign,
+    filters.utm_term,
+    filters.lp_url,
+    fDate(filters.lp_start_date, "yyyy-MM-dd"),
+    fDate(filters.lp_end_date, "yyyy-MM-dd"),
+    filters.cv_url,
+    fDate(filters.cv_start_date, "yyyy-MM-dd"),
+    fDate(filters.cv_end_date, "yyyy-MM-dd"),
+    limit,
+    page,
+    orderBy,
+    order
+  );
 
   useEffect(() => {
-    if (conversionHistories.length) {
-      setTableData(conversionHistories);
-    }
+    setTableData(conversionHistories);
   }, [conversionHistories]);
-
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-    lpDateError,
-    cvDateError,
-  });
 
   const denseHeight = table.dense ? 60 : 80;
 
-  const canReset = !isEqual(defaultFilters, filters);
+  const notFound = !conversionHistoriesLoading && conversionHistoriesEmpty;
 
-  const notFound =
-    (!dataFiltered.length && canReset) || conversionHistoriesEmpty;
-
+  // 検索
   const handleFilters = useCallback(
-    (title: string, value: IConversionHistoryTableFilterValue) => {
-      table.onResetPage();
-      setFilters((prevState) => ({
-        ...prevState,
-        [title]: value,
-      }));
+    (newFilters: IConversionHistoryTableFilters) => {
+      setFilters(newFilters);
+      utmSource = newFilters.utm_source;
+      utmMedium = newFilters.utm_medium;
+      utmCampaign = newFilters.utm_campaign;
+      utmTerm = newFilters.utm_term;
+      lpUrl = newFilters.lp_url;
+      lpStartDate = newFilters.lp_start_date;
+      lpEndDate = newFilters.lp_end_date;
+      cvUrl = newFilters.cv_url;
+      cvStartDate = newFilters.cv_start_date;
+      cvEndDate = newFilters.cv_end_date;
+      router.push(createListUrl());
     },
-    [table]
+    [router]
   );
 
+  // 検索条件クリア
   const handleResetFilters = useCallback(() => {
     setFilters(defaultFilters);
-  }, []);
+    table.setPage(0);
+    table.setOrder("desc");
+    table.setOrderBy("id");
+    router.push(paths.admin.conversionHistory.root);
+  }, [router, table]);
+
+  // ページ変更
+  const handleChangePage = useCallback(
+    (newPage: number) => {
+      if (page > newPage + 1) {
+        // 前へ
+        page -= 1;
+      } else {
+        // 次へ
+        page += 1;
+      }
+      router.push(createListUrl());
+    },
+    [router, page]
+  );
+
+  // １ページあたりの行数変更
+  const handleCangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      limit = parseInt(event.target.value);
+      page = 1;
+      table.setRowsPerPage(limit);
+      table.setPage(0);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // ソート順変更
+  const handleChangeSort = useCallback(
+    (id: string) => {
+      const isAsc = table.orderBy === id && table.order === "asc";
+      if (id !== "") {
+        order = isAsc ? "desc" : "asc";
+        orderBy = id;
+      }
+      table.setOrderBy(orderBy);
+      table.setOrder(order);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // 検索後のURLを作成
+  const createListUrl = () => {
+    let url = paths.admin.conversionHistory.root;
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (utmSource) params.utm_source = utmSource;
+    if (utmMedium) params.utm_medium = utmMedium;
+    if (utmCampaign) params.utm_campaign = utmCampaign;
+    if (utmTerm) params.utm_term = utmTerm;
+    if (lpUrl) params.lp_url = lpUrl;
+    if (lpStartDate) params.lp_start_date = fDate(lpStartDate, "yyyy-MM-dd");
+    if (lpEndDate) params.lp_end_date = fDate(lpEndDate, "yyyy-MM-dd");
+    if (cvUrl) params.cv_url = cvUrl;
+    if (cvStartDate) params.cv_start_date = fDate(cvStartDate, "yyyy-MM-dd");
+    if (cvEndDate) params.cv_end_date = fDate(cvEndDate, "yyyy-MM-dd");
+    if (page > 1) params.page = page;
+    params.limit = limit;
+    params.order = order == "asc" ? "asc" : "desc";
+    params.orderBy = orderBy;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    if (urlSearchParam) url += "?" + urlSearchParam;
+    return url;
+  };
 
   return (
     <>
@@ -148,25 +269,15 @@ export default function ConversionHistoryListView() {
           <ConversionHistoryTableToolbar
             filters={filters}
             onFilters={handleFilters}
+            searchLoading={conversionHistoriesLoading}
+            onClearFilters={handleResetFilters}
           />
-
-          {canReset && (
-            <ConversionHistoryTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={dataFiltered.length}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
 
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
-              rowCount={tableData.length}
+              rowCount={conversionHistoriesCount}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
@@ -184,9 +295,11 @@ export default function ConversionHistoryListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={tableData.length}
+                  rowCount={conversionHistoriesCount}
                   numSelected={table.selected.length}
-                  onSort={table.onSort}
+                  onSort={(id) => {
+                    handleChangeSort(id);
+                  }}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
@@ -202,28 +315,23 @@ export default function ConversionHistoryListView() {
                     ))
                   ) : (
                     <>
-                      {dataFiltered
-                        .slice(
-                          table.page * table.rowsPerPage,
-                          table.page * table.rowsPerPage + table.rowsPerPage
-                        )
-                        .map((row) => (
-                          <ConversionHistoryTableRow
-                            key={row.id}
-                            row={row}
-                            selected={table.selected.includes(row.id)}
-                            onSelectRow={() => table.onSelectRow(row.id)}
-                          />
-                        ))}
+                      {tableData.map((row) => (
+                        <ConversionHistoryTableRow
+                          key={row.id}
+                          row={row}
+                          selected={table.selected.includes(row.id)}
+                          onSelectRow={() => table.onSelectRow(row.id)}
+                        />
+                      ))}
                     </>
                   )}
 
                   <TableEmptyRows
                     height={denseHeight}
                     emptyRows={emptyRows(
-                      table.page,
+                      0,
                       table.rowsPerPage,
-                      tableData.length
+                      conversionHistoriesCount
                     )}
                   />
 
@@ -234,137 +342,18 @@ export default function ConversionHistoryListView() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
-            page={table.page}
+            count={conversionHistoriesCount}
+            page={page - 1}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
+            onPageChange={(event, newPage) => {
+              handleChangePage(newPage);
+            }}
+            onRowsPerPageChange={(event) => {
+              handleCangeRowsPerPage(event);
+            }}
           />
         </Card>
       </Container>
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-  lpDateError,
-  cvDateError,
-}: {
-  inputData: IConversionHistoryItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IConversionHistoryTableFilters;
-  lpDateError: boolean;
-  cvDateError: boolean;
-}) {
-  const {
-    utm_source,
-    utm_medium,
-    utm_campaign,
-    utm_term,
-    lp_url,
-    lp_start_date,
-    lp_end_date,
-    cv_url,
-    cv_start_date,
-    cv_end_date,
-  } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (utm_source) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_source
-          .toLowerCase()
-          .indexOf(utm_source.toLowerCase()) !== -1
-    );
-  }
-
-  if (utm_medium) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_medium
-          .toLowerCase()
-          .indexOf(utm_medium.toLowerCase()) !== -1
-    );
-  }
-
-  if (utm_campaign) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_campaign
-          .toLowerCase()
-          .indexOf(utm_campaign.toLowerCase()) !== -1
-    );
-  }
-
-  if (utm_term) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.utm_term
-          .toLowerCase()
-          .indexOf(utm_term.toLowerCase()) !== -1
-    );
-  }
-
-  if (lp_url) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.lp_url.toLowerCase().indexOf(lp_url.toLowerCase()) !==
-        -1
-    );
-  }
-
-  if (!lpDateError) {
-    if (lp_start_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.lp_date) >= fTimestamp(lp_start_date)
-      );
-    }
-    if (lp_end_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.lp_date) <= fTimestamp(lp_end_date)
-      );
-    }
-  }
-
-  if (cv_url) {
-    inputData = inputData.filter(
-      (conversionHistory) =>
-        conversionHistory.cv_url.toLowerCase().indexOf(cv_url.toLowerCase()) !==
-        -1
-    );
-  }
-
-  if (!cvDateError) {
-    if (cv_start_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.cv_date) >= fTimestamp(cv_start_date)
-      );
-    }
-    if (cv_end_date) {
-      inputData = inputData.filter(
-        (conversionHistory) =>
-          fTimestamp(conversionHistory.cv_date) <= fTimestamp(cv_end_date)
-      );
-    }
-  }
-
-  return inputData;
 }

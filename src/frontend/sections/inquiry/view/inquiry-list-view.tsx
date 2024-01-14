@@ -332,11 +332,7 @@ export default function InquiryListView({
 
                   <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(
-                      table.page,
-                      table.rowsPerPage,
-                      tableData.length
-                    )}
+                    emptyRows={emptyRows(0, table.rowsPerPage, inquiriesCount)}
                   />
 
                   <TableNoData notFound={notFound} />
