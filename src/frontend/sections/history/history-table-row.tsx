@@ -3,8 +3,6 @@ import TableRow from "@mui/material/TableRow";
 import Checkbox from "@mui/material/Checkbox";
 import TableCell from "@mui/material/TableCell";
 
-import Label from "@/components/label";
-
 import { IHistoryItem } from "@/types/history";
 import { fDateTime } from "@/utils/format-time";
 
@@ -56,7 +54,12 @@ export default function HistoryTableRow({
 
         <TableCell>
           {member_id ? (
-            <Link noWrap onClick={onMemberViewRow} sx={{ cursor: "pointer" }}>
+            <Link
+              noWrap
+              variant="subtitle2"
+              onClick={onMemberViewRow}
+              sx={{ cursor: "pointer" }}
+            >
               {member_name}
             </Link>
           ) : (
@@ -67,6 +70,7 @@ export default function HistoryTableRow({
         <TableCell>
           <Link
             noWrap
+            variant="subtitle2"
             onClick={onCorporationViewRow}
             sx={{ cursor: "pointer" }}
           >
@@ -75,13 +79,23 @@ export default function HistoryTableRow({
         </TableCell>
 
         <TableCell>
-          <Link noWrap onClick={onOfficeViewRow} sx={{ cursor: "pointer" }}>
+          <Link
+            noWrap
+            variant="subtitle2"
+            onClick={onOfficeViewRow}
+            sx={{ cursor: "pointer" }}
+          >
             {office_name}
           </Link>
         </TableCell>
 
         <TableCell>
-          <Link noWrap onClick={onJobViewRow} sx={{ cursor: "pointer" }}>
+          <Link
+            noWrap
+            variant="subtitle2"
+            onClick={onJobViewRow}
+            sx={{ cursor: "pointer" }}
+          >
             {job_name}
           </Link>
         </TableCell>
