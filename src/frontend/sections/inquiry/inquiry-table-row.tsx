@@ -46,7 +46,7 @@ export default function InquiryTableRow({
     status,
     status_name,
     created_at,
-    // TODO 登録経路
+    register_root,
   } = row;
   const confirm = useBoolean();
   const popover = usePopover();
@@ -80,7 +80,7 @@ export default function InquiryTableRow({
 
         <TableCell>{fDateTime(created_at)}</TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{register_root}</TableCell>
 
         <TableCell align="right">
           <IconButton

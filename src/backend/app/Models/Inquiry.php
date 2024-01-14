@@ -38,4 +38,8 @@ class Inquiry extends Model
     public function prefecture() {
         return $this->belongsTo('App\Models\Prefecture');
     }
+
+    public function conversionHistories() {
+        return $this->hasMany('App\Models\ConversionHistory');
+    }
 }

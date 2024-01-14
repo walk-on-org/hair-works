@@ -12,6 +12,7 @@ export type IInquiryItem = {
   note: string;
   status: string;
   status_name: string;
+  register_root: string;
   created_at: Date;
   updated_at: Date;
 };

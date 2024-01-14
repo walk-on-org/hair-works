@@ -74,8 +74,14 @@ export default function InquiryDetailView({ id }: Props) {
       />
 
       <Card>
-        <Stack spacing={3} sx={{ p: 3 }}>
-          <Stack direction="row">
+        <Stack spacing={3} sx={{ p: 2 }}>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               問い合わせID
             </Typography>
@@ -84,19 +90,32 @@ export default function InquiryDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               状態
             </Typography>
             <Label
               variant="soft"
               color={(inquiry.status == "0" && "info") || "default"}
+              width="fit-content"
             >
               {inquiry.status_name}
             </Label>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               サロン名/法人名
             </Typography>
@@ -105,7 +124,13 @@ export default function InquiryDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               お名前
             </Typography>
@@ -114,7 +139,13 @@ export default function InquiryDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               サロン所在地（都道府県）
             </Typography>
@@ -123,7 +154,13 @@ export default function InquiryDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               電話番号
             </Typography>
@@ -132,7 +169,13 @@ export default function InquiryDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               メールアドレス
             </Typography>
@@ -141,7 +184,13 @@ export default function InquiryDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               問い合わせ内容
             </Typography>
@@ -150,7 +199,13 @@ export default function InquiryDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               補足事項
             </Typography>
@@ -162,7 +217,13 @@ export default function InquiryDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               登録日時
             </Typography>
@@ -171,12 +232,18 @@ export default function InquiryDetailView({ id }: Props) {
             </Typography>
           </Stack>
 
-          <Stack direction="row">
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            rowGap={1}
+          >
             <Typography variant="subtitle2" sx={{ width: 160 }}>
               登録経路
             </Typography>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              TODO
+              {inquiry.register_root}
             </Typography>
           </Stack>
         </Stack>

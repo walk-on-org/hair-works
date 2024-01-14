@@ -1,6 +1,5 @@
 "use client";
 
-import isEqual from "lodash/isEqual";
 import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
@@ -13,7 +12,7 @@ import TableContainer from "@mui/material/TableContainer";
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { useBoolean } from "@/hooks/use-boolean";
-import { useGetInquiries } from "@/api/inquiry";
+import { useSearchInquiries } from "@/api/inquiry";
 
 import Scrollbar from "@/components/scrollbar";
 import { ConfirmDialog } from "@/components/custom-dialog";
@@ -23,7 +22,6 @@ import {
   useTable,
   emptyRows,
   TableNoData,
-  getComparator,
   TableSkeleton,
   TableEmptyRows,
   TableHeadCustom,
@@ -32,30 +30,30 @@ import {
 } from "@/components/table";
 import { useSnackbar } from "@/components/snackbar";
 
-import {
-  IInquiryItem,
-  IInquiryTableFilters,
-  IInquiryTableFilterValue,
-} from "@/types/inquiry";
+import { IInquiryItem, IInquiryTableFilters } from "@/types/inquiry";
 
 import InquiryTableRow from "../inquiry-table-row";
 import InquiryTableToolbar from "../inquiry-table-toolbar";
-import InquiryTableFiltersResult from "../inquiry-table-filters-result";
 import axios, { endpoints } from "@/utils/axios";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: "id", label: "問い合わせID", width: 160 },
-  { id: "salon_name", label: "サロン名/法人名" },
-  { id: "name", label: "お名前", width: 160 },
-  { id: "tel", label: "電話番号", width: 120 },
-  { id: "mail", label: "メールアドレス", width: 120 },
-  { id: "prefecture", label: "サロン所在地（都道府県）", width: 120 },
-  { id: "inquiry_type", label: "問い合わせ内容", width: 120 },
-  { id: "status", label: "状態", width: 120 },
-  { id: "inquiry_date", label: "登録日時", width: 120 },
-  { id: "register_route", label: "登録経路", width: 120 },
+  { id: "salon_name", label: "サロン名/法人名", minWidth: 120 },
+  { id: "name", label: "お名前", width: 160, minWidth: 120 },
+  { id: "tel", label: "電話番号", width: 120, minWidth: 80 },
+  { id: "mail", label: "メールアドレス", width: 120, minWidth: 80 },
+  {
+    id: "prefecture_name",
+    label: "サロン所在地（都道府県）",
+    width: 120,
+    minWidth: 80,
+  },
+  { id: "inquiry_type", label: "問い合わせ内容", width: 120, minWidth: 80 },
+  { id: "status", label: "状態", width: 120, minWidth: 80 },
+  { id: "created_at", label: "登録日時", width: 120, minWidth: 80 },
+  { id: "utm_source", label: "登録経路", width: 120, minWidth: 80 },
   { id: "", width: 88 },
 ];
 
@@ -64,53 +62,140 @@ const defaultFilters: IInquiryTableFilters = {
   name: "",
 };
 
+type Props = {
+  salonName: string;
+  name: string;
+  page: number;
+  limit: number;
+  orderBy: string;
+  order: "asc" | "desc";
+};
+
 // ----------------------------------------------------------------------
 
-export default function InquiryListView() {
+export default function InquiryListView({
+  salonName,
+  name,
+  page,
+  limit,
+  orderBy,
+  order,
+}: Props) {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id" });
+  const table = useTable({
+    defaultOrderBy: orderBy,
+    defaultOrder: order,
+    defaultCurrentPage: 0,
+    defaultRowsPerPage: limit,
+  });
   const confirm = useBoolean();
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IInquiryItem[]>([]);
-  const [filters, setFilters] = useState(defaultFilters);
   const { enqueueSnackbar } = useSnackbar();
 
+  // パラメータより検索条件を指定
+  let initFilters = defaultFilters;
+  initFilters.salon_name = salonName || "";
+  initFilters.name = name || "";
+  const [filters, setFilters] = useState(initFilters);
+
   // 問い合わせデータ取得
-  const { inquiries, inquiriesLoading, inquiriesEmpty } = useGetInquiries();
+  const { inquiries, inquiriesCount, inquiriesLoading, inquiriesEmpty } =
+    useSearchInquiries(
+      filters.salon_name,
+      filters.name,
+      limit,
+      page,
+      orderBy,
+      order
+    );
 
   useEffect(() => {
-    if (inquiries.length) {
-      setTableData(inquiries);
-    }
+    setTableData(inquiries);
   }, [inquiries]);
-
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
-
-  const dataInPage = dataFiltered.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
 
   const denseHeight = table.dense ? 60 : 80;
 
-  const canReset = !isEqual(defaultFilters, filters);
+  const notFound = !inquiriesLoading && inquiriesEmpty;
 
-  const notFound = (!dataFiltered.length && canReset) || inquiriesEmpty;
-
+  // 検索
   const handleFilters = useCallback(
-    (name: string, value: IInquiryTableFilterValue) => {
-      table.onResetPage();
-      setFilters((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
+    (newFilters: IInquiryTableFilters) => {
+      setFilters(newFilters);
+      salonName = newFilters.salon_name;
+      name = newFilters.name;
+      router.push(createListUrl());
     },
-    [table]
+    [router]
   );
+
+  // 検索条件クリア
+  const handleResetFilters = useCallback(() => {
+    setFilters(defaultFilters);
+    table.setPage(0);
+    table.setOrder("desc");
+    table.setOrderBy("id");
+    router.push(paths.admin.inquiry.root);
+  }, [router, table]);
+
+  // ページ変更
+  const handleChangePage = useCallback(
+    (newPage: number) => {
+      if (page > newPage + 1) {
+        // 前へ
+        page -= 1;
+      } else {
+        // 次へ
+        page += 1;
+      }
+      router.push(createListUrl());
+    },
+    [router, page]
+  );
+
+  // １ページあたりの行数変更
+  const handleCangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      limit = parseInt(event.target.value);
+      page = 1;
+      table.setRowsPerPage(limit);
+      table.setPage(0);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // ソート順変更
+  const handleChangeSort = useCallback(
+    (id: string) => {
+      const isAsc = table.orderBy === id && table.order === "asc";
+      if (id !== "") {
+        order = isAsc ? "desc" : "asc";
+        orderBy = id;
+      }
+      table.setOrderBy(orderBy);
+      table.setOrder(order);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // 検索後のURLを作成
+  const createListUrl = () => {
+    let url = paths.admin.inquiry.root;
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (salonName) params.salon_name = salonName;
+    if (name) params.name = name;
+    if (page > 1) params.page = page;
+    params.limit = limit;
+    params.order = order == "asc" ? "asc" : "desc";
+    params.orderBy = orderBy;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    if (urlSearchParam) url += "?" + urlSearchParam;
+    return url;
+  };
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
@@ -119,14 +204,14 @@ export default function InquiryListView() {
 
         const deleteRow = tableData.filter((row) => row.id !== id);
         setTableData(deleteRow);
-        table.onUpdatePageDeleteRow(dataInPage.length);
+        table.onUpdatePageDeleteRow(tableData.length);
         enqueueSnackbar("削除しました！");
       } catch (error) {
         enqueueSnackbar("エラーが発生しました。", { variant: "error" });
         console.error(error);
       }
     },
-    [dataInPage.length, table, tableData]
+    [table, tableData]
   );
 
   const handleDeleteRows = useCallback(async () => {
@@ -140,16 +225,16 @@ export default function InquiryListView() {
       );
       setTableData(deleteRows);
       table.onUpdatePageDeleteRows({
-        totalRows: tableData.length,
-        totalRowsInPage: dataInPage.length,
-        totalRowsFiltered: dataFiltered.length,
+        totalRows: inquiriesCount,
+        totalRowsInPage: tableData.length,
+        totalRowsFiltered: tableData.length,
       });
       enqueueSnackbar("削除しました！");
     } catch (error) {
       enqueueSnackbar("エラーが発生しました。", { variant: "error" });
       console.log(error);
     }
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
+  }, [inquiriesCount, table, tableData]);
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -164,10 +249,6 @@ export default function InquiryListView() {
     },
     [router]
   );
-
-  const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
 
   return (
     <>
@@ -186,25 +267,18 @@ export default function InquiryListView() {
         />
 
         <Card>
-          <InquiryTableToolbar filters={filters} onFilters={handleFilters} />
-
-          {canReset && (
-            <InquiryTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={dataFiltered.length}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
+          <InquiryTableToolbar
+            filters={filters}
+            onFilters={handleFilters}
+            searchLoading={inquiriesLoading}
+            onClearFilters={handleResetFilters}
+          />
 
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
-              rowCount={tableData.length}
+              rowCount={inquiriesCount}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
@@ -222,9 +296,11 @@ export default function InquiryListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={tableData.length}
+                  rowCount={inquiriesCount}
                   numSelected={table.selected.length}
-                  onSort={table.onSort}
+                  onSort={(id) => {
+                    handleChangeSort(id);
+                  }}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
@@ -240,22 +316,17 @@ export default function InquiryListView() {
                     ))
                   ) : (
                     <>
-                      {dataFiltered
-                        .slice(
-                          table.page * table.rowsPerPage,
-                          table.page * table.rowsPerPage + table.rowsPerPage
-                        )
-                        .map((row) => (
-                          <InquiryTableRow
-                            key={row.id}
-                            row={row}
-                            selected={table.selected.includes(row.id)}
-                            onSelectRow={() => table.onSelectRow(row.id)}
-                            onEditRow={() => handleEditRow(row.id)}
-                            onViewRow={() => handleViewRow(row.id)}
-                            onDeleteRow={() => handleDeleteRow(row.id)}
-                          />
-                        ))}
+                      {tableData.map((row) => (
+                        <InquiryTableRow
+                          key={row.id}
+                          row={row}
+                          selected={table.selected.includes(row.id)}
+                          onSelectRow={() => table.onSelectRow(row.id)}
+                          onEditRow={() => handleEditRow(row.id)}
+                          onViewRow={() => handleViewRow(row.id)}
+                          onDeleteRow={() => handleDeleteRow(row.id)}
+                        />
+                      ))}
                     </>
                   )}
 
@@ -275,11 +346,15 @@ export default function InquiryListView() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
-            page={table.page}
+            count={inquiriesCount}
+            page={page - 1}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
+            onPageChange={(event, newPage) => {
+              handleChangePage(newPage);
+            }}
+            onRowsPerPageChange={(event) => {
+              handleCangeRowsPerPage(event);
+            }}
           />
         </Card>
       </Container>
@@ -309,44 +384,4 @@ export default function InquiryListView() {
       />
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IInquiryItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IInquiryTableFilters;
-}) {
-  const { salon_name, name } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (salon_name) {
-    inputData = inputData.filter(
-      (inquiry) =>
-        inquiry.salon_name.toLowerCase().indexOf(salon_name.toLowerCase()) !==
-        -1
-    );
-  }
-
-  if (name) {
-    inputData = inputData.filter(
-      (inquiry) => inquiry.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
-  return inputData;
 }
