@@ -1,6 +1,5 @@
 "use client";
 
-import isEqual from "lodash/isEqual";
 import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
@@ -11,7 +10,7 @@ import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
-import { useGetKeeps } from "@/api/keep";
+import { useSearchKeeps } from "@/api/keep";
 import { useGetJobCategories } from "@/api/job-category";
 import { useGetPositions } from "@/api/position";
 import { useGetEmployments } from "@/api/employment";
@@ -23,7 +22,6 @@ import {
   useTable,
   emptyRows,
   TableNoData,
-  getComparator,
   TableSkeleton,
   TableEmptyRows,
   TableHeadCustom,
@@ -31,31 +29,26 @@ import {
   TablePaginationCustom,
 } from "@/components/table";
 
-import {
-  IKeepItem,
-  IKeepTableFilters,
-  IKeepTableFilterValue,
-} from "@/types/keep";
+import { IKeepItem, IKeepTableFilters } from "@/types/keep";
 
 import KeepTableRow from "../keep-table-row";
 import KeepTableToolbar from "../keep-table-toolbar";
-import KeepTableFiltersResult from "../keep-table-filters-result";
 import { KEEP_STATUS_OPTIONS } from "@/config-global";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: "id", label: "お気に入りID", width: 120 },
-  { id: "member", label: "会員", width: 140 },
-  { id: "corporation", label: "法人", width: 160 },
-  { id: "office", label: "事業所", width: 160 },
-  { id: "job", label: "求人", width: 160 },
-  { id: "job_category", label: "職種", width: 120 },
-  { id: "position", label: "役職/役割", width: 120 },
-  { id: "employment", label: "雇用形態", width: 120 },
-  { id: "status", label: "状態", width: 120 },
-  { id: "keeped_at", label: "お気に入り日時", width: 140 },
-  { id: "released_at", label: "お気に入り解除日時", width: 140 },
+  { id: "member_name", label: "会員", width: 140, minWidth: 100 },
+  { id: "corporation_name", label: "法人", width: 160, minWidth: 120 },
+  { id: "office_name", label: "事業所", width: 160, minWidth: 120 },
+  { id: "job_name", label: "求人", width: 160, minWidth: 120 },
+  { id: "job_category_name", label: "職種", width: 120, minWidth: 80 },
+  { id: "position_name", label: "役職/役割", width: 120, minWidth: 80 },
+  { id: "employment_name", label: "雇用形態", width: 120, minWidth: 80 },
+  { id: "status", label: "状態", width: 120, minWidth: 80 },
+  { id: "keeped_at", label: "お気に入り日時", width: 140, minWidth: 120 },
+  { id: "released_at", label: "お気に入り解除日時", width: 140, minWidth: 120 },
 ];
 
 const defaultFilters: IKeepTableFilters = {
@@ -68,53 +61,213 @@ const defaultFilters: IKeepTableFilters = {
   status: [],
 };
 
+type Props = {
+  corporationName: string;
+  officeName: string;
+  jobName: string;
+  jobCategory: string[];
+  position: string[];
+  employment: string[];
+  status: string[];
+  page: number;
+  limit: number;
+  orderBy: string;
+  order: "asc" | "desc";
+};
+
 // ----------------------------------------------------------------------
 
-export default function KeepListView() {
+export default function KeepListView({
+  corporationName,
+  officeName,
+  jobName,
+  jobCategory,
+  position,
+  employment,
+  status,
+  page,
+  limit,
+  orderBy,
+  order,
+}: Props) {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id" });
+  const table = useTable({
+    defaultOrderBy: orderBy,
+    defaultOrder: order,
+    defaultCurrentPage: 0,
+    defaultRowsPerPage: limit,
+  });
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IKeepItem[]>([]);
-  const [filters, setFilters] = useState(defaultFilters);
 
-  // お気に入りデータ取得
-  const { keeps, keepsLoading, keepsEmpty } = useGetKeeps();
   const { jobCategories } = useGetJobCategories();
   const { positions } = useGetPositions();
   const { employments } = useGetEmployments();
 
-  useEffect(() => {
-    if (keeps.length) {
-      setTableData(keeps);
-    }
-  }, [keeps]);
+  // パラメータより検索条件を設定
+  let initFilters = defaultFilters;
+  initFilters.corporation_name = corporationName || "";
+  initFilters.office_name = officeName || "";
+  initFilters.job_name = jobName || "";
+  initFilters.job_category = jobCategories
+    .filter((row) => {
+      return jobCategory?.includes(row.name);
+    })
+    .map((row) => row.id);
+  initFilters.position = positions
+    .filter((row) => {
+      return position?.includes(row.name);
+    })
+    .map((row) => row.id);
+  initFilters.employment = employments
+    .filter((row) => {
+      return employment?.includes(row.name);
+    })
+    .map((row) => row.id);
+  initFilters.status = KEEP_STATUS_OPTIONS.filter((row) => {
+    return status?.includes(row.value);
+  }).map((row) => row.label);
+  const [filters, setFilters] = useState(initFilters);
 
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
+  // お気に入りデータ取得
+  const { keeps, keepsCount, keepsLoading, keepsEmpty } = useSearchKeeps(
+    filters.corporation_name,
+    filters.office_name,
+    filters.job_name,
+    jobCategories
+      .filter((row) => {
+        return filters.job_category.includes(row.name);
+      })
+      .map((row) => row.id),
+    positions
+      .filter((row) => {
+        return filters.position.includes(row.name);
+      })
+      .map((row) => row.id),
+    employments
+      .filter((row) => {
+        return filters.employment.includes(row.name);
+      })
+      .map((row) => row.id),
+    KEEP_STATUS_OPTIONS.filter((row) => {
+      return filters.status.includes(row.label);
+    }).map((row) => row.value),
+    limit,
+    page,
+    orderBy,
+    order
+  );
+
+  useEffect(() => {
+    setTableData(keeps);
+  }, [keeps]);
 
   const denseHeight = table.dense ? 60 : 80;
 
-  const canReset = !isEqual(defaultFilters, filters);
+  const notFound = !keepsLoading && keepsEmpty;
 
-  const notFound = (!dataFiltered.length && canReset) || keepsEmpty;
-
+  // 検索
   const handleFilters = useCallback(
-    (title: string, value: IKeepTableFilterValue) => {
-      table.onResetPage();
-      setFilters((prevState) => ({
-        ...prevState,
-        [title]: value,
-      }));
+    (newFilters: IKeepTableFilters) => {
+      setFilters(newFilters);
+      corporationName = newFilters.corporation_name;
+      officeName = newFilters.office_name;
+      jobName = newFilters.job_name;
+      jobCategory = jobCategories
+        .filter((row) => {
+          return newFilters.job_category.includes(row.name);
+        })
+        .map((row) => row.id);
+      position = positions
+        .filter((row) => {
+          return newFilters.position.includes(row.name);
+        })
+        .map((row) => row.id);
+      employment = employments
+        .filter((row) => {
+          return newFilters.employment.includes(row.name);
+        })
+        .map((row) => row.id);
+      status = KEEP_STATUS_OPTIONS.filter((row) => {
+        return newFilters.status.includes(row.label);
+      }).map((row) => row.value);
+      router.push(createListUrl());
     },
-    [table]
+    [router]
   );
 
+  // 検索条件クリア
   const handleResetFilters = useCallback(() => {
     setFilters(defaultFilters);
-  }, []);
+    table.setPage(0);
+    table.setOrder("desc");
+    table.setOrderBy("id");
+    router.push(paths.admin.keep.root);
+  }, [router, table]);
+
+  // ページ変更
+  const handleChangePage = useCallback(
+    (newPage: number) => {
+      if (page > newPage + 1) {
+        // 前へ
+        page -= 1;
+      } else {
+        // 次へ
+        page += 1;
+      }
+      router.push(createListUrl());
+    },
+    [router, page]
+  );
+
+  // １ページあたりの行数変更
+  const handleCangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      limit = parseInt(event.target.value);
+      page = 1;
+      table.setRowsPerPage(limit);
+      table.setPage(0);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // ソート順変更
+  const handleChangeSort = useCallback(
+    (id: string) => {
+      const isAsc = table.orderBy === id && table.order === "asc";
+      if (id !== "") {
+        order = isAsc ? "desc" : "asc";
+        orderBy = id;
+      }
+      table.setOrderBy(orderBy);
+      table.setOrder(order);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // 検索後のURLを作成
+  const createListUrl = () => {
+    let url = paths.admin.keep.root;
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (corporationName) params.corporation_name = corporationName;
+    if (officeName) params.office_name = officeName;
+    if (jobName) params.job_name = jobName;
+    if (jobCategory.length > 0) params.job_category_id = jobCategory;
+    if (position.length > 0) params.position_id = position;
+    if (employment.length > 0) params.employment_id = employment;
+    if (status.length > 0) params.status = status;
+    if (page > 1) params.page = page;
+    params.limit = limit;
+    params.order = order == "asc" ? "asc" : "desc";
+    params.orderBy = orderBy;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    if (urlSearchParam) url += "?" + urlSearchParam;
+    return url;
+  };
 
   const handleCorporationViewRow = useCallback(
     (id: string) => {
@@ -164,29 +317,19 @@ export default function KeepListView() {
           <KeepTableToolbar
             filters={filters}
             onFilters={handleFilters}
+            searchLoading={keepsLoading}
+            onClearFilters={handleResetFilters}
             jobCategories={jobCategories}
             positions={positions}
             employments={employments}
             statusOptions={KEEP_STATUS_OPTIONS}
           />
 
-          {canReset && (
-            <KeepTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={dataFiltered.length}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
-
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
-              rowCount={tableData.length}
+              rowCount={keepsCount}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
@@ -204,9 +347,11 @@ export default function KeepListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={tableData.length}
+                  rowCount={keepsCount}
                   numSelected={table.selected.length}
-                  onSort={table.onSort}
+                  onSort={(id) => {
+                    handleChangeSort(id);
+                  }}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
@@ -222,39 +367,30 @@ export default function KeepListView() {
                     ))
                   ) : (
                     <>
-                      {dataFiltered
-                        .slice(
-                          table.page * table.rowsPerPage,
-                          table.page * table.rowsPerPage + table.rowsPerPage
-                        )
-                        .map((row) => (
-                          <KeepTableRow
-                            key={row.id}
-                            row={row}
-                            selected={table.selected.includes(row.id)}
-                            onSelectRow={() => table.onSelectRow(row.id)}
-                            onCorporationViewRow={() =>
-                              handleCorporationViewRow(row.corporation_id)
-                            }
-                            onOfficeViewRow={() =>
-                              handleOfficeViewRow(row.office_id)
-                            }
-                            onJobViewRow={() => handleJobViewRow(row.job_id)}
-                            onMemberViewRow={() =>
-                              handleMemberViewRow(row.member_id)
-                            }
-                          />
-                        ))}
+                      {tableData.map((row) => (
+                        <KeepTableRow
+                          key={row.id}
+                          row={row}
+                          selected={table.selected.includes(row.id)}
+                          onSelectRow={() => table.onSelectRow(row.id)}
+                          onCorporationViewRow={() =>
+                            handleCorporationViewRow(row.corporation_id)
+                          }
+                          onOfficeViewRow={() =>
+                            handleOfficeViewRow(row.office_id)
+                          }
+                          onJobViewRow={() => handleJobViewRow(row.job_id)}
+                          onMemberViewRow={() =>
+                            handleMemberViewRow(row.member_id)
+                          }
+                        />
+                      ))}
                     </>
                   )}
 
                   <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(
-                      table.page,
-                      table.rowsPerPage,
-                      tableData.length
-                    )}
+                    emptyRows={emptyRows(0, table.rowsPerPage, keepsCount)}
                   />
 
                   <TableNoData notFound={notFound} />
@@ -264,93 +400,18 @@ export default function KeepListView() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
-            page={table.page}
+            count={keepsCount}
+            page={page - 1}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
+            onPageChange={(event, newPage) => {
+              handleChangePage(newPage);
+            }}
+            onRowsPerPageChange={(event) => {
+              handleCangeRowsPerPage(event);
+            }}
           />
         </Card>
       </Container>
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IKeepItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IKeepTableFilters;
-}) {
-  const {
-    corporation_name,
-    office_name,
-    job_name,
-    job_category,
-    position,
-    employment,
-    status,
-  } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (corporation_name) {
-    inputData = inputData.filter(
-      (keep) =>
-        keep.corporation_name
-          .toLowerCase()
-          .indexOf(corporation_name.toLowerCase()) !== -1
-    );
-  }
-
-  if (office_name) {
-    inputData = inputData.filter(
-      (keep) =>
-        keep.office_name.toLowerCase().indexOf(office_name.toLowerCase()) !== -1
-    );
-  }
-
-  if (job_name) {
-    inputData = inputData.filter(
-      (keep) =>
-        keep.job_name.toLowerCase().indexOf(job_name.toLowerCase()) !== -1
-    );
-  }
-
-  if (job_category.length) {
-    inputData = inputData.filter((keep) =>
-      job_category.includes(keep.job_category_name)
-    );
-  }
-
-  if (position.length) {
-    inputData = inputData.filter((keep) =>
-      position.includes(keep.position_name)
-    );
-  }
-
-  if (employment.length) {
-    inputData = inputData.filter((keep) =>
-      employment.includes(keep.employment_name)
-    );
-  }
-
-  if (status.length) {
-    inputData = inputData.filter((keep) => status.includes(keep.status_name));
-  }
-
-  return inputData;
 }
