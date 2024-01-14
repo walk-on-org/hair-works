@@ -22,9 +22,28 @@ class MailmagazineConfigController extends Controller
     /**
      * メルマガ設定データ一覧取得
      */
-    public function index()
+    public function index(Request $request)
     {
-        $mailmagazine_configs = MailmagazineConfig::all();
+        $query = MailmagazineConfig::whereRaw('1 = 1');
+
+        // 検索条件指定
+        if ($request->title) {
+            $query = $query->where('mailmagazine_configs.title', 'LIKE', '%' . $request->title . '%');
+        }
+
+        // 件数取得
+        $count = $query->count();
+
+        // データ取得
+        if ($request->order && $request->orderBy) {
+            $query = $query->orderBy($request->orderBy, $request->order);
+        }
+        $limit = $request->limit ? intval($request->limit) : 10;
+        $page = $request->page ? intval($request->page) : 1;
+        $mailmagazine_configs = $query->offset(($page - 1) * $limit)
+            ->limit($limit)
+            ->get();
+
         foreach ($mailmagazine_configs as $m) {
             $m['deliver_job_type_name'] = MailmagazineConfig::DELIVER_JOB_TYPE[$m->deliver_job_type];
             $m['job_match_lp_job_category_name'] = MailmagazineConfig::JOB_MATCH_LP_JOB_CATEGORY[$m->job_match_lp_job_category];
@@ -86,7 +105,7 @@ class MailmagazineConfigController extends Controller
             }
             $m['m_change_time_names'] = $m_change_time_names;
         }
-        return response()->json(['mailmagazine_configs' => $mailmagazine_configs]);
+        return response()->json(['mailmagazine_configs' => $mailmagazine_configs, 'mailmagazine_configs_count' => $count]);
     }
 
     /**

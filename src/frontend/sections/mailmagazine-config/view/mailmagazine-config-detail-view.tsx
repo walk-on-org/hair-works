@@ -120,8 +120,14 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
         </Tabs>
 
         {currentTab === "basic" && (
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <Stack direction="row">
+          <Stack spacing={3} sx={{ p: 2 }}>
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 タイトル
               </Typography>
@@ -130,7 +136,13 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 送信求人種別
               </Typography>
@@ -139,7 +151,13 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 距離（km）
               </Typography>
@@ -148,7 +166,13 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 メール内求人件数上限
               </Typography>
@@ -160,8 +184,14 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
         )}
 
         {currentTab === "member" && (
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <Stack direction="row">
+          <Stack spacing={3} sx={{ p: 2 }}>
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 会員住所
               </Typography>
@@ -174,7 +204,13 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 希望職種
               </Typography>
@@ -183,7 +219,13 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 希望勤務地
               </Typography>
@@ -192,7 +234,13 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 希望勤務体系
               </Typography>
@@ -201,7 +249,13 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 保有資格
               </Typography>
@@ -210,7 +264,13 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 ステータス
               </Typography>
@@ -219,7 +279,13 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 希望転職時期
               </Typography>
@@ -228,7 +294,13 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
               <Typography variant="subtitle2" sx={{ width: 160 }}>
                 生まれ年
               </Typography>
@@ -249,9 +321,15 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
         )}
 
         {currentTab === "job" && (
-          <Stack spacing={3} sx={{ p: 3 }}>
-            <Stack direction="row">
-              <Typography variant="subtitle2" sx={{ width: 160 }}>
+          <Stack spacing={3} sx={{ p: 2 }}>
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
+              <Typography variant="subtitle2" sx={{ width: 300 }}>
                 送信対象法人
               </Typography>
               <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -259,8 +337,14 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
-              <Typography variant="subtitle2" sx={{ width: 160 }}>
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
+              <Typography variant="subtitle2" sx={{ width: 300 }}>
                 求人検索キーワード
               </Typography>
               <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -268,8 +352,14 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
-              <Typography variant="subtitle2" sx={{ width: 160 }}>
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
+              <Typography variant="subtitle2" sx={{ width: 300 }}>
                 求人職種
               </Typography>
               <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -277,8 +367,14 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
               </Typography>
             </Stack>
 
-            <Stack direction="row">
-              <Typography variant="subtitle2" sx={{ width: 160 }}>
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
+              <Typography variant="subtitle2" sx={{ width: 300 }}>
                 役職/役割が同じ求人のみ送信
               </Typography>
               <Label
@@ -288,13 +384,20 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
                     "info") ||
                   "default"
                 }
+                width="fit-content"
               >
                 {mailmagazineConfig.job_match_lp_job_category_name}
               </Label>
             </Stack>
 
-            <Stack direction="row">
-              <Typography variant="subtitle2" sx={{ width: 160 }}>
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
+              <Typography variant="subtitle2" sx={{ width: 300 }}>
                 雇用形態が同じ求人のみ送信
               </Typography>
               <Label
@@ -303,13 +406,20 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
                   (mailmagazineConfig.job_match_employment == "1" && "info") ||
                   "default"
                 }
+                width="fit-content"
               >
                 {mailmagazineConfig.job_match_employment_name}
               </Label>
             </Stack>
 
-            <Stack direction="row">
-              <Typography variant="subtitle2" sx={{ width: 160 }}>
+            <Stack
+              direction={{
+                xs: "column",
+                md: "row",
+              }}
+              rowGap={1}
+            >
+              <Typography variant="subtitle2" sx={{ width: 300 }}>
                 １つ目の求人以外は他企業求人から検索
               </Typography>
               <Label
@@ -319,6 +429,7 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
                     "info") ||
                   "default"
                 }
+                width="fit-content"
               >
                 {mailmagazineConfig.search_other_corporation_name}
               </Label>
