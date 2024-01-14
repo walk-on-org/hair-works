@@ -135,4 +135,8 @@ class Applicant extends Model
         }
         return implode("\n", $text_list);
     }
+
+    public function conversionHistories() {
+        return $this->hasMany('App\Models\ConversionHistory');
+    }
 }

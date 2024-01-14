@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Applicant;
 use App\Models\ApplicantContactHistory;
+use App\Library\RegisterRoot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -15,16 +16,42 @@ class ApplicantController extends Controller
     /**
      * 応募者データ一覧取得
      */
-    public function index()
+    public function index(Request $request)
     {
-        $applicants = DB::table('applicants')
-            ->join('jobs', 'applicants.job_id', '=', 'jobs.id')
-            ->join('offices', 'jobs.office_id', '=', 'offices.id')
-            ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+        $query = Applicant::join('jobs', function ($join) {
+                $join->on('applicants.job_id', '=', 'jobs.id')
+                    ->whereNull('jobs.deleted_at');
+            })
+            ->join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->join('corporations', function ($join) {
+                $join->on('offices.corporation_id', '=', 'corporations.id')
+                    ->whereNull('corporations.deleted_at');
+            })
             ->join('prefectures as office_prefectures', 'offices.prefecture_id', '=', 'office_prefectures.id')
             ->join('prefectures', 'applicants.prefecture_id', '=', 'prefectures.id')
             ->join('employments', 'applicants.employment_id', '=', 'employments.id')
-            ->join('prefectures as emp_prefectures', 'applicants.emp_prefecture_id', '=', 'emp_prefectures.id')
+            ->join('prefectures as emp_prefectures', 'applicants.emp_prefecture_id', '=', 'emp_prefectures.id');
+
+        // 検索条件指定
+        if ($request->corporation_name) {
+            $query = $query->where('corporations.name', 'LIKE', '%' . $request->corporation_name . '%');
+        }
+        if ($request->office_name) {
+            $query = $query->where('offices.name', 'LIKE', '%' . $request->office_name . '%');
+        }
+        if ($request->name) {
+            $query = $query->where('applicants.name', 'LIKE', '%' . $request->name . '%');
+        }
+
+        // 件数取得
+        $count = $query->count();
+
+        // データ取得
+        $query = $query->leftJoin('conversion_histories', 'applicants.id', '=', 'conversion_histories.applicant_id')
+            ->groupBy('applicants.id')
             ->select(
                 'applicants.id',
                 'offices.corporation_id',
@@ -55,7 +82,17 @@ class ApplicantController extends Controller
                 'emp_prefectures.name as emp_prefecture_name',
                 'applicants.note',
                 'applicants.created_at',
-            )
+                DB::raw('max(conversion_histories.utm_source) as utm_source'),
+                DB::raw('max(conversion_histories.utm_medium) as utm_medium'),
+                DB::raw('max(conversion_histories.utm_campaign) as utm_campaign'),
+            );
+        if ($request->order && $request->orderBy) {
+            $query = $query->orderBy($request->orderBy, $request->order);
+        }
+        $limit = $request->limit ? intval($request->limit) : 10;
+        $page = $request->page ? intval($request->page) : 1;
+        $applicants = $query->offset(($page - 1) * $limit)
+            ->limit($limit)
             ->get();
         foreach ($applicants as $a) {
             $a->status_name = Applicant::STATUS[$a->status];
@@ -63,8 +100,10 @@ class ApplicantController extends Controller
             $a->proposal_type_name = $a->proposal_type ? Applicant::PROPOSAL_TYPE[$a->proposal_type] : "";
             $a->change_time_name = $a->change_time ? Applicant::CHANGE_TIME[$a->change_time] : "";
             $a->retirement_time_name = $a->retirement_time ? Applicant::RETIREMENT_TIME[$a->retirement_time] : "";
+            // TODO 応募用に変更
+            $a->register_root = RegisterRoot::getRegisterRootByUtmParams($a->utm_source, $a->utm_medium, $a->utm_campaign, true);
         }
-        return response()->json(['applicants' => $applicants]);
+        return response()->json(['applicants' => $applicants, 'applicants_count' => $count]);
     }
 
     /**
@@ -93,25 +132,33 @@ class ApplicantController extends Controller
             $applicant['proposal_type_name'] = $applicant->proposal_type ? Applicant::PROPOSAL_TYPE[$applicant->proposal_type] : "";
             $applicant['change_time_name'] = $applicant->change_time ? Applicant::CHANGE_TIME[$applicant->change_time] : "";
             $applicant['retirement_time_name'] = $applicant->retirement_time ? Applicant::RETIREMENT_TIME[$applicant->retirement_time] : "";
-            
-             // 応募者資格
-             $applicant_qualifications = $applicant->qualifications->toArray();
-             $applicant['qualification_ids'] = array_column($applicant_qualifications, 'id');
-             $applicant['qualification_names'] = array_column($applicant_qualifications, 'name');
- 
-             // 応募者LP職種
-             $applicant_lp_job_categories = $applicant->lpJobCategories->toArray();
-             $applicant['lp_job_category_ids'] = array_column($applicant_lp_job_categories, 'id');
-             $applicant['lp_job_category_names'] = array_column($applicant_lp_job_categories, 'name');
- 
-             // 応募者コンタクト履歴
-             $applicant['applicant_contact_histories'] = $applicant->applicantContactHistories;
+        
+            // 応募者資格
+            $applicant_qualifications = $applicant->qualifications->toArray();
+            $applicant['qualification_ids'] = array_column($applicant_qualifications, 'id');
+            $applicant['qualification_names'] = array_column($applicant_qualifications, 'name');
 
-             // 応募者連絡可能日時
-             $applicant['applicant_proposal_datetimes'] = $applicant->applicantProposalDatetimes;
-             $applicant['applicant_proposal_datetimes_text'] = $applicant->applicantProposalDatetimesText();
+            // 応募者LP職種
+            $applicant_lp_job_categories = $applicant->lpJobCategories->toArray();
+            $applicant['lp_job_category_ids'] = array_column($applicant_lp_job_categories, 'id');
+            $applicant['lp_job_category_names'] = array_column($applicant_lp_job_categories, 'name');
  
-             return response()->json(['applicant' => $applicant]);            
+            // 応募者コンタクト履歴
+            $applicant['applicant_contact_histories'] = $applicant->applicantContactHistories;
+
+            // 応募者連絡可能日時
+            $applicant['applicant_proposal_datetimes'] = $applicant->applicantProposalDatetimes;
+            $applicant['applicant_proposal_datetimes_text'] = $applicant->applicantProposalDatetimesText();
+ 
+             // 登録経路
+            $conversion_histories = $applicant->conversionHistories;
+            foreach ($conversion_histories as $cvh) {
+                // TODO 応募用に
+                $applicant['register_root'] = RegisterRoot::getRegisterRootByUtmParams($cvh->utm_source, $cvh->utm_medium, $cvh->utm_campaign, true);
+                break;
+            }
+
+            return response()->json(['applicant' => $applicant]);            
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Applicant not found'], 404);
         }

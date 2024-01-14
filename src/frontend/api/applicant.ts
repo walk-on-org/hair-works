@@ -45,3 +45,46 @@ export function useGetApplicant(applicantId: string) {
 
   return memoizedValue;
 }
+
+// ----------------------------------------------------------------------
+
+export function useSearchApplicants(
+  corporation_name: string,
+  office_name: string,
+  name: string,
+  limit: number = 30,
+  page: number = 1,
+  orderBy: string = "id",
+  order: "asc" | "desc" = "desc"
+) {
+  const URL = [
+    endpoints.applicant.list,
+    {
+      params: {
+        corporation_name,
+        office_name,
+        name,
+        limit,
+        page,
+        orderBy,
+        order,
+      },
+    },
+  ];
+
+  const { data, isLoading, error, isValidating } = useSWR(URL, fetcher);
+
+  const memoizedValue = useMemo(
+    () => ({
+      applicants: (data?.applicants as IApplicantItem[]) || [],
+      applicantsCount: data?.applicants_count || 0,
+      applicantsLoading: isLoading,
+      applicantsError: error,
+      applicantsValidating: isValidating,
+      applicantsEmpty: !isLoading && !data?.applicants.length,
+    }),
+    [data?.applicants, error, isLoading, isValidating]
+  );
+
+  return memoizedValue;
+}

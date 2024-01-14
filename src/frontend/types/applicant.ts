@@ -38,7 +38,7 @@ export type IApplicantItem = {
   note: string;
   applicant_proposal_datetimes_text: string;
   applicant_contact_histories: IApplicantContactHistoryItem[];
-  // TODO 登録経路
+  register_root: string;
   created_at: Date;
   updated_at: Date;
 };

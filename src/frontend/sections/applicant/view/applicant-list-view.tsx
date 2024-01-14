@@ -1,6 +1,5 @@
 "use client";
 
-import isEqual from "lodash/isEqual";
 import { useState, useEffect, useCallback } from "react";
 
 import Card from "@mui/material/Card";
@@ -11,7 +10,7 @@ import TableContainer from "@mui/material/TableContainer";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
-import { useGetApplicants } from "@/api/applicant";
+import { useSearchApplicants } from "@/api/applicant";
 
 import Scrollbar from "@/components/scrollbar";
 import { useSettingsContext } from "@/components/settings";
@@ -20,7 +19,6 @@ import {
   useTable,
   emptyRows,
   TableNoData,
-  getComparator,
   TableSkeleton,
   TableEmptyRows,
   TableHeadCustom,
@@ -28,30 +26,30 @@ import {
   TablePaginationCustom,
 } from "@/components/table";
 
-import {
-  IApplicantItem,
-  IApplicantTableFilters,
-  IApplicantTableFilterValue,
-} from "@/types/applicant";
+import { IApplicantItem, IApplicantTableFilters } from "@/types/applicant";
 
 import ApplicantTableRow from "../applicant-table-row";
 import ApplicantTableToolbar from "../applicant-table-toolbar";
-import ApplicantTableFiltersResult from "../applicant-table-filters-result";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: "id", label: "応募者ID", width: 160 },
-  { id: "corporation", label: "法人", width: 160 },
-  { id: "office", label: "事業所", width: 160 },
-  { id: "office_prefecture", label: "事業所都道府県", width: 160 },
-  { id: "job", label: "求人", width: 160 },
-  { id: "job_recommend", label: "求人種類", width: 80 },
-  { id: "name", label: "氏名" },
-  { id: "applicant_date", label: "応募日時", width: 120 },
-  { id: "proposal_type", label: "申込種別", width: 120 },
-  { id: "status", label: "状態", width: 120 },
-  { id: "register_route", label: "登録経路", width: 120 },
+  { id: "corporation_name", label: "法人", width: 160, minWidth: 120 },
+  { id: "office_name", label: "事業所", width: 160, minWidth: 120 },
+  {
+    id: "office_prefecture_name",
+    label: "事業所都道府県",
+    width: 160,
+    minWidth: 80,
+  },
+  { id: "job_name", label: "求人", width: 160, minWidth: 120 },
+  { id: "job_recommend", label: "求人種類", width: 80, minWidth: 80 },
+  { id: "name", label: "氏名", minWidth: 80 },
+  { id: "created_at", label: "応募日時", width: 120, minWidth: 80 },
+  { id: "proposal_type", label: "申込種別", width: 120, minWidth: 80 },
+  { id: "status", label: "状態", width: 120, minWidth: 80 },
+  { id: "utm_source", label: "登録経路", width: 120, minWidth: 80 },
   { id: "", width: 88 },
 ];
 
@@ -62,51 +60,144 @@ const defaultFilters: IApplicantTableFilters = {
   // TODO 登録経路
 };
 
+type Props = {
+  corporationName: string;
+  officeName: string;
+  name: string;
+  page: number;
+  limit: number;
+  orderBy: string;
+  order: "asc" | "desc";
+};
+
 // ----------------------------------------------------------------------
 
-export default function ApplicantListView() {
+export default function ApplicantListView({
+  corporationName,
+  officeName,
+  name,
+  page,
+  limit,
+  orderBy,
+  order,
+}: Props) {
   const router = useRouter();
-  const table = useTable({ defaultOrderBy: "id" });
+  const table = useTable({
+    defaultOrderBy: orderBy,
+    defaultOrder: order,
+    defaultCurrentPage: 0,
+    defaultRowsPerPage: limit,
+  });
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IApplicantItem[]>([]);
-  const [filters, setFilters] = useState(defaultFilters);
+
+  // パラメータより検索条件を指定
+  let initFilters = defaultFilters;
+  initFilters.corporation_name = corporationName || "";
+  initFilters.office_name = officeName || "";
+  initFilters.name = name || "";
+  const [filters, setFilters] = useState(initFilters);
 
   // 応募者データ取得
-  const { applicants, applicantsLoading, applicantsEmpty } = useGetApplicants();
+  const { applicants, applicantsCount, applicantsLoading, applicantsEmpty } =
+    useSearchApplicants(
+      filters.corporation_name,
+      filters.office_name,
+      filters.name,
+      limit,
+      page,
+      orderBy,
+      order
+    );
 
   useEffect(() => {
-    if (applicants.length) {
-      setTableData(applicants);
-    }
+    setTableData(applicants);
   }, [applicants]);
-
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-  });
-
-  const dataInPage = dataFiltered.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
 
   const denseHeight = table.dense ? 60 : 80;
 
-  const canReset = !isEqual(defaultFilters, filters);
+  const notFound = !applicantsLoading && applicantsEmpty;
 
-  const notFound = (!dataFiltered.length && canReset) || applicantsEmpty;
-
+  // 検索
   const handleFilters = useCallback(
-    (name: string, value: IApplicantTableFilterValue) => {
-      table.onResetPage();
-      setFilters((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
+    (newFilters: IApplicantTableFilters) => {
+      setFilters(newFilters);
+      corporationName = newFilters.corporation_name;
+      officeName = newFilters.office_name;
+      name = newFilters.name;
+      router.push(createListUrl());
     },
-    [table]
+    [router]
   );
+
+  // 検索条件クリア
+  const handleResetFilters = useCallback(() => {
+    setFilters(defaultFilters);
+    table.setPage(0);
+    table.setOrder("desc");
+    table.setOrderBy("id");
+    router.push(paths.admin.applicant.root);
+  }, [router, table]);
+
+  // ページ変更
+  const handleChangePage = useCallback(
+    (newPage: number) => {
+      if (page > newPage + 1) {
+        // 前へ
+        page -= 1;
+      } else {
+        // 次へ
+        page += 1;
+      }
+      router.push(createListUrl());
+    },
+    [router, page]
+  );
+
+  // １ページあたりの行数変更
+  const handleCangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      limit = parseInt(event.target.value);
+      page = 1;
+      table.setRowsPerPage(limit);
+      table.setPage(0);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // ソート順変更
+  const handleChangeSort = useCallback(
+    (id: string) => {
+      const isAsc = table.orderBy === id && table.order === "asc";
+      if (id !== "") {
+        order = isAsc ? "desc" : "asc";
+        orderBy = id;
+      }
+      table.setOrderBy(orderBy);
+      table.setOrder(order);
+      router.push(createListUrl());
+    },
+    [router, table]
+  );
+
+  // 検索後のURLを作成
+  const createListUrl = () => {
+    let url = paths.admin.applicant.root;
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (corporationName) params.corporation_name = corporationName;
+    if (officeName) params.office_name = officeName;
+    if (name) params.name = name;
+    if (page > 1) params.page = page;
+    params.limit = limit;
+    params.order = order == "asc" ? "asc" : "desc";
+    params.orderBy = orderBy;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    if (urlSearchParam) url += "?" + urlSearchParam;
+    return url;
+  };
 
   const handleEditRow = useCallback(
     (id: string) => {
@@ -129,10 +220,6 @@ export default function ApplicantListView() {
     [router]
   );
 
-  const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
-
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -150,25 +237,18 @@ export default function ApplicantListView() {
         />
 
         <Card>
-          <ApplicantTableToolbar filters={filters} onFilters={handleFilters} />
-
-          {canReset && (
-            <ApplicantTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={dataFiltered.length}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
+          <ApplicantTableToolbar
+            filters={filters}
+            onFilters={handleFilters}
+            searchLoading={applicantsLoading}
+            onClearFilters={handleResetFilters}
+          />
 
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
-              rowCount={tableData.length}
+              rowCount={applicantsCount}
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
@@ -186,9 +266,11 @@ export default function ApplicantListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={tableData.length}
+                  rowCount={applicantsCount}
                   numSelected={table.selected.length}
-                  onSort={table.onSort}
+                  onSort={(id) => {
+                    handleChangeSort(id);
+                  }}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
@@ -204,22 +286,17 @@ export default function ApplicantListView() {
                     ))
                   ) : (
                     <>
-                      {dataFiltered
-                        .slice(
-                          table.page * table.rowsPerPage,
-                          table.page * table.rowsPerPage + table.rowsPerPage
-                        )
-                        .map((row) => (
-                          <ApplicantTableRow
-                            key={row.id}
-                            row={row}
-                            selected={table.selected.includes(row.id)}
-                            onSelectRow={() => table.onSelectRow(row.id)}
-                            onEditRow={() => handleEditRow(row.id)}
-                            onViewRow={() => handleViewRow(row.id)}
-                            onJobViewRow={() => handleJobViewRow(row.job_id)}
-                          />
-                        ))}
+                      {tableData.map((row) => (
+                        <ApplicantTableRow
+                          key={row.id}
+                          row={row}
+                          selected={table.selected.includes(row.id)}
+                          onSelectRow={() => table.onSelectRow(row.id)}
+                          onEditRow={() => handleEditRow(row.id)}
+                          onViewRow={() => handleViewRow(row.id)}
+                          onJobViewRow={() => handleJobViewRow(row.job_id)}
+                        />
+                      ))}
                     </>
                   )}
 
@@ -239,65 +316,18 @@ export default function ApplicantListView() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
-            page={table.page}
+            count={applicantsCount}
+            page={page - 1}
             rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
+            onPageChange={(event, newPage) => {
+              handleChangePage(newPage);
+            }}
+            onRowsPerPageChange={(event) => {
+              handleCangeRowsPerPage(event);
+            }}
           />
         </Card>
       </Container>
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IApplicantItem[];
-  comparator: (a: any, b: any) => number;
-  filters: IApplicantTableFilters;
-}) {
-  const { corporation_name, office_name, name } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (corporation_name) {
-    inputData = inputData.filter(
-      (applicant) =>
-        applicant.corporation_name
-          .toLowerCase()
-          .indexOf(corporation_name.toLowerCase()) !== -1
-    );
-  }
-
-  if (office_name) {
-    inputData = inputData.filter(
-      (applicant) =>
-        applicant.office_name
-          .toLowerCase()
-          .indexOf(office_name.toLowerCase()) !== -1
-    );
-  }
-
-  if (name) {
-    inputData = inputData.filter(
-      (applicant) =>
-        applicant.name.toLowerCase().indexOf(name.toLowerCase()) !== -1
-    );
-  }
-
-  return inputData;
 }

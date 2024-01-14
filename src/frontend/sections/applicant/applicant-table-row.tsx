@@ -42,7 +42,7 @@ export default function ApplicantTableRow({
     created_at,
     proposal_type_name,
     status_name,
-    // TODO 登録経路
+    register_root,
   } = row;
   const popover = usePopover();
 
@@ -62,7 +62,12 @@ export default function ApplicantTableRow({
         <TableCell>{office_prefecture_name}</TableCell>
 
         <TableCell>
-          <Link noWrap onClick={onJobViewRow} sx={{ cursor: "pointer" }}>
+          <Link
+            noWrap
+            variant="subtitle2"
+            onClick={onJobViewRow}
+            sx={{ cursor: "pointer" }}
+          >
             {job_name}
           </Link>
         </TableCell>
@@ -70,7 +75,12 @@ export default function ApplicantTableRow({
         <TableCell>{job_recommend_name}</TableCell>
 
         <TableCell>
-          <Link noWrap onClick={onViewRow} sx={{ cursor: "pointer" }}>
+          <Link
+            noWrap
+            variant="subtitle2"
+            onClick={onViewRow}
+            sx={{ cursor: "pointer" }}
+          >
             {name}
           </Link>
         </TableCell>
@@ -85,7 +95,7 @@ export default function ApplicantTableRow({
           </Label>
         </TableCell>
 
-        <TableCell>TODO</TableCell>
+        <TableCell>{register_root}</TableCell>
 
         <TableCell align="right">
           <IconButton
