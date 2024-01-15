@@ -25,6 +25,10 @@ export default function TablePaginationCustom({
     <Box sx={{ position: "relative", ...sx }}>
       <TablePagination
         rowsPerPageOptions={rowsPerPageOptions}
+        labelDisplayedRows={({ from, to, count, page }) => {
+          return `${count}件中 ${from} - ${to}件のデータを表示しています`;
+        }}
+        labelRowsPerPage="1ページ当たりの件数:"
         component="div"
         {...other}
         sx={{
