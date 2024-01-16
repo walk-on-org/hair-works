@@ -121,6 +121,282 @@ class JobController extends Controller
     }
 
     /**
+     * 求人データCSVダウンロード
+     */
+    public function downloadCsv(Request $request)
+    {
+        // CSVファイル作成コールバック
+        $callback = function () use ($request) {
+            // CSVファイル作成
+            $csv = fopen('php://output', 'w');
+
+            // CSVヘッダ
+            $columns = [
+                'id' => '求人ID',
+                'name' => '求人名',
+                'corporation_id' => '法人ID',
+                'office_name' => '事業所',
+                'status' => '状態',
+                'pickup' => 'PICKUP求人',
+                'private' => '非公開求人',
+                'recommend' => 'オススメ求人',
+                'indeed_private' => 'indeed非公開',
+                'minimum_wage_ok' => '最低賃金を今後チェックしない',
+                'job_category' => '職種',
+                'position' => '役職/役割',
+                'employment' => '雇用形態',
+                'm_salary_lower' => '月給下限',
+                'm_salary_upper' => '月給上限',
+                't_salary_lower' => '時給下限',
+                't_salary_upper' => '時給上限',
+                'd_salary_lower' => '日給下限',
+                'd_salary_upper' => '日給上限',
+                'commission_lower' => '歩合下限',
+                'commission_upper' => '歩合上限',
+                'salary' => '給与',
+                'work_time' => '勤務時間',
+                'job_description' => '仕事内容',
+                'holiday_id' => '休日',
+                'holiday' => '休日メモ',
+                'welfare' => '福利厚生',
+                'qualification' => '必須免許',
+                'entry_requirement' => '必須免許・資格メモ',
+                'catch_copy' => 'キャッチコピー',
+                'recommend_point' => 'おすすめポイント',
+                'salon_message' => 'サロンからのメッセージ',
+                'commitment_term' => '求人こだわり条件',
+                'preview_url' => 'プレビューURL',
+                'plan' => '契約プラン',
+                'start_date' => '掲載開始日',
+                'end_plan_date' => '掲載終了日',
+                'end_date' => '掲載停止日',
+            ];
+            // SJIS変換
+            if ($request->char_code == 'ShiftJIS') {
+                mb_convert_variables('SJIS-win', 'UTF-8', $columns);
+            }
+            // ヘッダを追加
+            fputcsv($csv, $columns);
+
+            // CSVデータ
+            $contract_subquery = DB::table('contracts as contracts1')
+                ->leftJoin('contracts as contracts2', function ($join) {
+                    $join->on('contracts1.corporation_id', '=', 'contracts2.corporation_id');
+                    $join->on('contracts1.id', '<', 'contracts2.id');
+                })
+                ->join('plans', 'contracts1.plan_id', '=', 'plans.id')
+                ->whereNull('contracts2.id')
+                ->select(
+                    'contracts1.id',
+                    'contracts1.corporation_id',
+                    'contracts1.plan_id',
+                    'plans.name as plan_name',
+                    'contracts1.start_date',
+                    'contracts1.end_plan_date',
+                    'contracts1.end_date',
+                );
+            $query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+                ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+                ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
+                ->join('positions', 'jobs.position_id', '=', 'positions.id')
+                ->join('employments', 'jobs.employment_id', '=', 'employments.id')
+                ->whereNull('offices.deleted_at')
+                ->whereNull('corporations.deleted_at');
+            // 検索条件指定
+            if ($request->corporation_name) {
+                $query = $query->where('corporations.name', 'LIKE', '%' . $request->corporation_name . '%');
+            }
+            if ($request->office_name) {
+                $query = $query->where('offices.name', 'LIKE', '%' . $request->office_name . '%');
+            }
+            if ($request->job_name) {
+                $query = $query->where('jobs.name', 'LIKE', '%' . $request->job_name . '%');
+            }
+            if ($request->status) {
+                $status = is_array($request->status) ? $request->status : explode(',', $request->status);
+                $query = $query->whereIn('jobs.status', $status);
+            }
+            if ($request->job_category_id) {
+                $job_category_id = is_array($request->job_category_id) ? $request->job_category_id : explode(',', $request->job_category_id);
+                $query = $query->whereIn('jobs.job_category_id', $job_category_id);
+            }
+            if ($request->position_id) {
+                $position_id = is_array($request->position_id) ? $request->position_id : explode(',', $request->position_id);
+                $query = $query->whereIn('jobs.position_id', $position_id);
+            }
+            if ($request->employment_id) {
+                $employment_id = is_array($request->employment_id) ? $request->employment_id : explode(',', $request->employment_id);
+                $query = $query->whereIn('jobs.employment_id', $employment_id);
+            }
+
+            // 選択チェック指定
+            if ($request->job_ids) {
+                $job_ids = is_array($request->job_ids) ? $request->job_ids : explode(',', $request->job_ids);
+                $query = $query->whereIn('jobs.id', $job_ids);
+            }
+            // データ取得
+            $jobs = $query->leftJoin(DB::raw("({$contract_subquery->toSql()}) as latest_contracts"), 'corporations.id', '=', 'latest_contracts.corporation_id')
+                ->groupBy('jobs.id')
+                ->groupBy('latest_contracts.id')
+                ->select(
+                    'jobs.id',
+                    'jobs.name',
+                    'offices.corporation_id',
+                    'offices.name as office_name',
+                    'jobs.status',
+                    'jobs.pickup',
+                    'jobs.private',
+                    'jobs.recommend',
+                    'jobs.indeed_private',
+                    'jobs.minimum_wage_ok',
+                    'job_categories.name as job_category_name',
+                    'positions.name as position_name',
+                    'employments.name as employment_name',
+                    'jobs.m_salary_lower',
+                    'jobs.m_salary_upper',
+                    'jobs.t_salary_lower',
+                    'jobs.t_salary_upper',
+                    'jobs.d_salary_lower',
+                    'jobs.d_salary_upper',
+                    'jobs.commission_lower',
+                    'jobs.commission_upper',
+                    'jobs.salary',
+                    'jobs.work_time',
+                    'jobs.job_description',
+                    'jobs.holiday',
+                    'jobs.welfare',
+                    'jobs.entry_requirement',
+                    'jobs.catch_copy',
+                    'jobs.recommend_point',
+                    'jobs.salon_message',
+                    'latest_contracts.plan_name',
+                    'latest_contracts.start_date',
+                    'latest_contracts.end_plan_date',
+                    'latest_contracts.end_date',
+                )
+                ->orderBy('corporations.id', 'desc')
+                ->get();
+
+            // 関連情報を取得
+            $job_ids = array_column($jobs->toArray(), 'id');
+            // 休日
+            $job_holidays = JobHoliday::join('holidays', 'job_holidays.holiday_id', '=', 'holidays.id')
+                ->whereIn('job_holidays.job_id', $job_ids)
+                ->select(
+                    'job_holidays.job_id',
+                    'holidays.name',
+                )
+                ->get();
+            // 必須免許
+            $job_qualifications = JobQualification::join('qualifications', 'job_qualifications.qualification_id', '=', 'qualifications.id')
+                ->whereIn('job_qualifications.job_id', $job_ids)
+                ->select(
+                    'job_qualifications.job_id',
+                    'qualifications.name',
+                )
+                ->get();
+            // こだわり条件
+            $job_commitment_terms = JobCommitmentTerm::join('commitment_terms', 'job_commitment_terms.commitment_term_id', '=', 'commitment_terms.id')
+                ->whereIn('job_commitment_terms.job_id', $job_ids)
+                ->select(
+                    'job_commitment_terms.job_id',
+                    'commitment_terms.name',
+                )
+                ->get();
+
+            foreach ($jobs as $j) {
+                // 休日の整形
+                $holiday_list = [];
+                foreach ($job_holidays as $holiday) {
+                    if ($holiday->job_id != $j->id) {
+                        continue;
+                    }
+                    $holiday_list[] = $holiday->name;
+                }
+
+                // 必須免許の整形
+                $qualification_list = [];
+                foreach ($job_qualifications as $qualification) {
+                    if ($qualification->job_id != $j->id) {
+                        continue;
+                    }
+                    $qualification_list[] = $qualification->name;
+                }
+
+                // こだわり条件の整形
+                $commitment_term_list = [];
+                foreach ($job_commitment_terms as $commitment_term) {
+                    if ($commitment_term->job_id != $j->id) {
+                        continue;
+                    }
+                    $commitment_term_list[] = $commitment_term->name;
+                }
+
+                $job_data = [
+                    'id' => $j->id,
+                    'name' => $j->name,
+                    'corporation_id' => $j->corporation_id,
+                    'office_name' => $j->office_name,
+                    'status' => Job::STATUS[$j->status],
+                    'pickup' => $j->pickup ? true : false,
+                    'private' => $j->private ? true : false,
+                    'recommend' => $j->recommend ? true : false,
+                    'indeed_private' => $j->indeed_private ? true : false,
+                    'minimum_wage_ok' => $j->minimum_wage_ok ? true : false,
+                    'job_category' => $j->job_category_name,
+                    'position' => $j->position_name,
+                    'employment' => $j->employment_name,
+                    'm_salary_lower' => $j->m_salary_lower,
+                    'm_salary_upper' => $j->m_salary_upper,
+                    't_salary_lower' => $j->t_salary_lower,
+                    't_salary_upper' => $j->t_salary_upper,
+                    'd_salary_lower' => $j->d_salary_lower,
+                    'd_salary_upper' => $j->d_salary_upper,
+                    'commission_lower' => $j->commission_lower,
+                    'commission_upper' => $j->commission_upper,
+                    'salary' => $j->salary,
+                    'work_time' => $j->work_time,
+                    'job_description' => $j->job_description,
+                    'holiday_id' => implode('|', $holiday_list),
+                    'holiday' => $j->holiday,
+                    'welfare' => $j->welfare,
+                    'qualification' => implode('|', $qualification_list),
+                    'entry_requirement' => $j->entry_requirement,
+                    'catch_copy' => $j->catch_copy,
+                    'recommend_point' => $j->recommend_point,
+                    'salon_message' => $j->salon_message,
+                    'commitment_term' => implode('|', $commitment_term_list),
+                    'preview_url' => 'TODO',
+                    'plan' => $j->plan_name,
+                    'start_date' => $j->start_date ? date('Y/m/d', strtotime($j->start_date)) : '',
+                    'end_plan_date' => $j->end_plan_date ? date('Y/m/d', strtotime($j->end_plan_date)) : '',
+                    'end_date' => $j->end_date ? date('Y/m/d', strtotime($j->end_date)) : '',
+                ];
+                // SJIS変換
+                if ($request->char_code == 'ShiftJIS') {
+                    mb_convert_variables('SJIS-win', 'UTF-8', $job_data);
+                }
+                // CSVファイルのデータを追加
+                fputcsv($csv, $job_data);
+            }
+
+            // CSV閉じる
+            fclose($csv);
+        };
+
+        // ファイル名
+        $filename = 'jobs-' . date('Y-m-d') . '.csv';
+
+        // レスポンスヘッダー情報
+        $response_header = [
+            'Content-type' => 'text/csv',
+            'Access-Control-Expose-Headers' => 'Content-Disposition'
+        ];
+
+        return response()->streamDownload($callback, $filename, $response_header);
+    }
+
+    /**
      * 求人データ取得
      */
     public function show($id)

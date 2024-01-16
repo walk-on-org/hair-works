@@ -110,6 +110,128 @@ class CorporationController extends Controller
     }
 
     /**
+     * 法人データCSVダウンロード
+     */
+    public function downloadCsv(Request $request)
+    {
+        // CSVファイル作成コールバック
+        $callback = function () use ($request) {
+            // CSVファイル作成
+            $csv = fopen('php://output', 'w');
+
+            // CSVヘッダ
+            $columns = [
+                'name' => '法人名',
+                'prefecture' => '都道府県',
+                'office_count' => '事業所数',
+                'job_count' => '求人数',
+                'applicant_count' => '応募数',
+                'plan' => '契約プラン',
+                'start_date' => '掲載開始日',
+                'end_plan_date' => '掲載終了日',
+                'end_date' => '掲載停止日',
+            ];
+            // SJIS変換
+            if ($request->char_code == 'ShiftJIS') {
+                mb_convert_variables('SJIS-win', 'UTF-8', $columns);
+            }
+            // ヘッダを追加
+            fputcsv($csv, $columns);
+
+            // CSVデータ
+            $contract_subquery = DB::table('contracts as contracts1')
+                ->leftJoin('contracts as contracts2', function ($join) {
+                    $join->on('contracts1.corporation_id', '=', 'contracts2.corporation_id');
+                    $join->on('contracts1.id', '<', 'contracts2.id');
+                })
+                ->join('plans', 'contracts1.plan_id', '=', 'plans.id')
+                ->whereNull('contracts2.id')
+                ->select(
+                    'contracts1.id',
+                    'contracts1.corporation_id',
+                    'contracts1.plan_id',
+                    'plans.name as plan_name',
+                    'contracts1.start_date',
+                    'contracts1.end_plan_date',
+                    'contracts1.end_date',
+                );
+            $query = Corporation::join('prefectures', 'corporations.prefecture_id', '=', 'prefectures.id')
+                ->join('cities', 'corporations.city_id', '=', 'cities.id');
+            // 検索条件指定
+            if ($request->corporation_name) {
+                $query = $query->where('corporations.name', 'LIKE', '%' . $request->corporation_name . '%');
+            }
+            // 選択チェック指定
+            if ($request->corporation_ids) {
+                $corporation_ids = is_array($request->corporation_ids) ? $request->corporation_ids : explode(',', $request->corporation_ids);
+                $query = $query->whereIn('corporations.id', $corporation_ids);
+            }
+            // データ取得
+            $corporations = $query->leftJoin(DB::raw("({$contract_subquery->toSql()}) as latest_contracts"), 'corporations.id', '=', 'latest_contracts.corporation_id')
+                ->leftJoin('offices', function ($join) {
+                    $join->on('corporations.id', '=', 'offices.corporation_id')
+                        ->whereNull('offices.deleted_at');
+                })
+                ->leftJoin('jobs', function ($join) {
+                    $join->on('offices.id', '=', 'jobs.office_id')
+                        ->whereNull('offices.deleted_at');
+                })
+                ->leftJoin('applicants', function ($join) {
+                    $join->on('jobs.id', '=', 'applicants.job_id')
+                        ->whereNull('applicants.deleted_at');
+                })
+                ->groupBy('corporations.id')
+                ->groupBy('latest_contracts.id')
+                ->select(
+                    'corporations.name',
+                    'prefectures.name as prefecture_name',
+                    DB::raw('count(distinct offices.id) as office_count'),
+                    DB::raw('count(distinct jobs.id) as job_count'),
+                    DB::raw('count(distinct applicants.id) as applicant_count'),
+                    'latest_contracts.plan_name',
+                    'latest_contracts.start_date',
+                    'latest_contracts.end_plan_date',
+                    'latest_contracts.end_date',
+                )
+                ->orderBy('corporations.id', 'desc')
+                ->get();
+            foreach ($corporations as $c) {
+                $corporation_data = [
+                    'name' => $c->name,
+                    'prefecture' => $c->prefecture_name,
+                    'office_count' => $c->office_count,
+                    'job_count' => $c->job_count,
+                    'applicant_count' => $c->applicant_count,
+                    'plan' => $c->plan_name,
+                    'start_date' => $c->start_date ? date('Y/m/d', strtotime($c->start_date)) : '',
+                    'end_plan_date' => $c->end_plan_date ? date('Y/m/d', strtotime($c->end_plan_date)) : '',
+                    'end_date' => $c->end_date ? date('Y/m/d', strtotime($c->end_date)) : '',
+                ];
+                // SJIS変換
+                if ($request->char_code == 'ShiftJIS') {
+                    mb_convert_variables('SJIS-win', 'UTF-8', $corporation_data);
+                }
+                // CSVファイルのデータを追加
+                fputcsv($csv, $corporation_data);
+            }
+
+            // CSV閉じる
+            fclose($csv);
+        };
+
+        // ファイル名
+        $filename = 'corporations-' . date('Y-m-d') . '.csv';
+
+        // レスポンスヘッダー情報
+        $response_header = [
+            'Content-type' => 'text/csv',
+            'Access-Control-Expose-Headers' => 'Content-Disposition'
+        ];
+
+        return response()->streamDownload($callback, $filename, $response_header);
+    }
+
+    /**
      * 法人データ取得
      */
     public function show($id)

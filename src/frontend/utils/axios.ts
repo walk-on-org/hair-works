@@ -183,6 +183,7 @@ export const endpoints = {
     update: (id: string) => `/api/admin/corporations/update/${id}`,
     destroy: (id: string) => `/api/admin/corporations/destroy/${id}`,
     destroyMultiple: "/api/admin/corporations/destroy_multiple",
+    downloadCsv: "/api/admin/corporations/download/csv",
   },
   office: {
     list: "/api/admin/offices",
@@ -191,6 +192,7 @@ export const endpoints = {
     update: (id: string) => `/api/admin/offices/update/${id}`,
     destroy: (id: string) => `/api/admin/offices/destroy/${id}`,
     destroyMultiple: "/api/admin/offices/destroy_multiple",
+    downloadCsv: "/api/admin/offices/download/csv",
   },
   job: {
     list: "/api/admin/jobs",
@@ -199,6 +201,7 @@ export const endpoints = {
     update: (id: string) => `/api/admin/jobs/update/${id}`,
     destroy: (id: string) => `/api/admin/jobs/destroy/${id}`,
     destroyMultiple: "/api/admin/jobs/destroy_multiple",
+    downloadCsv: "/api/admin/jobs/download/csv",
   },
   member: {
     list: "/api/admin/members",
@@ -206,11 +209,13 @@ export const endpoints = {
     update: (id: string) => `/api/admin/members/update/${id}`,
     destroy: (id: string) => `/api/admin/members/destroy/${id}`,
     destroyMultiple: "/api/admin/members/destroy_multiple",
+    downloadCsv: "/api/admin/members/download/csv",
   },
   applicant: {
     list: "/api/admin/applicants",
     detail: (id: string) => `/api/admin/applicants/${id}`,
     update: (id: string) => `/api/admin/applicants/update/${id}`,
+    downloadCsv: "/api/admin/applicants/download/csv",
   },
   inquiry: {
     list: "/api/admin/inquiries",
@@ -218,6 +223,7 @@ export const endpoints = {
     update: (id: string) => `/api/admin/inquiries/update/${id}`,
     destroy: (id: string) => `/api/admin/inquiries/destroy/${id}`,
     destroyMultiple: "/api/admin/inquiries/destroy_multiple",
+    downloadCsv: "/api/admin/inquiries/download/csv",
   },
   article: {
     list: "/api/admin/articles",
@@ -237,6 +243,7 @@ export const endpoints = {
   },
   conversionHistory: {
     list: "/api/admin/conversion_histories",
+    downloadCsv: "/api/admin/conversion_histories/download/csv",
   },
   keep: {
     list: "/api/admin/keeps",

@@ -86,6 +86,235 @@ class OfficeController extends Controller
     }
 
     /**
+     * 事業所データCSVダウンロード
+     */
+    public function downloadCsv(Request $request)
+    {
+        // CSVファイル作成コールバック
+        $callback = function () use ($request) {
+            // CSVファイル作成
+            $csv = fopen('php://output', 'w');
+
+            // CSVヘッダ
+            $columns = [
+                'id' => '事業所ID',
+                'name' => '事業所名',
+                'corporation_id' => '法人ID',
+                'corporation_name' => '法人名',
+                'postcode' => '郵便番号',
+                'prefecture' => '都道府県',
+                'city' => '市区町村',
+                'address' => '住所',
+                'tel' => '電話番号',
+                'fax' => 'FAX番号',
+                'open_date' => '開店・リニューアル日',
+                'business_time' => '営業時間',
+                'regular_holiday' => '定休日',
+                'floor_space' => '坪数 (坪)',
+                'seat_num' => 'セット面 (面)',
+                'shampoo_stand' => 'シャンプー台',
+                'staff' => 'スタッフ (人)',
+                'new_customer_ratio' => '新規客割合 (％)',
+                'cut_unit_price' => '標準カット単価 (円)',
+                'customer_unit_price' => '顧客単価 (円)',
+                'clientele' => '客層',
+                'passive_smoking' => '受動喫煙対策',
+                'external_url' => 'サロンURL',
+                'sns_url' => 'SNSリンク',
+                'access' => '事業所アクセス',
+                'plan' => '掲載プラン',
+                'start_date' => '掲載開始日',
+                'end_plan_date' => '掲載終了日',
+                'end_date' => '掲載停止日',
+                'job_count' => '全求人数',
+                'publish_job_count' => '掲載中求人数',
+            ];
+            // SJIS変換
+            if ($request->char_code == 'ShiftJIS') {
+                mb_convert_variables('SJIS-win', 'UTF-8', $columns);
+            }
+            // ヘッダを追加
+            fputcsv($csv, $columns);
+
+            // CSVデータ
+            $contract_subquery = DB::table('contracts as contracts1')
+                ->leftJoin('contracts as contracts2', function ($join) {
+                    $join->on('contracts1.corporation_id', '=', 'contracts2.corporation_id');
+                    $join->on('contracts1.id', '<', 'contracts2.id');
+                })
+                ->join('plans', 'contracts1.plan_id', '=', 'plans.id')
+                ->whereNull('contracts2.id')
+                ->select(
+                    'contracts1.id',
+                    'contracts1.corporation_id',
+                    'contracts1.plan_id',
+                    'plans.name as plan_name',
+                    'contracts1.start_date',
+                    'contracts1.end_plan_date',
+                    'contracts1.end_date',
+                );
+            $query = Office::join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+                ->join('prefectures', 'offices.prefecture_id', '=', 'prefectures.id')
+                ->join('cities', 'offices.city_id', '=', 'cities.id')
+                ->whereNull('corporations.deleted_at');
+
+            // 検索条件指定
+            if ($request->corporation_name) {
+                $query = $query->where('corporations.name', 'LIKE', '%' . $request->corporation_name . '%');
+            }
+            if ($request->office_name) {
+                $query = $query->where('offices.name', 'LIKE', '%' . $request->office_name . '%');
+            }
+            // 選択チェック指定
+            if ($request->office_ids) {
+                $office_ids = is_array($request->office_ids) ? $request->office_ids : explode(',', $request->office_ids);
+                $query = $query->whereIn('offices.id', $office_ids);
+            }
+            // データ取得
+            $offices = $query->leftJoin(DB::raw("({$contract_subquery->toSql()}) as latest_contracts"), 'corporations.id', '=', 'latest_contracts.corporation_id')
+                ->leftJoin('jobs', function ($join) {
+                    $join->on('offices.id', '=', 'jobs.office_id')
+                        ->whereNull('jobs.deleted_at');
+                })
+                ->groupBy('offices.id')
+                ->groupBy('latest_contracts.id')
+                ->select(
+                    'offices.id',
+                    'offices.name',
+                    'offices.corporation_id',
+                    'corporations.name as corporation_name',
+                    'prefectures.name as prefecture_name',
+                    'cities.name as city_name',
+                    'offices.address',
+                    'offices.tel',
+                    'offices.fax',
+                    'offices.open_date',
+                    'offices.business_time',
+                    'offices.regular_holiday',
+                    'offices.floor_space',
+                    'offices.seat_num',
+                    'offices.shampoo_stand',
+                    'offices.staff',
+                    'offices.new_customer_ratio',
+                    'offices.cut_unit_price',
+                    'offices.customer_unit_price',
+                    'offices.passive_smoking',
+                    'offices.external_url',
+                    'offices.sns_url',
+                    'latest_contracts.plan_name',
+                    'latest_contracts.start_date',
+                    'latest_contracts.end_plan_date',
+                    'latest_contracts.end_date',
+                    DB::raw('count(distinct jobs.id) as job_count'),
+                    DB::raw('count(distinct case when jobs.status = 10 then jobs.id else null end) as publish_job_count'),
+                )
+                ->orderBy('offices.id', 'desc')
+                ->get();
+
+            // 関連情報を取得
+            $office_ids = array_column($offices->toArray(), 'id');
+            // 客層
+            $office_clienteles = OfficeClientele::whereIn('office_clienteles.office_id', $office_ids)
+                ->select(
+                    'office_clienteles.office_id',
+                    'office_clienteles.clientele',
+                    'office_clienteles.othertext',
+                )
+                ->get();
+            // アクセス
+            $office_accesses = OfficeAccess::join('lines', 'office_accesses.line_id', '=', 'lines.id')
+                ->join('stations', 'office_accesses.station_id', '=', 'stations.id')
+                ->whereIn('office_accesses.office_id', $office_ids)
+                ->where('lines.status', 0)
+                ->where('stations.status', 0)
+                ->select(
+                    'office_accesses.office_id',
+                    'office_accesses.line_id',
+                    'lines.name as line_name',
+                    'office_accesses.station_id',
+                    'stations.name as station_name',
+                    'office_accesses.move_type',
+                    'office_accesses.time',
+                    'office_accesses.note',
+                )
+                ->get();
+
+            foreach ($offices as $o) {
+                // 客層の整形
+                $clientele_list = [];
+                foreach ($office_clienteles as $clientele) {
+                    if ($clientele->office_id != $o->id) {
+                        continue;
+                    }
+                    $clientele_list[] = $clientele->clientele == 99 ? $clientele->othertext : OfficeClientele::CLIENTELE[$clientele->clientele];
+                }
+
+                // アクセスの整形
+                $access_list = [];
+                foreach ($office_accesses as $access) {
+                    if ($access->office_id != $o->id) {
+                        continue;
+                    }
+                    $access_list[] = $access->line_name . ' ' . $access->station_name . ' ' . OfficeAccess::MOVE_TYPE[$access->move_type] . ' ' . $access->time . ' ' . $access->note;
+                }
+
+                $office_data = [
+                    'id' => $o->id,
+                    'name' => $o->name,
+                    'corporation_id' => $o->corporation_id,
+                    'corporation_name' => $o->corporation_name,
+                    'prefecture' => $o->prefecture_name,
+                    'city' => $o->city_name,
+                    'address' => $o->address,
+                    'tel' => $o->tel,
+                    'fax' => $o->fax,
+                    'open_date' => $o->open_date,
+                    'business_time' => $o->business_time,
+                    'regular_holiday' => $o->regular_holiday,
+                    'floor_space' => $o->floor_space,
+                    'seat_num' => $o->seat_num,
+                    'shampoo_stand' => $o->shampoo_stand,
+                    'staff' => $o->staff,
+                    'new_customer_ratio' => $o->new_customer_ratio,
+                    'cut_unit_price' => $o->cut_unit_price,
+                    'customer_unit_price' => $o->customer_unit_price,
+                    'clientele' => implode('|', $clientele_list),
+                    'passive_smoking' => Office::PASSIVE_SMOKING[$o->passive_smoking],
+                    'external_url' => $o->external_url,
+                    'sns_url' => $o->sns_url,
+                    'access' => implode('|', $access_list),
+                    'plan' => $o->plan_name,
+                    'start_date' => $o->start_date ? date('Y/m/d', strtotime($o->start_date)) : '',
+                    'end_plan_date' => $o->end_plan_date ? date('Y/m/d', strtotime($o->end_plan_date)) : '',
+                    'end_date' => $o->end_date ? date('Y/m/d', strtotime($o->end_date)) : '',
+                    'job_count' => $o->job_count,
+                    'publish_job_count' => $o->publish_job_count,
+                ];
+                // SJIS変換
+                if ($request->char_code == 'ShiftJIS') {
+                    mb_convert_variables('SJIS-win', 'UTF-8', $office_data);
+                }
+                // CSVファイルのデータを追加
+                fputcsv($csv, $office_data);
+            }
+
+            // CSV閉じる
+            fclose($csv);
+        };
+
+        // ファイル名
+        $filename = 'offices-' . date('Y-m-d') . '.csv';
+
+        // レスポンスヘッダー情報
+        $response_header = [
+            'Content-type' => 'text/csv',
+            'Access-Control-Expose-Headers' => 'Content-Disposition'
+        ];
+
+        return response()->streamDownload($callback, $filename, $response_header);
+    }
+
+    /**
      * 事業所データ取得
      */
     public function show($id)

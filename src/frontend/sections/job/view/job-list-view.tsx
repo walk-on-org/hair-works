@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { saveAs } from "file-saver";
 
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
@@ -11,6 +12,9 @@ import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
 import IconButton from "@mui/material/IconButton";
 import TableContainer from "@mui/material/TableContainer";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import Typography from "@mui/material/Typography";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
@@ -44,6 +48,7 @@ import JobTableRow from "../job-table-row";
 import JobTableToolbar from "../job-table-toolbar";
 import axios, { endpoints } from "@/utils/axios";
 import { JOB_STATUS_OPTIONS } from "@/config-global";
+import { EXPORT_CHAR_CODE_OPTIONS } from "@/config-global";
 
 // ----------------------------------------------------------------------
 
@@ -106,6 +111,10 @@ export default function JobListView({
     defaultRowsPerPage: limit,
   });
   const confirm = useBoolean();
+  const exportCsv = useBoolean();
+  const [exportCharCode, setExportCharCode] = useState(
+    EXPORT_CHAR_CODE_OPTIONS[0].value
+  );
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IJobItem[]>([]);
   const { enqueueSnackbar } = useSnackbar();
@@ -346,6 +355,64 @@ export default function JobListView({
     [router]
   );
 
+  // CSVエクスポート文字コード変更
+  const handleChangeExportCharCode = (event: SelectChangeEvent<string[]>) => {
+    setExportCharCode(
+      typeof event.target.value === "string"
+        ? event.target.value
+        : event.target.value.join(",")
+    );
+  };
+  // CSV出力
+  const handleExportCsv = useCallback(() => {
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (corporationName) params.corporation_name = corporationName;
+    if (officeName) params.office_name = officeName;
+    if (jobName) params.job_name = jobName;
+    if (jobCategory.length > 0) params.job_category_id = jobCategory;
+    if (position.length > 0) params.position_id = position;
+    if (employment.length > 0) params.employment_id = employment;
+    if (status.length > 0) params.status = status;
+    if (table.selected) params.job_ids = table.selected;
+    params.char_code = exportCharCode;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    let url = endpoints.job.downloadCsv;
+    if (urlSearchParam) url += "?" + urlSearchParam;
+
+    try {
+      axios
+        .get(url, {
+          responseType: "blob",
+        })
+        .then((res) => {
+          const blob = new Blob([res.data], { type: res.data.type });
+          const filename = decodeURI(
+            res.headers["content-disposition"]
+          ).substring(
+            res.headers["content-disposition"].indexOf("=") + 1,
+            res.headers["content-disposition"].length
+          );
+          saveAs(blob, filename);
+          enqueueSnackbar("エクスポートしました！");
+        });
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.error(error);
+    }
+  }, [
+    exportCharCode,
+    table,
+    corporationName,
+    officeName,
+    jobName,
+    jobCategory,
+    position,
+    employment,
+    status,
+  ]);
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -383,6 +450,16 @@ export default function JobListView({
             employments={employments}
             statusOptions={JOB_STATUS_OPTIONS}
           />
+
+          <Stack alignItems="flex-end" sx={{ p: 2 }}>
+            <Button
+              onClick={exportCsv.onTrue}
+              variant="outlined"
+              startIcon={<Iconify icon="ph:export-bold" />}
+            >
+              エクスポート
+            </Button>
+          </Stack>
 
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
@@ -500,6 +577,51 @@ export default function JobListView({
             }}
           >
             削除
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={exportCsv.value}
+        onClose={exportCsv.onFalse}
+        title="エクスポート"
+        content={
+          <>
+            <Stack
+              direction="column"
+              spacing={2}
+              flexGrow={1}
+              sx={{ width: 1 }}
+            >
+              <Typography>
+                <strong> {table.selected.length || jobsCount} </strong>
+                件の求人データを出力します。
+              </Typography>
+
+              <Select
+                value={exportCharCode.split(",")}
+                onChange={handleChangeExportCharCode}
+                //input={<OutlinedInput label="文字コード" />}
+                sx={{ textTransform: "capitalize" }}
+              >
+                {EXPORT_CHAR_CODE_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Stack>
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            onClick={() => {
+              handleExportCsv();
+              exportCsv.onFalse();
+            }}
+          >
+            エクスポート
           </Button>
         }
       />

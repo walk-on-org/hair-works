@@ -1,19 +1,25 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { saveAs } from "file-saver";
 
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
+import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import Typography from "@mui/material/Typography";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
 import { useBoolean } from "@/hooks/use-boolean";
 import { useSearchInquiries } from "@/api/inquiry";
 
+import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
 import { ConfirmDialog } from "@/components/custom-dialog";
 import { useSettingsContext } from "@/components/settings";
@@ -35,6 +41,7 @@ import { IInquiryItem, IInquiryTableFilters } from "@/types/inquiry";
 import InquiryTableRow from "../inquiry-table-row";
 import InquiryTableToolbar from "../inquiry-table-toolbar";
 import axios, { endpoints } from "@/utils/axios";
+import { EXPORT_CHAR_CODE_OPTIONS } from "@/config-global";
 
 // ----------------------------------------------------------------------
 
@@ -89,6 +96,10 @@ export default function InquiryListView({
     defaultRowsPerPage: limit,
   });
   const confirm = useBoolean();
+  const exportCsv = useBoolean();
+  const [exportCharCode, setExportCharCode] = useState(
+    EXPORT_CHAR_CODE_OPTIONS[0].value
+  );
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IInquiryItem[]>([]);
   const { enqueueSnackbar } = useSnackbar();
@@ -250,6 +261,49 @@ export default function InquiryListView({
     [router]
   );
 
+  // CSVエクスポート文字コード変更
+  const handleChangeExportCharCode = (event: SelectChangeEvent<string[]>) => {
+    setExportCharCode(
+      typeof event.target.value === "string"
+        ? event.target.value
+        : event.target.value.join(",")
+    );
+  };
+  // CSV出力
+  const handleExportCsv = useCallback(() => {
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (salonName) params.salon_name = salonName;
+    if (name) params.name = name;
+    if (table.selected) params.inquiry_ids = table.selected;
+    params.char_code = exportCharCode;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    let url = endpoints.inquiry.downloadCsv;
+    if (urlSearchParam) url += "?" + urlSearchParam;
+
+    try {
+      axios
+        .get(url, {
+          responseType: "blob",
+        })
+        .then((res) => {
+          const blob = new Blob([res.data], { type: res.data.type });
+          const filename = decodeURI(
+            res.headers["content-disposition"]
+          ).substring(
+            res.headers["content-disposition"].indexOf("=") + 1,
+            res.headers["content-disposition"].length
+          );
+          saveAs(blob, filename);
+          enqueueSnackbar("エクスポートしました！");
+        });
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.error(error);
+    }
+  }, [exportCharCode, table, salonName, name]);
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -273,6 +327,16 @@ export default function InquiryListView({
             searchLoading={inquiriesLoading}
             onClearFilters={handleResetFilters}
           />
+
+          <Stack alignItems="flex-end" sx={{ p: 2 }}>
+            <Button
+              onClick={exportCsv.onTrue}
+              variant="outlined"
+              startIcon={<Iconify icon="ph:export-bold" />}
+            >
+              エクスポート
+            </Button>
+          </Stack>
 
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
@@ -375,6 +439,51 @@ export default function InquiryListView({
             }}
           >
             削除
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={exportCsv.value}
+        onClose={exportCsv.onFalse}
+        title="エクスポート"
+        content={
+          <>
+            <Stack
+              direction="column"
+              spacing={2}
+              flexGrow={1}
+              sx={{ width: 1 }}
+            >
+              <Typography>
+                <strong> {table.selected.length || inquiriesCount} </strong>
+                件の問い合わせデータを出力します。
+              </Typography>
+
+              <Select
+                value={exportCharCode.split(",")}
+                onChange={handleChangeExportCharCode}
+                //input={<OutlinedInput label="文字コード" />}
+                sx={{ textTransform: "capitalize" }}
+              >
+                {EXPORT_CHAR_CODE_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Stack>
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            onClick={() => {
+              handleExportCsv();
+              exportCsv.onFalse();
+            }}
+          >
+            エクスポート
           </Button>
         }
       />

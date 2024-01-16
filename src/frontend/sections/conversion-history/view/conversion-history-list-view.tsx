@@ -1,18 +1,27 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { saveAs } from "file-saver";
 
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import Typography from "@mui/material/Typography";
 
 import { paths } from "@/routes/paths";
 import { useRouter } from "@/routes/hooks";
+import { useBoolean } from "@/hooks/use-boolean";
 import { useSearchConversionHistories } from "@/api/conversion-history";
 
+import Iconify from "@/components/iconify";
 import Scrollbar from "@/components/scrollbar";
+import { ConfirmDialog } from "@/components/custom-dialog";
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
 import {
@@ -25,6 +34,7 @@ import {
   TableSelectedAction,
   TablePaginationCustom,
 } from "@/components/table";
+import { useSnackbar } from "@/components/snackbar";
 
 import {
   IConversionHistoryItem,
@@ -33,7 +43,9 @@ import {
 
 import ConversionHistoryTableRow from "../conversion-history-table-row";
 import ConversionHistoryTableToolbar from "../conversion-history-table-toolbar";
+import axios, { endpoints } from "@/utils/axios";
 import { fDate } from "@/utils/format-time";
+import { EXPORT_CHAR_CODE_OPTIONS } from "@/config-global";
 
 // ----------------------------------------------------------------------
 
@@ -106,8 +118,13 @@ export default function ConversionHistoryListView({
     defaultCurrentPage: 0,
     defaultRowsPerPage: limit,
   });
+  const exportCsv = useBoolean();
+  const [exportCharCode, setExportCharCode] = useState(
+    EXPORT_CHAR_CODE_OPTIONS[0].value
+  );
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IConversionHistoryItem[]>([]);
+  const { enqueueSnackbar } = useSnackbar();
 
   // パラメータより検索条件を指定
   let initFilters = defaultFilters;
@@ -249,6 +266,70 @@ export default function ConversionHistoryListView({
     return url;
   };
 
+  // CSVエクスポート文字コード変更
+  const handleChangeExportCharCode = (event: SelectChangeEvent<string[]>) => {
+    setExportCharCode(
+      typeof event.target.value === "string"
+        ? event.target.value
+        : event.target.value.join(",")
+    );
+  };
+  // CSV出力
+  const handleExportCsv = useCallback(() => {
+    let params: {
+      [prop: string]: any;
+    } = {};
+    if (utmSource) params.utm_source = utmSource;
+    if (utmMedium) params.utm_medium = utmMedium;
+    if (utmCampaign) params.utm_campaign = utmCampaign;
+    if (utmTerm) params.utm_term = utmTerm;
+    if (lpUrl) params.lp_url = lpUrl;
+    if (lpStartDate) params.lp_start_date = fDate(lpStartDate, "yyyy-MM-dd");
+    if (lpEndDate) params.lp_end_date = fDate(lpEndDate, "yyyy-MM-dd");
+    if (cvUrl) params.cv_url = cvUrl;
+    if (cvStartDate) params.cv_start_date = fDate(cvStartDate, "yyyy-MM-dd");
+    if (cvEndDate) params.cv_end_date = fDate(cvEndDate, "yyyy-MM-dd");
+    if (table.selected) params.conversion_history_ids = table.selected;
+    params.char_code = exportCharCode;
+    const urlSearchParam = new URLSearchParams(params).toString();
+    let url = endpoints.conversionHistory.downloadCsv;
+    if (urlSearchParam) url += "?" + urlSearchParam;
+
+    try {
+      axios
+        .get(url, {
+          responseType: "blob",
+        })
+        .then((res) => {
+          const blob = new Blob([res.data], { type: res.data.type });
+          const filename = decodeURI(
+            res.headers["content-disposition"]
+          ).substring(
+            res.headers["content-disposition"].indexOf("=") + 1,
+            res.headers["content-disposition"].length
+          );
+          saveAs(blob, filename);
+          enqueueSnackbar("エクスポートしました！");
+        });
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.error(error);
+    }
+  }, [
+    exportCharCode,
+    table,
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmTerm,
+    lpUrl,
+    lpStartDate,
+    lpEndDate,
+    cvUrl,
+    cvStartDate,
+    cvEndDate,
+  ]);
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -272,6 +353,16 @@ export default function ConversionHistoryListView({
             searchLoading={conversionHistoriesLoading}
             onClearFilters={handleResetFilters}
           />
+
+          <Stack alignItems="flex-end" sx={{ p: 2 }}>
+            <Button
+              onClick={exportCsv.onTrue}
+              variant="outlined"
+              startIcon={<Iconify icon="ph:export-bold" />}
+            >
+              エクスポート
+            </Button>
+          </Stack>
 
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
@@ -354,6 +445,54 @@ export default function ConversionHistoryListView({
           />
         </Card>
       </Container>
+
+      <ConfirmDialog
+        open={exportCsv.value}
+        onClose={exportCsv.onFalse}
+        title="エクスポート"
+        content={
+          <>
+            <Stack
+              direction="column"
+              spacing={2}
+              flexGrow={1}
+              sx={{ width: 1 }}
+            >
+              <Typography>
+                <strong>
+                  {" "}
+                  {table.selected.length || conversionHistoriesCount}{" "}
+                </strong>
+                件のCV経路データを出力します。
+              </Typography>
+
+              <Select
+                value={exportCharCode.split(",")}
+                onChange={handleChangeExportCharCode}
+                //input={<OutlinedInput label="文字コード" />}
+                sx={{ textTransform: "capitalize" }}
+              >
+                {EXPORT_CHAR_CODE_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Stack>
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            onClick={() => {
+              handleExportCsv();
+              exportCsv.onFalse();
+            }}
+          >
+            エクスポート
+          </Button>
+        }
+      />
     </>
   );
 }

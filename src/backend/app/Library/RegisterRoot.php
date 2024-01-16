@@ -81,4 +81,56 @@ class RegisterRoot extends Facade
         }
         return $root;
     }
+
+    /**
+     * utmパラメータから登録経路に変換（応募者用）
+     * @param string $utm_source    参照元
+     * @param string $utm_medium    メディア
+     * @param string $utm_campaign  キャンペーン
+     * @param string $member_register_date      会員登録日時
+     * @param string $applicant_register_date   応募者登録日時
+     * @param boolean $suffix_utm   utmパラメータ情報を付けるか
+     */
+    public static function getApplicantRegisterRootByUtmParams($utm_source, $utm_medium, $utm_campaign, $member_register_date, $applicant_register_date, $suffix_utm = false)
+    {
+        if (!$utm_source) {
+            // 以前に会員登録があるか
+            if ($member_register_date && $applicant_register_date) {
+                if (strtotime($member_register_date) < strtotime($applicant_register_date)) {
+                    return '自然応募（会員登録後）';
+                }
+            }
+            return '自然応募（オーガニックor不明）';
+        }
+
+        $root = '';
+        if ($utm_source == '応募促進') {
+            return '応募促進';
+        } else if ($utm_source == 'Indeed') {
+            $root = '広告経由（Indeed）';
+        } else if ($utm_source == 'kbox') {
+            $root = '広告経由（求人ボックス）';
+        } else if (strpos($utm_source, 'stanby') !== false && strpos($utm_source, 'Stanby') !== false) {
+            $root = '広告経由（スタンバイ）';
+        } else if ($utm_source == 'google_jobs_apply') {
+            $root = '自然応募（GoogleForJobs）';
+        } else if ($utm_source == 'mailmagazine') {
+            $root = '自然応募（メルマガ）';
+        } else if (strpos($utm_source, 'media') !== false) {
+            $root = '自然応募（メディア）';
+        } else if ($utm_source == 'google' && $utm_medium == 'cpc') {
+            $root = '広告経由（Googleリスティング広告）';
+        } else if ($utm_source == 'google' && $utm_medium == 'cpc') {
+            $root = '広告経由（Yahooリスティング広告）';
+        } else if ($utm_source == 'member_complete_mail') {
+            $root = '自然応募（会員登録後）';
+        } else {
+            $root = '自然応募（オーガニックor不明）';
+        }
+
+        if ($suffix_utm) {
+            $root .= "({$utm_source}/{$utm_medium})";
+        }
+        return $root;
+    }
 }

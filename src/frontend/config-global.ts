@@ -164,3 +164,8 @@ export const DELIVER_JOB_TYPE_OPTIONS = [
   { value: "2", label: "同じ都道府県の求人" },
   { value: "3", label: "同じ市区町村の求人" },
 ];
+
+export const EXPORT_CHAR_CODE_OPTIONS = [
+  { value: "ShiftJIS", label: "日本語（Shift-JIS）" },
+  { value: "UTF8", label: "Unicode（UTF-8）" },
+];
