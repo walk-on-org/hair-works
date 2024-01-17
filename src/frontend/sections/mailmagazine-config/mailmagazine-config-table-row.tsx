@@ -1,9 +1,12 @@
+import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import TableRow from "@mui/material/TableRow";
 import Checkbox from "@mui/material/Checkbox";
 import TableCell from "@mui/material/TableCell";
 import IconButton from "@mui/material/IconButton";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import Typography from "@mui/material/Typography";
 
 import { useBoolean } from "@/hooks/use-boolean";
 
@@ -12,6 +15,9 @@ import { ConfirmDialog } from "@/components/custom-dialog";
 import CustomPopover, { usePopover } from "@/components/custom-popover";
 
 import { IMailmagazineConfigItem } from "@/types/mailmagazine-config";
+
+import { EXPORT_CHAR_CODE_OPTIONS } from "@/config-global";
+import { useState } from "react";
 
 // ----------------------------------------------------------------------
 
@@ -22,6 +28,7 @@ type Props = {
   onViewRow: VoidFunction;
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
+  onSendList: (exportCharCode: string) => void;
 };
 
 export default function MailmagazineConfigTableRow({
@@ -31,6 +38,7 @@ export default function MailmagazineConfigTableRow({
   onEditRow,
   onViewRow,
   onDeleteRow,
+  onSendList,
 }: Props) {
   const {
     id,
@@ -56,6 +64,10 @@ export default function MailmagazineConfigTableRow({
   } = row;
   const confirm = useBoolean();
   const popover = usePopover();
+  const exportCsv = useBoolean();
+  const [exportCharCode, setExportCharCode] = useState(
+    EXPORT_CHAR_CODE_OPTIONS[0].value
+  );
 
   let memberCondition = "";
   if (mailmagazine_m_areas.length > 0) {
@@ -95,6 +107,15 @@ export default function MailmagazineConfigTableRow({
   if (search_other_corporation)
     jobCondition += "【検索】１つ目の求人以外は他企業から検索\n";
 
+  // CSVエクスポート文字コード変更
+  const handleChangeExportCharCode = (event: SelectChangeEvent<string[]>) => {
+    setExportCharCode(
+      typeof event.target.value === "string"
+        ? event.target.value
+        : event.target.value.join(",")
+    );
+  };
+
   return (
     <>
       <TableRow hover selected={selected}>
@@ -130,7 +151,7 @@ export default function MailmagazineConfigTableRow({
         open={popover.open}
         onClose={popover.onClose}
         arrow="right-top"
-        sx={{ width: 140 }}
+        sx={{ width: 240 }}
       >
         <MenuItem
           onClick={() => {
@@ -154,6 +175,16 @@ export default function MailmagazineConfigTableRow({
 
         <MenuItem
           onClick={() => {
+            exportCsv.onTrue();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="ph:export-bold" />
+          メルマガ送信リスト作成
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
             confirm.onTrue();
             popover.onClose();
           }}
@@ -172,6 +203,48 @@ export default function MailmagazineConfigTableRow({
         action={
           <Button variant="contained" color="error" onClick={onDeleteRow}>
             削除
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={exportCsv.value}
+        onClose={exportCsv.onFalse}
+        title="メルマガ送信リストダウンロード"
+        content={
+          <>
+            <Stack
+              direction="column"
+              spacing={2}
+              flexGrow={1}
+              sx={{ width: 1 }}
+            >
+              <Typography>メルマガ送信リストをダウンロードします。</Typography>
+
+              <Select
+                value={exportCharCode.split(",")}
+                onChange={handleChangeExportCharCode}
+                //input={<OutlinedInput label="文字コード" />}
+                sx={{ textTransform: "capitalize" }}
+              >
+                {EXPORT_CHAR_CODE_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Stack>
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            onClick={() => {
+              onSendList(exportCharCode);
+              exportCsv.onFalse();
+            }}
+          >
+            エクスポート
           </Button>
         }
       />

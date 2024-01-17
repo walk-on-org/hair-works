@@ -6,12 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Models\MailmagazineConfig;
 use App\Models\MailmagazineJCorporation;
 use App\Models\MailmagazineJJobCategory;
+use App\Models\MailmagazineMArea;
 use App\Models\MailmagazineMLpJobCategory;
 use App\Models\MailmagazineMEmpPrefecture;
 use App\Models\MailmagazineMEmployment;
 use App\Models\MailmagazineMQualification;
 use App\Models\MailmagazineMStatus;
 use App\Models\MailmagazineMChangeTime;
+use App\Models\Member;
+use App\Models\Office;
+use App\Models\OfficeAccess;
+use App\Models\CorporationImage;
+use App\Models\OfficeImage;
+use App\Models\JobImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -430,8 +437,6 @@ class MailmagazineConfigController extends Controller
                             $mailmagazine_config->mailmagazineMAreas()->create($mailmagazine_m_area);
                         }
                     }
-                    
-                    $mailmagazine_config->mailmagazineMAreas()->createMany($data['mailmagazine_m_areas']);
                 } else {
                     // 入力がない場合は削除
                     $mailmagazine_config->mailmagazineMAreas()->delete();
@@ -640,6 +645,548 @@ class MailmagazineConfigController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'One or more mailmagazine configs not found'], 404);
+        }
+    }
+
+    /**
+     * メルマガ送信リストダウンロード
+     */
+    public function downloadSendList(Request $request, $id)
+    {
+        $mailmagazine_config = MailmagazineConfig::find($id);
+        if (!$mailmagazine_config) {
+            return response()->json([
+                'result' => 'ok',
+                'message' => '存在しないメルマガ設定が選択されてます。',
+            ]);
+        }
+
+        // CSVファイル作成コールバック
+        $callback = function () use ($mailmagazine_config, $request) {
+            // メルマガ対象の会員情報を取得
+            $members = self::getMatchingMember($mailmagazine_config);
+            // メルマガ送信リストを取得
+            $mailmagazine_list = self::createMailmagazineList($mailmagazine_config, $members);
+
+            // CSVファイル作成
+            $csv = fopen('php://output', 'w');
+            // CSVヘッダ
+            $columns = [
+                'email' => 'メールアドレス',
+                'name' => '名前',
+            ];
+            for ($i = 1; $i <= $mailmagazine_config->job_count_limit; $i++) {
+                $columns["job_{$i}_salon_name"] = "求人{$i}サロン名";
+                $columns["job_{$i}_job_category"] = "求人{$i}職種";
+                $columns["job_{$i}_position"] = "求人{$i}役職/役割";
+                $columns["job_{$i}_employment"] = "求人{$i}雇用形態";
+                $columns["job_{$i}_prefecture"] = "求人{$i}都道府県";
+                $columns["job_{$i}_city"] = "求人{$i}市区町村";
+                $columns["job_{$i}_access"] = "求人{$i}アクセス";
+                $columns["job_{$i}_detail_url"] = "求人{$i}URL";
+                $columns["job_{$i}_entry_url"] = "求人{$i}応募URL";
+                $columns["job_{$i}_image_url"] = "求人{$i}画像URL";
+                $columns["job_{$i}_salary"] = "求人{$i}給与";
+                $columns["job_{$i}_catch_copy"] = "求人{$i}キャッチコピー";
+            }
+            // SJIS変換
+            if ($request->char_code == 'ShiftJIS') {
+                mb_convert_variables('SJIS-win', 'UTF-8', $columns);
+            }
+            // ヘッダを追加
+            fputcsv($csv, $columns);
+
+            foreach ($mailmagazine_list as $row) {
+                $send_data = [
+                    'email' => $row['email'],
+                    'name' => $row['name'],
+                ];
+                for ($i = 1; $i <= $mailmagazine_config->job_count_limit; $i++) {
+                    $send_data["job_{$i}_salon_name"] = $row["job_{$i}_salon_name"];
+                    $send_data["job_{$i}_job_category"] = $row["job_{$i}_job_category"];
+                    $send_data["job_{$i}_position"] = $row["job_{$i}_position"];
+                    $send_data["job_{$i}_employment"] = $row["job_{$i}_employment"];
+                    $send_data["job_{$i}_prefecture"] = $row["job_{$i}_prefecture"];
+                    $send_data["job_{$i}_city"] = $row["job_{$i}_city"];
+                    $send_data["job_{$i}_access"] = $row["job_{$i}_access"];
+                    $send_data["job_{$i}_detail_url"] = $row["job_{$i}_detail_url"];
+                    $send_data["job_{$i}_entry_url"] = $row["job_{$i}_entry_url"];
+                    $send_data["job_{$i}_image_url"] = $row["job_{$i}_image_url"];
+                    $send_data["job_{$i}_salary"] = $row["job_{$i}_salary"];
+                    $send_data["job_{$i}_catch_copy"] = $row["job_{$i}_catch_copy"];
+                }
+
+                // SJIS変換
+                if ($request->char_code == 'ShiftJIS') {
+                    mb_convert_variables('SJIS-win', 'UTF-8', $send_data);
+                }
+                // CSVファイルのデータを追加
+                fputcsv($csv, $send_data);
+            }
+            
+            // CSV閉じる
+            fclose($csv);
+        };
+
+        // ファイル名
+        $filename = 'メルマガ送信リスト_' . $mailmagazine_config->title . '_' . date('Ymd') . '.csv';
+
+        // レスポンスヘッダー情報
+        $response_header = [
+            'Content-type' => 'text/csv',
+            'Access-Control-Expose-Headers' => 'Content-Disposition'
+        ];
+
+        return response()->streamDownload($callback, $filename, $response_header);
+    }
+
+    /**
+     * メルマガ送信リストにマッチする会員情報を取得
+     */
+    private function getMatchingMember($mailmagazine_config)
+    {
+        $query = Member::join('member_lp_job_categories', 'members.id', '=', 'member_lp_job_categories.member_id')
+            ->join('member_qualifications', 'members.id', '=', 'member_qualifications.member_id')
+            ->leftJoin('cities', function($join) {
+                $join->on('members.address', 'LIKE', DB::raw('concat(cities.name, \'%\')'))
+                    ->on('members.prefecture_id', '=', 'cities.prefecture_id');
+            })
+            ->whereNotNull('members.email');
+        
+        // 住所（都道府県1 or (都道府県2 and 市区町村2)）
+        if (count($mailmagazine_config->mailmagazineMAreas) > 0) {
+            $m_areas = $mailmagazine_config->mailmagazineMAreas;
+            $query = $query->where(function ($query) use ($m_areas) {
+                foreach ($m_areas as $m_area) {
+                    $query->orWhere(function ($query) use ($m_area) {
+                        $query->where('members.prefecture_id', '=', $m_area->prefecture_id);
+                        if ($m_area->city_id) {
+                            $query->where('members.address', 'LIKE', $m_area->city->name . '%');
+                        }
+                    });
+                }
+            });
+        }
+        // 希望勤務地
+        if (count($mailmagazine_config->mailmagazineMEmpPrefectures) > 0) {
+            $m_emp_prefectures = $mailmagazine_config->mailmagazineMEmpPrefectures;
+            $emp_prefecture_ids = array_column($m_emp_prefectures->toArray(), 'emp_prefecture_id');
+            $query = $query->whereIn('members.emp_prefecture_id', $emp_prefecture_ids);
+        }
+        // 希望職種
+        if (count($mailmagazine_config->mailmagazineMLpJobCategories) > 0) {
+            $m_lp_job_categories = $mailmagazine_config->mailmagazineMLpJobCategories;
+            $lp_job_category_ids = array_column($m_lp_job_categories->toArray(), 'lp_job_category_id');
+            $query = $query->whereIn('member_lp_job_categories.lp_job_category_id', $lp_job_category_ids);
+        }
+        // 希望勤務体系
+        if (count($mailmagazine_config->mailmagazineMEmployments) > 0) {
+            $m_employments = $mailmagazine_config->mailmagazineMEmployments;
+            $employment_ids = array_column($m_employments->toArray(), 'employment_id');
+            $query = $query->whereIn('members.employment_id', $employment_ids);
+        }
+        // 保有資格
+        if (count($mailmagazine_config->mailmagazineMQualifications) > 0) {
+            $m_qualifications = $mailmagazine_config->mailmagazineMQualifications;
+            $qualification_ids = array_column($m_qualifications->toArray(), 'qualification_id');
+            $query = $query->whereIn('member_qualifications.qualification_id', $qualification_ids);
+        }
+        // ステータス
+        if (count($mailmagazine_config->mailmagazineMStatuses) > 0) {
+            $m_statuses = $mailmagazine_config->mailmagazineMStatuses;
+            $statuses = array_column($m_statuses->toArray(), 'status');
+            $query = $query->whereIn('members.status', $statuses);
+        }
+        // 希望転職時期
+        if (count($mailmagazine_config->mailmagazineMChangeTimes) > 0) {
+            $m_change_times = $mailmagazine_config->mailmagazineMChangeTimes;
+            $change_times = array_column($m_change_times->toArray(), 'change_time');
+            $query = $query->whereIn('members.change_time', $change_times);
+        }
+        // 生まれ年
+        if ($mailmagazine_config->member_birthyear_from) {
+            $query = $query->where('members.birthyear', '>=', $mailmagazine_config->member_birthyear_from);
+        }
+        if ($mailmagazine_config->member_birthyear_to) {
+            $query = $query->where('members.birthyear', '<=', $mailmagazine_config->member_birthyear_to);
+        }
+        $members = $query->groupBy('members.id')
+            ->select(
+                'members.id',
+                'members.name',
+                'members.email',
+                'members.prefecture_id',
+                DB::raw('max(cities.id) as city_id'),
+                'members.address',
+                'members.employment_id',
+                DB::raw('group_concat(member_lp_job_categories.lp_job_category_id) as lp_job_category_id'),
+                'members.lat',
+                'members.lng',
+            )
+            ->get();
+
+        return $members;
+    }
+
+    /**
+     * 求人情報を付与したメルマガ送信リストを作成
+     */
+    private function createMailmagazineList($mailmagazine_config, $members)
+    {
+        // 求人取得のベースのクエリ作成
+        $base_query = self::getBaseJobQuery();
+
+        // 会員情報ごとにメルマガに載せる情報を取得
+        $mailmagazine_list = [];
+        foreach ($members as $member) {
+            $jobs = [];
+            $other_jobs = [];
+            // 求人上限、他企業からも検索するかの条件追加
+            if ($mailmagazine_config->search_other_corporation) {
+                // 他企業からも検索する場合
+                // 選択した法人、キーワードで1件取得
+                $query = self::getJobSearchQuery(clone $base_query, $mailmagazine_config, $member, false);
+                if ($query === false) {
+                    continue;
+                }
+                $jobs = $query->limit(1)->get();
+                // 他企業も検索
+                $query = self::getJobSearchQuery(clone $base_query, $mailmagazine_config, $member, true);
+                if ($query === false) {
+                    continue;
+                }
+                $other_jobs = $query->limit($mailmagazine_config->job_count_limit - 1)->get();
+            } else {
+                // 同じ企業からのみ検索する場合
+                $query = self::getJobSearchQuery(clone $base_query, $mailmagazine_config, $member, false);
+                if ($query === false) {
+                    continue;
+                }
+                $jobs = $query->limit($mailmagazine_config->job_count_limit)->get();
+            }
+
+            // 該当求人がない場合、その会員には送信しない
+            if (count($jobs) == 0) {
+                continue;
+            }
+
+            $row = [
+                'email' => $member->email,
+                'name' => $member->name,
+            ];
+            // 事前に上限分のカラムを作成
+            for ($i = 1; $i <= $mailmagazine_config->job_count_limit; $i++) {
+                $row["job_{$i}_salon_name"] = '';
+                $row["job_{$i}_job_category"] = '';
+                $row["job_{$i}_position"] = '';
+                $row["job_{$i}_employment"] = '';
+                $row["job_{$i}_prefecture"] = '';
+                $row["job_{$i}_city"] = '';
+                $row["job_{$i}_access"] = '';
+                $row["job_{$i}_detail_url"] = '';
+                $row["job_{$i}_entry_url"] = '';
+                $row["job_{$i}_image_url"] = '';
+                $row["job_{$i}_salary"] = '';
+                $row["job_{$i}_catch_copy"] = '';
+            }
+            // 求人情報を埋め込み
+            $today = date('Ymd');
+            foreach ($jobs as $i => $job) {
+                $index = $i + 1;
+                $row["job_{$index}_salon_name"] = $job->office_name;
+                $row["job_{$index}_job_category"] = $job->job_category_name;
+                $row["job_{$index}_position"] = $job->position_name;
+                $row["job_{$index}_employment"] = $job->employment_name;
+                $row["job_{$index}_prefecture"] = $job->prefecture_name;
+                $row["job_{$index}_city"] = $job->city_name;
+                if (is_null($job->station_name) && is_null($job->move_type) && is_null($job->time)) {
+                    $row["job_{$index}_access"] = $job->station_name . '駅' . OfficeAccess::MOVE_TYPE[$job->move_type] . $job->time . '分';
+                }
+                $row["job_{$index}_detail_url"] = "https://hair-work.jp/detail/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
+                $row["job_{$index}_entry_url"] = "https://hair-work.jp/entry/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
+                $row["job_{$index}_image_url"] = self::getJobImageUrl($job);
+                $row["job_{$index}_salary"] = self::getSalary($job);
+                $row["job_{$index}_catch_copy"] = $job->catch_copy;
+            }
+            foreach ($other_jobs as $i => $job) {
+                $i = $index + 2;
+                $row["job_{$index}_salon_name"] = $job->office_name;
+                $row["job_{$index}_job_category"] = $job->job_category_name;
+                $row["job_{$index}_position"] = $job->position_name;
+                $row["job_{$index}_employment"] = $job->employment_name;
+                $row["job_{$index}_prefecture"] = $job->prefecture_name;
+                $row["job_{$index}_city"] = $job->city_name;
+                if (is_null($job->station_name) && is_null($job->move_type) && is_null($job->time)) {
+                    $row["job_{$index}_access"] = $job->station_name . '駅' . OfficeAccess::MOVE_TYPE[$job->move_type] . $job->time . '分';
+                }
+                $row["job_{$index}_detail_url"] = "https://hair-work.jp/detail/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
+                $row["job_{$index}_entry_url"] = "https://hair-work.jp/entry/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
+                $row["job_{$index}_image_url"] = self::getJobImageUrl($job);
+                $row["job_{$index}_salary"] = self::getSalary($job);
+                $row["job_{$index}_catch_copy"] = $job->catch_copy;
+            }
+
+            $mailmagazine_list[] = $row;
+        }
+
+        return $mailmagazine_list;
+    }
+
+    /**
+     * 求人取得のベースのクエリを取得
+     */
+    private function getBaseJobQuery()
+    {
+        $query = Office::join('corporations', function ($join) {
+                $join->on('offices.corporation_id', '=', 'corporations.id')
+                    ->whereNull('corporations.deleted_at');
+            })
+            ->join('jobs', function ($join) {
+                $join->on('offices.id', '=', 'jobs.office_id')
+                    ->whereNull('jobs.deleted_at');
+            })
+            ->leftJoin('office_accesses', 'offices.id', '=', 'office_accesses.office_id')
+            ->leftJoin('stations', function ($join) {
+                $join->on('office_accesses.station_id', '=', 'stations.id')
+                    ->where('stations.status', 0);
+            })
+            ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
+            ->join('positions', 'jobs.position_id', '=', 'positions.id')
+            ->join('employments', 'jobs.employment_id', '=', 'employments.id')
+            ->join('prefectures', 'offices.prefecture_id', '=', 'prefectures.id')
+            ->join('cities', 'offices.city_id', '=', 'cities.id')
+            ->where('jobs.status', 10)
+            ->where('jobs.private', 0)
+            ->where('job_categories.status', 1)
+            ->where('positions.status', 1)
+            ->where('employments.status', 1)
+            ->whereIn('office_accesses.id', function ($query) {
+                $query->select(DB::raw('min(tmp.id)'))
+                    ->from('office_accesses as tmp')
+                    ->whereRaw('office_accesses.office_id = tmp.office_id')
+                    ->groupBy('tmp.office_id');
+            })
+            ->select(
+                'corporations.id as corporation_id',
+                'corporations.name as corporation_name',
+                'offices.id as office_id',
+                'offices.name as office_name',
+                'prefectures.name as prefecture_name',
+                'cities.name as city_name',
+                'stations.name as station_name',
+                'office_accesses.move_type',
+                'office_accesses.time',
+                'jobs.id as job_id',
+                'job_categories.name as job_category_name',
+                'positions.name as position_name',
+                'employments.name as employment_name',
+                'jobs.catch_copy',
+                'jobs.m_salary_lower',
+                'jobs.m_salary_upper',
+                'jobs.t_salary_lower',
+                'jobs.t_salary_upper',
+                'jobs.d_salary_lower',
+                'jobs.d_salary_upper',
+                'jobs.commission_lower',
+                'jobs.commission_upper',
+                'jobs.publish_start_date',
+            );
+        return $query;
+    }
+
+    /**
+     * 求人検索クエリを取得
+     */
+    private function getJobSearchQuery($query, $mailmagazine_config, $member, $search_other_corporation)
+    {
+        // 法人
+        if (count($mailmagazine_config->mailmagazineJCorporations) > 0) {
+            $j_corporations = $mailmagazine_config->mailmagazineJCorporations;
+            $corporation_ids = array_column($j_corporations->toArray(), 'corporation_id');
+            if ($search_other_corporation) {
+                // 他企業から検索する場合は、NOT検索
+                $query = $query->whereNotIn('corporations.id', $corporation_ids);
+            } else {
+                $query = $query->whereIn('corporations.id', $corporation_ids);
+            }
+        }
+
+        // キーワード
+        if ($mailmagazine_config->job_keyword) {
+            $keyword = $mailmagazine_config->job_keyword;
+            if ($search_other_corporation) {
+                // 他企業から検索する場合は、NOT検索
+                $query = $query->where('corporations.name', 'not like', '%' . $keyword . '%')
+                    ->where('offices.name', 'not like', '%' . $keyword . '%');
+            } else {
+                $query = $query->where(function ($query) use ($keyword) {
+                    $query->where('corporations.name', 'LIKE', '%' . $keyword . '%')
+                        ->orWhere('offices.name', 'LIKE', '%' . $keyword . '%');
+                });
+            }
+        }
+
+        // 求人職種
+        if (count($mailmagazine_config->mailmagazineJJobCategories) > 0) {
+            $j_job_categories = $mailmagazine_config->mailmagazineJJobCategories;
+            $job_category_ids = array_column($j_job_categories->toArray(), 'job_category_id');
+            $query = $query->whereIn('jobs.job_category_id', $job_category_ids);
+        }
+
+        // 役職/役割が同じ
+        if ($mailmagazine_config->job_match_lp_job_category) {
+            $position_ids = [];
+            foreach (explode(',', $member->lp_job_category_id) as $id) {
+                if ($id == '1') {
+                    $position_ids[] = 1;
+                } else if ($id == '2' || $id == '3') {
+                    $position_ids[] = 2;
+                } else if ($id == '4') {
+                    $position_ids[] = 6;
+                } else if ($id == '5') {
+                    $position_ids[] = 7;
+                } else if ($id == '6') {
+                    $position_ids[] = 8;
+                } else if ($id == '7') {
+                    $position_ids[] = 5;
+                }
+            }
+            $query = $query->whereIn('jobs.position_id', $position_ids);
+        }
+
+        // 雇用形態が同じ
+        if ($mailmagazine_config->job_match_employment) {
+            $query = $query->where('jobs.employment_id', $member->employment_id);
+        }
+
+        // 送信求人種別ごとの処理
+        if ($mailmagazine_config->deliver_job_type == 0) {
+            // 新着求人の場合、掲載開始日から14日以内（新着）で、半径〇〇km以内の求人を割り当て
+            $query = $query->whereRaw('DATEDIFF(now(), jobs.publish_start_date) <= 14')
+                ->whereRaw(self::createDistanceQuery($member->lat ? $member->lat : 0, $member->lng ? $member->lng : 0, '') . ' <= ?', $mailmagazine_config->job_match_distance)
+                ->orderBy('jobs.publish_start_date', 'desc');
+        } else if ($mailmagazine_config->deliver_job_type == 1) {
+            // 半径〇〇km以内の求人の場合、距離が近い求人順に割り当て
+            $query = $query->whereRaw(self::createDistanceQuery($member->lat ? $member->lat : 0, $member->lng ? $member->lng : 0, '') . ' <= ?', $mailmagazine_config->job_match_distance)
+                ->addSelect(DB::raw(self::createDistanceQuery($member->lat ? $member->lat : 0, $member->lng ? $member->lng : 0, 'distance')))
+                ->orderBy('distance');
+        } else if ($mailmagazine_config->deliver_job_type == 2) {
+            // 同じ都道府県の求人の場合、都道府県が同じ求人のうち、距離が近い求人順に割り当て
+            $query = $query->where('offices.prefecture_id', $member->prefecture_id)
+                ->addSelect(DB::raw(self::createDistanceQuery($member->lat ? $member->lat : 0, $member->lng ? $member->lng : 0, 'distance')))
+                ->orderBy('distance');
+        } else if ($mailmagazine_config->deliver_job_type == 3) {
+            // 同じ市区町村の求人の場合、市区町村が同じ求人のうち、距離が近い求人順に割り当て
+            if ($member->city_id) {
+                return false;
+            }
+            $query = $query->where('offices.prefecture_id', $member->prefecture_id)
+                ->where('offices.city_id', $member->city_id)
+                ->addSelect(DB::raw(self::createDistanceQuery($member->lat ? $member->lat : 0, $member->lng ? $member->lng : 0, 'distance')))
+                ->orderBy('distance');
+        }
+
+        return $query;
+    }
+
+    /**
+     * 距離を算出するクエリ作成
+     */
+    private function createDistanceQuery($lat, $lng, $alias)
+    {
+        $query_string = "(6371 * acos(cos(radians({$lat})) * cos(radians(offices.lat)) * cos(radians(offices.lng) - radians({$lng})) + sin(radians({$lat})) * sin(radians(offices.lat))))";
+        if ($alias) {
+            $query_string .= " as {$alias}";
+        }
+        return $query_string;
+    }
+
+    /**
+     * 給与を文字列化
+     */
+    private function getSalary($job)
+    {
+        $salary = '';
+        if ($job->m_salary_lower || $job->m_salary_upper) {
+            $salary .= '月給：';
+            if ($job->m_salary_lower) {
+                $salary .= ($job->m_salary_lower / 10000) . '万円';
+            }
+            $salary .= '〜';
+            if ($job->m_salary_upper) {
+                $salary .= ($job->m_salary_upper / 10000) . '万円';
+            }
+        }
+        if ($job->t_salary_lower || $job->t_salary_upper) {
+            $salary .= ($salary ? '、' : '') . '時給：';
+            if ($job->t_salary_lower) {
+                $salary .= $job->t_salary_lower . '円';
+            }
+            $salary .= '〜';
+            if ($job->t_salary_upper) {
+                $salary .= $job->t_salary_upper . '円';
+            }
+        }
+        if ($job->d_salary_lower || $job->d_salary_upper) {
+            $salary .= ($salary ? '、' : '') . '日給：';
+            if ($job->d_salary_lower) {
+                $salary .= $job->d_salary_lower . '円';
+            }
+            $salary .= '〜';
+            if ($job->d_salary_upper) {
+                $salary .= $job->d_salary_upper . '円';
+            }
+        }
+        if ($job->commission_lower || $job->commission_upper) {
+            $salary .= ($salary ? '、' : '') . '歩合：';
+            if ($job->commission_lower) {
+                $salary .= $job->commission_lower . '%';
+            }
+            $salary .= '〜';
+            if ($job->commission_upper) {
+                $salary .= $job->commission_upper . '%';
+            }
+        }
+
+        return $salary;
+    }
+
+    /**
+     * 求人画像URLを取得
+     */
+    private function getJobImageUrl($job)
+    {
+        $job_image = JobImage::where('job_id', $job->job_id)
+            ->orderBy('sort')
+            ->first();
+        $office_image = OfficeImage::where('office_id', $job->office_id)
+            ->orderBy('sort')
+            ->first();
+        $corporation_image = CorporationImage::where('corporation_id', $job->corporation_id)
+            ->orderBy('sort')
+            ->first();
+
+        if (!$job_image && !$office_image && !$corporation_image) {
+            return '';
+        } else if ($job_image && !$office_image && !$corporation_image) {
+            return 'https://hair-work.jp' . config('uploadimage.job_image_relative_path') . $job_image->office_id . '/' . $job_image->image;
+        } else if (!$job_image && $office_image && !$corporation_image) {
+            return 'https://hair-work.jp' . config('uploadimage.office_image_relative_path') . $office_image->office_id . '/' . $office_image->image;
+        } else if (!$job_image && !$office_image && $corporation_image) {
+            return 'https://hair-work.jp' . config('uploadimage.corporation_image_relative_path') . $corporation_image->corporation_id . '/' . $corporation_image->image;
+        }
+
+        // 2つ以上設定している場合、更新日時が最新の方を使用する
+        $base_datetime = new \Datetime('2000-01-01');
+        $max_job_image_updated_at = $job_image ? $job_image->updated_at : $base_datetime;
+        $max_office_image_updated_at = $office_image ? $office_image->updated_at : $base_datetime;
+        $max_corporation_image_updated_at = $corporation_image ? $corporation_image->updated_at : $base_datetime;
+        if (strtotime($max_job_image_updated_at) > strtotime($max_corporation_image_updated_at) && strtotime($max_job_image_updated_at) > strtotime($max_office_image_updated_at)) {
+            return 'https://hair-work.jp' . config('uploadimage.job_image_relative_path') . $job_image->office_id . '/' . $job_image->image;
+        } else if (strtotime($max_office_image_updated_at) > strtotime($max_corporation_image_updated_at)) {
+            return 'https://hair-work.jp' . config('uploadimage.office_image_relative_path') . $office_image->office_id . '/' . $office_image->image;
+        } else {
+            return 'https://hair-work.jp' . config('uploadimage.corporation_image_relative_path') . $corporation_image->corporation_id . '/' . $corporation_image->image;
         }
     }
 }

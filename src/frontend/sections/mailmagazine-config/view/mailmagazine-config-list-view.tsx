@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { saveAs } from "file-saver";
 
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
@@ -251,6 +252,37 @@ export default function MailmagazineConfigListView({
     [router]
   );
 
+  // メルマガ送信リストCSV出力
+  const handleDownloadSendList = useCallback(
+    (id: string, exportCharCode: string) => {
+      try {
+        let url =
+          endpoints.mailmagazineConfig.downloadSendList(id) +
+          "?char_code=" +
+          exportCharCode;
+        axios
+          .get(url, {
+            responseType: "blob",
+          })
+          .then((res) => {
+            const blob = new Blob([res.data], { type: res.data.type });
+            const filename = decodeURI(
+              res.headers["content-disposition"]
+            ).substring(
+              res.headers["content-disposition"].indexOf("''") + 2,
+              res.headers["content-disposition"].length
+            );
+            saveAs(blob, filename);
+            enqueueSnackbar("エクスポートしました！");
+          });
+      } catch (error) {
+        enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+        console.error(error);
+      }
+    },
+    []
+  );
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -345,6 +377,9 @@ export default function MailmagazineConfigListView({
                           onEditRow={() => handleEditRow(row.id)}
                           onViewRow={() => handleViewRow(row.id)}
                           onDeleteRow={() => handleDeleteRow(row.id)}
+                          onSendList={(exportCharCode) =>
+                            handleDownloadSendList(row.id, exportCharCode)
+                          }
                         />
                       ))}
                     </>

@@ -326,4 +326,5 @@ Route::middleware(['middleware' => 'api'])->prefix('admin')->group(function () {
     Route::patch('/mailmagazine_configs/update/{id}', [App\Http\Controllers\Admin\MailmagazineConfigController::class, 'update']);
     Route::post('/mailmagazine_configs/destroy/{id}', [App\Http\Controllers\Admin\MailmagazineConfigController::class, 'destroy']);
     Route::post('/mailmagazine_configs/destroy_multiple', [App\Http\Controllers\Admin\MailmagazineConfigController::class, 'destroyMultiple']);
+    Route::get('/mailmagazine_configs/download/send_list/{id}', [App\Http\Controllers\Admin\MailmagazineConfigController::class, 'downloadSendList']);
 });

@@ -258,6 +258,8 @@ export const endpoints = {
     update: (id: string) => `/api/admin/mailmagazine_configs/update/${id}`,
     destroy: (id: string) => `/api/admin/mailmagazine_configs/destroy/${id}`,
     destroyMultiple: "/api/admin/mailmagazine_configs/destroy_multiple",
+    downloadSendList: (id: string) =>
+      `/api/admin/mailmagazine_configs/download/send_list/${id}`,
   },
   adminRole: {
     list: "/api/admin/admin_roles",
