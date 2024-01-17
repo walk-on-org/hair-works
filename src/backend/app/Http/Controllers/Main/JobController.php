@@ -971,8 +971,14 @@ class JobController extends Controller
      */
     private function createJobListQuery($params)
     {
-        $query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
-            ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+        $query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->join('corporations', function ($join) {
+                $join->on('offices.corporation_id', '=', 'corporations.id')
+                    ->whereNull('corporations.deleted_at');
+            })
             ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
             ->join('positions', 'jobs.position_id', '=', 'positions.id')
             ->join('employments', 'jobs.employment_id', '=', 'employments.id')
@@ -980,15 +986,17 @@ class JobController extends Controller
             ->join('cities', 'offices.city_id', '=', 'cities.id')
             ->leftJoin('government_cities', 'cities.government_city_id', '=', 'government_cities.id')
             ->leftJoin('office_accesses', 'offices.id', '=', 'office_accesses.office_id')
-            ->leftJoin('lines', 'office_accesses.line_id', '=', 'lines.id')
-            ->leftJoin('stations', 'office_accesses.station_id', '=', 'stations.id')
-            ->whereNull('offices.deleted_at')
-            ->whereNull('corporations.deleted_at')
+            ->leftJoin('lines', function ($join) {
+                $join->on('office_accesses.line_id', '=', 'lines.id')
+                    ->where('lines.status', 0);
+            })
+            ->leftJoin('stations', function ($join) {
+                $join->on('office_accesses.station_id', '=', 'stations.id')
+                    ->where('stations.status', 0);
+            })
             ->where('job_categories.status', 1)
             ->where('positions.status', 1)
-            ->where('employments.status', 1)
-            ->whereRaw('IFNULL(lines.status, 0) = 0')
-            ->whereRaw('IFNULL(stations.status, 0) = 0');
+            ->where('employments.status', 1);
         // ステータス
         if (!$params->preview) {
             $query = $query->where('jobs.status', 10);
