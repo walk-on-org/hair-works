@@ -58,24 +58,24 @@ export default function MailmagazineConfigTableRow({
   const popover = usePopover();
 
   let memberCondition = "";
-  if (mailmagazine_m_areas) {
+  if (mailmagazine_m_areas.length > 0) {
     memberCondition += `【住所】${mailmagazine_m_areas
       .map((row) => {
         return row.prefecture_name + row.city_name;
       })
       .join("、")}\n`;
   }
-  if (m_emp_prefecture_names)
+  if (m_emp_prefecture_names.length > 0)
     memberCondition += `【希望勤務地】${m_emp_prefecture_names.join("、")}\n`;
-  if (m_lp_job_category_names)
+  if (m_lp_job_category_names.length > 0)
     memberCondition += `【希望職種】${m_lp_job_category_names.join("、")}\n`;
-  if (m_employment_names)
+  if (m_employment_names.length > 0)
     memberCondition += `【希望勤務体系】${m_employment_names.join("、")}\n`;
-  if (m_qualification_names)
+  if (m_qualification_names.length > 0)
     memberCondition += `【保有資格】${m_qualification_names.join("、")}\n`;
-  if (m_status_names)
+  if (m_status_names.length > 0)
     memberCondition += `【ステータス】${m_status_names.join("、")}\n`;
-  if (m_change_time_names)
+  if (m_change_time_names.length > 0)
     memberCondition += `【希望転職時期】${m_change_time_names.join("、")}\n`;
   if (member_birthyear_from || member_birthyear_to) {
     memberCondition += "【生まれ年】";
@@ -85,10 +85,10 @@ export default function MailmagazineConfigTableRow({
   }
 
   let jobCondition = "";
-  if (j_corporation_names)
+  if (j_corporation_names.length > 0)
     jobCondition += `【法人】${j_corporation_names.join("、")}\n`;
   if (job_keyword) jobCondition += `【キーワード】${job_keyword}\n`;
-  if (j_job_category_names)
+  if (j_job_category_names.length > 0)
     jobCondition += `【職種】${j_job_category_names.join("、")}\n`;
   if (job_match_lp_job_category) jobCondition += "【役職/役割】求職者と同じ\n";
   if (job_match_employment) jobCondition += "【雇用形態】求職者と同じ\n";
