@@ -653,14 +653,20 @@ class JobController extends Controller
             $prefecture = Prefecture::find($request->prefecture_id);
             if ($prefecture) {
                 $relation_prefecture = Prefecture::where('prefectures.region', $prefecture->region)
-                    ->leftJoin('offices', 'prefectures.id', '=', 'offices.prefecture_id')
-                    ->leftJoin('jobs', 'offices.id', '=', 'jobs.office_id')
+                    ->leftJoin('offices', function ($join) {
+                        $join->on('prefectures.id', '=', 'offices.prefecture_id')
+                            ->whereNull('offices.deleted_at');
+                    })
+                    ->leftJoin('jobs', function ($join) {
+                        $join->on('offices.id', '=', 'jobs.office_id')
+                            ->whereNull('jobs.deleted_at');
+                    })
                     ->groupBy('prefectures.id')
                     ->select(
                         'prefectures.id as prefecture_id',
                         'prefectures.name as prefecture_name',
                         'prefectures.permalink as prefecture_roman',
-                        DB::raw('COUNT(distinct case when jobs.status = 10 and jobs.deleted_at is null and offices.deleted_at is null then jobs.id else null end) as job_count'),
+                        DB::raw('COUNT(distinct case when jobs.status = 10 then jobs.id else null end) as job_count'),
                     )
                     ->orderBy('prefecture_id')
                     ->get();
@@ -735,8 +741,14 @@ class JobController extends Controller
         // 求人数の多い市区町村
         $relation_city = City::join('prefectures', 'cities.prefecture_id', '=', 'prefectures.id')
             ->leftJoin('government_cities', 'cities.government_city_id', '=', 'government_cities.id')
-            ->leftJoin('offices', 'cities.id', '=', 'offices.city_id')
-            ->leftJoin('jobs', 'offices.id', '=', 'jobs.office_id')
+            ->leftJoin('offices', function ($join) {
+                $join->on('cities.id', '=', 'offices.city_id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->leftJoin('jobs', function ($join) {
+                $join->on('offices.id', '=', 'jobs.office_id')
+                    ->whereNull('jobs.deleted_at');
+            })
             ->groupBy('prefectures.id')
             ->groupByRaw('IFNULL(government_cities.id, 10000 + cities.id)')
             ->select(
@@ -744,7 +756,7 @@ class JobController extends Controller
                 DB::raw('IFNULL(MAX(government_cities.name), MAX(cities.name)) as city_name'),
                 DB::raw('IFNULL(MAX(government_cities.permalink), MAX(cities.permalink)) as city_roman'),
                 'prefectures.permalink as prefecture_roman',
-                DB::raw('COUNT(distinct case when jobs.status = 10 and jobs.deleted_at is null and offices.deleted_at is null then jobs.id else null end) as job_count'),
+                DB::raw('COUNT(distinct case when jobs.status = 10 then jobs.id else null end) as job_count'),
             )
             ->orderBy('job_count', 'desc')
             ->havingRaw('job_count > 0')
@@ -755,8 +767,14 @@ class JobController extends Controller
         $relation_station = Station::join('prefectures', 'stations.prefecture_id', '=', 'prefectures.id')
             ->join('cities', 'stations.city_id', '=', 'cities.id')
             ->leftJoin('office_accesses', 'stations.station_group_id', '=', 'office_accesses.station_id')
-            ->leftJoin('offices', 'office_accesses.office_id', '=', 'offices.id')
-            ->leftJoin('jobs', 'offices.id', '=', 'jobs.office_id')
+            ->leftJoin('offices', function ($join) {
+                $join->on('office_accesses.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->leftJoin('jobs', function ($join) {
+                $join->on('offices.id', '=', 'jobs.office_id')
+                    ->whereNull('jobs.deleted_at');
+            })
             ->join('stations as stations_main', 'stations.station_group_id', '=', 'stations_main.id')
             ->where('stations.status', 0)
             ->where('stations_main.status', 0)
@@ -767,7 +785,7 @@ class JobController extends Controller
                 'stations_main.permalink as station_roman',
                 DB::raw('MAX(prefectures.permalink) as prefecture_roman'),
                 DB::raw('MAX(cities.permalink) as city_roman'),
-                DB::raw('COUNT(distinct case when jobs.status = 10 and jobs.deleted_at is null and offices.deleted_at is null then jobs.id else null end) as job_count'),
+                DB::raw('COUNT(distinct case when jobs.status = 10 then jobs.id else null end) as job_count'),
             )
             ->orderBy('job_count', 'desc')
             ->havingRaw('job_count > 0')
