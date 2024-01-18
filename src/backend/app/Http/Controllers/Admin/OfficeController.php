@@ -598,6 +598,94 @@ class OfficeController extends Controller
     }
 
     /**
+     * 事業所コピー
+     */
+    public function copyMultiple(Request $request, $id)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+            $origin = Office::find($id);
+            if (!$origin) {
+                return response()->json([
+                    'result' => 'ok',
+                    'message' => 'コピー元の事業所が存在しません。',
+                ]);
+            }
+
+            DB::transaction(function () use ($ids, $origin) {
+                foreach ($ids as $id) {
+                    $office = Office::find($id);
+                    
+                    // 事業所情報更新
+                    $office->update([
+                        'new_customer_ratio' => $origin->new_customer_ratio,
+                        'cut_unit_price' => $origin->cut_unit_price,
+                        'customer_unit_price' => $origin->customer_unit_price,
+                        'passive_smoking' => $origin->passive_smoking,
+                        'external_url' => $origin->external_url,
+                        'sns_url' => $origin->sns_url,
+                    ]);
+
+                    // 事業所客層
+                    $office->officeClienteles()->delete();
+                    $insert_data = [];
+                    foreach ($origin->officeClienteles as $office_clientele) {
+                        $insert_data[] = [
+                            'clientele' => $office_clientele->clientele,
+                            'othertext' => $office_clientele->othertext,
+                        ];
+                    }
+                    if (count($insert_data) > 0) {
+                        $office->officeClienteles()->createMany($insert_data);
+                    }
+
+                    // 事業所アクセスは対象外
+
+                    // 事業所画像
+                    $office->officeImages()->delete();
+                    $insert_data = [];
+                    foreach ($origin->officeImages as $office_image) {
+                        $insert_data[] = [
+                            'image' => $office_image->image,
+                            'alttext' => $office_image->alttext,
+                            'sort' => $office_image->sort,
+                        ];
+                    }
+                    if (count($insert_data) > 0) {
+                        $office->officeImages()->createMany($insert_data);
+                    }
+                    // 画像ファイルをコピー
+                    UploadImage::copyImageDir(config('uploadimage.office_image_storage'), $origin->id, $office->id);
+
+                    // 事業所特徴
+                    $office->officeFeatures()->delete();
+                    $insert_data = [];
+                    foreach ($origin->officeFeatures as $office_feature) {
+                        $insert_data[] = [
+                            'image' => $office_feature->image,
+                            'feature' => $office_feature->feature,
+                        ];
+                    }
+                    if (count($insert_data) > 0) {
+                        $office->officeFeatures()->createMany($insert_data);
+                    }
+                    // 画像ファイルをコピー
+                    UploadImage::copyImageDir(config('uploadimage.office_feature_storage'), $origin->id, $office->id);
+                }
+            });
+
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more offices not found'], 404);
+        }
+    }
+
+    /**
      * 事業所アクセス更新処理
      */
     private function updateOfficeAccess($office, $office_accesses)

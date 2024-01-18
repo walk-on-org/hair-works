@@ -8,6 +8,7 @@ import Table from "@mui/material/Table";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
+import TextField from "@mui/material/TextField";
 import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
 import IconButton from "@mui/material/IconButton";
@@ -90,12 +91,16 @@ export default function OfficeListView({
     defaultOrder: order,
     defaultCurrentPage: 0,
     defaultRowsPerPage: limit,
+    defaultSelected: [],
   });
   const confirm = useBoolean();
   const exportCsv = useBoolean();
+  const copyConfirm = useBoolean();
+  const reload = useBoolean();
   const [exportCharCode, setExportCharCode] = useState(
     EXPORT_CHAR_CODE_OPTIONS[0].value
   );
+  const [originOfficeId, setOriginOfficeId] = useState("");
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IOfficeItem[]>([]);
   const { enqueueSnackbar } = useSnackbar();
@@ -114,7 +119,8 @@ export default function OfficeListView({
       limit,
       page,
       orderBy,
-      order
+      order,
+      reload.value
     );
 
   useEffect(() => {
@@ -307,6 +313,38 @@ export default function OfficeListView({
     }
   }, [exportCharCode, table, corporationName, officeName]);
 
+  // コピー元求人ID変更
+  const handleChangeOriginOfficeId = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setOriginOfficeId(event.target.value);
+  };
+  // 求人コピー
+  const handleCopyRows = useCallback(async () => {
+    try {
+      const res = await axios.post(
+        endpoints.office.copyMultiple(originOfficeId),
+        {
+          ids: table.selected,
+        }
+      );
+
+      if (res.data.message) {
+        enqueueSnackbar(res.data.message, {
+          variant: "error",
+          persist: true,
+        });
+      } else {
+        enqueueSnackbar("事業所情報をコピーしました。");
+      }
+      table.onSelectAllRows(false, []);
+      reload.onToggle();
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.log(error);
+    }
+  }, [originOfficeId, table, reload]);
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -364,6 +402,11 @@ export default function OfficeListView({
               }
               action={
                 <Stack direction="row">
+                  <Tooltip title="事業所コピー">
+                    <Button color="primary" onClick={copyConfirm.onTrue}>
+                      事業所コピー
+                    </Button>
+                  </Tooltip>
                   <Tooltip title="削除">
                     <IconButton color="primary" onClick={confirm.onTrue}>
                       <Iconify icon="solar:trash-bin-trash-bold" />
@@ -509,6 +552,46 @@ export default function OfficeListView({
             }}
           >
             エクスポート
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={copyConfirm.value}
+        onClose={copyConfirm.onFalse}
+        title="事業所コピー"
+        content={
+          <>
+            <Stack
+              direction="column"
+              spacing={2}
+              flexGrow={1}
+              sx={{ width: 1 }}
+            >
+              <Typography>
+                <strong> {table.selected.length} </strong>
+                件の事業所に以下で入力した事業所の情報をコピーします。
+              </Typography>
+
+              <TextField
+                fullWidth
+                label="コピー元事業所ID"
+                value={originOfficeId}
+                onChange={handleChangeOriginOfficeId}
+                placeholder="事業所IDを入力"
+              />
+            </Stack>
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            onClick={() => {
+              handleCopyRows();
+              copyConfirm.onFalse();
+            }}
+          >
+            コピー
           </Button>
         }
       />

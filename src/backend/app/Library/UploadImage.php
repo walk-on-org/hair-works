@@ -12,7 +12,7 @@ class UploadImage extends Facade
      * 
      * @param file $upload_file     アップロードするファイル
      * @param string $storage_path  アップロード先Storageのパス
-     * @param string $key           アップロード先Storageパスの先のデレクトリ名
+     * @param string $key           アップロード先Storageパスの先のディレクトリ名
      * @param string $old_file_name 以前のアップロードファイル名
      */
     public static function uploadImageFile($upload_file, $storage_path, $key, $old_file_name = null)
@@ -36,11 +36,29 @@ class UploadImage extends Facade
      * 
      * @param string $delete_file_name  削除するファイル名
      * @param string $storage_path      アップロード先Storageのパス
-     * @param string $key               アップロード先Storageパスの先のデレクトリ名
+     * @param string $key               アップロード先Storageパスの先のディレクトリ名
      */
     public static function deleteImageFile($delete_file_name, $storage_path, $key)
     {
         Storage::delete($storage_path . $key . '/' . $delete_file_name);
     }
 
+    /**
+     * 画像ファイルをコピー
+     * 
+     * @param string $storage_path      アップロード先Storageのパス
+     * @param string $origin_key        コピー元のディレクトリ名
+     * @param string $dest_key          コピー先のディレクトリ名
+     */
+    public static function copyImageDir($storage_path, $origin_key, $dest_key)
+    {
+        // コピー先に元々入っているファイルを削除
+        Storage::delete($storage_path . $dest_key);
+        // コピー元のディレクトに入っているファイルを全取得
+        $origin_files = Storage::files($storage_path . $origin_key);
+        foreach ($origin_files as $file) {
+            // コピー
+            Storage::copy($file, $storage_path . $dest_key . '/' . basename($file));
+        }
+    }
 }

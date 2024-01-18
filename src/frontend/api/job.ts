@@ -59,7 +59,8 @@ export function useSearchJobs(
   limit: number = 30,
   page: number = 1,
   orderBy: string = "id",
-  order: "asc" | "desc" = "desc"
+  order: "asc" | "desc" = "desc",
+  reload: boolean
 ) {
   const URL = [
     endpoints.job.list,
@@ -76,6 +77,7 @@ export function useSearchJobs(
         page,
         orderBy,
         order,
+        reload,
       },
     },
   ];

@@ -8,6 +8,7 @@ import Table from "@mui/material/Table";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
+import TextField from "@mui/material/TextField";
 import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
 import IconButton from "@mui/material/IconButton";
@@ -109,12 +110,20 @@ export default function JobListView({
     defaultOrder: order,
     defaultCurrentPage: 0,
     defaultRowsPerPage: limit,
+    defaultSelected: [],
   });
   const confirm = useBoolean();
   const exportCsv = useBoolean();
+  const approvalRequestConfirm = useBoolean();
+  const approvedConfirm = useBoolean();
+  const publishConfirm = useBoolean();
+  const stopConfirm = useBoolean();
+  const copyConfirm = useBoolean();
+  const reload = useBoolean();
   const [exportCharCode, setExportCharCode] = useState(
     EXPORT_CHAR_CODE_OPTIONS[0].value
   );
+  const [originJobId, setOriginJobId] = useState("");
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IJobItem[]>([]);
   const { enqueueSnackbar } = useSnackbar();
@@ -174,7 +183,8 @@ export default function JobListView({
     limit,
     page,
     orderBy,
-    order
+    order,
+    reload.value
   );
 
   useEffect(() => {
@@ -413,6 +423,106 @@ export default function JobListView({
     status,
   ]);
 
+  // 一括承認依頼
+  const handleApprovalRequestRows = useCallback(async () => {
+    try {
+      await axios.post(endpoints.job.approvalRequestMultiple, {
+        ids: table.selected,
+      });
+
+      enqueueSnackbar("求人を承認待ちに変更しました。");
+      table.onSelectAllRows(false, []);
+      reload.onToggle();
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.log(error);
+    }
+  }, [table, reload]);
+
+  // 一括承認
+  const handleApprovedRows = useCallback(async () => {
+    try {
+      await axios.post(endpoints.job.approvedMultiple, {
+        ids: table.selected,
+      });
+
+      enqueueSnackbar("求人を承認しました。");
+      table.onSelectAllRows(false, []);
+      reload.onToggle();
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.log(error);
+    }
+  }, [table, reload]);
+
+  // 一括掲載ON
+  const handlePublishRows = useCallback(async () => {
+    try {
+      const res = await axios.post(endpoints.job.publishMultiple, {
+        ids: table.selected,
+      });
+
+      if (res.data.message) {
+        enqueueSnackbar(res.data.message, {
+          variant: "error",
+          persist: true,
+        });
+      } else {
+        enqueueSnackbar("選択した求人を掲載中に変更しました。");
+      }
+      table.onSelectAllRows(false, []);
+      reload.onToggle();
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.log(error);
+    }
+  }, [table, reload]);
+
+  // 一括掲載OFF
+  const handleStopRows = useCallback(async () => {
+    try {
+      await axios.post(endpoints.job.stopMultiple, {
+        ids: table.selected,
+      });
+
+      enqueueSnackbar("掲載中の求人を掲載停止に変更しました。");
+      table.onSelectAllRows(false, []);
+      reload.onToggle();
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.log(error);
+    }
+  }, [table, reload]);
+
+  // コピー元求人ID変更
+  const handleChangeOriginJobId = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setOriginJobId(event.target.value);
+  };
+  // 求人コピー
+  const handleCopyRows = useCallback(async () => {
+    try {
+      const res = await axios.post(endpoints.job.copyMultiple(originJobId), {
+        ids: table.selected,
+      });
+
+      if (res.data.message) {
+        enqueueSnackbar(res.data.message, {
+          variant: "error",
+          persist: true,
+        });
+      } else {
+        enqueueSnackbar("求人情報をコピーしました。");
+      }
+      table.onSelectAllRows(false, []);
+      reload.onToggle();
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.log(error);
+    }
+  }, [originJobId, table, reload]);
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : "lg"}>
@@ -473,7 +583,35 @@ export default function JobListView({
                 )
               }
               action={
-                <Stack direction="row">
+                <Stack direction="row" gap={1}>
+                  <Tooltip title="一括掲載ON">
+                    <Button color="primary" onClick={publishConfirm.onTrue}>
+                      一括掲載ON
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="一括掲載ON">
+                    <Button color="primary" onClick={stopConfirm.onTrue}>
+                      一括掲載OFF
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="一括承認依頼">
+                    <Button
+                      color="primary"
+                      onClick={approvalRequestConfirm.onTrue}
+                    >
+                      一括承認依頼
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="一括承認">
+                    <Button color="primary" onClick={approvedConfirm.onTrue}>
+                      一括承認
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="求人コピー">
+                    <Button color="primary" onClick={copyConfirm.onTrue}>
+                      求人コピー
+                    </Button>
+                  </Tooltip>
                   <Tooltip title="削除">
                     <IconButton color="primary" onClick={confirm.onTrue}>
                       <Iconify icon="solar:trash-bin-trash-bold" />
@@ -622,6 +760,142 @@ export default function JobListView({
             }}
           >
             エクスポート
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={approvalRequestConfirm.value}
+        onClose={approvalRequestConfirm.onFalse}
+        title="一括承認依頼"
+        content={
+          <>
+            <strong> {table.selected.length} </strong>
+            件の求人データを一括承認依頼しますが、よろしいでしょうか?
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handleApprovalRequestRows();
+              approvalRequestConfirm.onFalse();
+            }}
+          >
+            一括承認依頼
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={approvedConfirm.value}
+        onClose={approvedConfirm.onFalse}
+        title="一括承認済"
+        content={
+          <>
+            <strong> {table.selected.length} </strong>
+            件の求人データを一括承認済しますが、よろしいでしょうか?
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handleApprovedRows();
+              approvedConfirm.onFalse();
+            }}
+          >
+            一括承認済
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={publishConfirm.value}
+        onClose={publishConfirm.onFalse}
+        title="一括掲載ON"
+        content={
+          <>
+            <strong> {table.selected.length} </strong>
+            件の求人データを一括掲載ONしますが、よろしいでしょうか?
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handlePublishRows();
+              publishConfirm.onFalse();
+            }}
+          >
+            一括掲載ON
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={stopConfirm.value}
+        onClose={stopConfirm.onFalse}
+        title="一括掲載OFF"
+        content={
+          <>
+            <strong> {table.selected.length} </strong>
+            件の求人データを一括掲載OFFしますが、よろしいでしょうか?
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handleStopRows();
+              stopConfirm.onFalse();
+            }}
+          >
+            一括掲載OFF
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={copyConfirm.value}
+        onClose={copyConfirm.onFalse}
+        title="求人コピー"
+        content={
+          <>
+            <Stack
+              direction="column"
+              spacing={2}
+              flexGrow={1}
+              sx={{ width: 1 }}
+            >
+              <Typography>
+                <strong> {table.selected.length} </strong>
+                件の求人に以下で入力した求人の情報をコピーします。
+              </Typography>
+
+              <TextField
+                fullWidth
+                label="コピー元求人ID"
+                value={originJobId}
+                onChange={handleChangeOriginJobId}
+                placeholder="求人IDを入力"
+              />
+            </Stack>
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            onClick={() => {
+              handleCopyRows();
+              copyConfirm.onFalse();
+            }}
+          >
+            コピー
           </Button>
         }
       />

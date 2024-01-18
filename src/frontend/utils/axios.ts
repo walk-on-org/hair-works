@@ -193,6 +193,7 @@ export const endpoints = {
     destroy: (id: string) => `/api/admin/offices/destroy/${id}`,
     destroyMultiple: "/api/admin/offices/destroy_multiple",
     downloadCsv: "/api/admin/offices/download/csv",
+    copyMultiple: (id: string) => `/api/admin/offices/copy_multiple/${id}`,
   },
   job: {
     list: "/api/admin/jobs",
@@ -202,6 +203,11 @@ export const endpoints = {
     destroy: (id: string) => `/api/admin/jobs/destroy/${id}`,
     destroyMultiple: "/api/admin/jobs/destroy_multiple",
     downloadCsv: "/api/admin/jobs/download/csv",
+    approvalRequestMultiple: "/api/admin/jobs/approval_request_multiple",
+    approvedMultiple: "/api/admin/jobs/approved_multiple",
+    publishMultiple: "/api/admin/jobs/publish_multiple",
+    stopMultiple: "/api/admin/jobs/stop_multiple",
+    copyMultiple: (id: string) => `/api/admin/jobs/copy_multiple/${id}`,
   },
   member: {
     list: "/api/admin/members",

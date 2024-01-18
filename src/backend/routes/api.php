@@ -271,6 +271,7 @@ Route::middleware(['middleware' => 'api'])->prefix('admin')->group(function () {
     Route::post('/offices/destroy/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'destroy']);
     Route::post('/offices/destroy_multiple', [App\Http\Controllers\Admin\OfficeController::class, 'destroyMultiple']);
     Route::get('/offices/download/csv', [App\Http\Controllers\Admin\OfficeController::class, 'downloadCsv']);
+    Route::post('/offices/copy_multiple/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'copyMultiple']);
     // 求人
     Route::get('/jobs', [App\Http\Controllers\Admin\JobController::class, 'index']);
     Route::get('/jobs/{id}', [App\Http\Controllers\Admin\JobController::class, 'show']);
@@ -279,6 +280,11 @@ Route::middleware(['middleware' => 'api'])->prefix('admin')->group(function () {
     Route::post('/jobs/destroy/{id}', [App\Http\Controllers\Admin\JobController::class, 'destroy']);
     Route::post('/jobs/destroy_multiple', [App\Http\Controllers\Admin\JobController::class, 'destroyMultiple']);
     Route::get('/jobs/download/csv', [App\Http\Controllers\Admin\JobController::class, 'downloadCsv']);
+    Route::post('/jobs/approval_request_multiple', [App\Http\Controllers\Admin\JobController::class, 'approvalRequestMultiple']);
+    Route::post('/jobs/approved_multiple', [App\Http\Controllers\Admin\JobController::class, 'approvedMultiple']);
+    Route::post('/jobs/publish_multiple', [App\Http\Controllers\Admin\JobController::class, 'publishMultiple']);
+    Route::post('/jobs/stop_multiple', [App\Http\Controllers\Admin\JobController::class, 'stopMultiple']);
+    Route::post('/jobs/copy_multiple/{id}', [App\Http\Controllers\Admin\JobController::class, 'copyMultiple']);
     // 会員情報
     Route::get('/members', [App\Http\Controllers\Admin\MemberController::class, 'index']);
     Route::get('/members/{id}', [App\Http\Controllers\Admin\MemberController::class, 'show']);

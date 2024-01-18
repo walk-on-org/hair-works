@@ -54,11 +54,22 @@ export function useSearchOffices(
   limit: number = 30,
   page: number = 1,
   orderBy: string = "id",
-  order: "asc" | "desc" = "desc"
+  order: "asc" | "desc" = "desc",
+  reload: boolean
 ) {
   const URL = [
     endpoints.office.list,
-    { params: { corporation_name, office_name, limit, page, orderBy, order } },
+    {
+      params: {
+        corporation_name,
+        office_name,
+        limit,
+        page,
+        orderBy,
+        order,
+        reload,
+      },
+    },
   ];
 
   const { data, isLoading, error, isValidating } = useSWR(URL, fetcher);

@@ -807,6 +807,268 @@ class JobController extends Controller
     }
 
     /**
+     * 求人データ一括承認依頼
+     */
+    public function approvalRequestMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+
+            DB::transaction(function () use ($ids) {
+                foreach ($ids as $id) {
+                    $job = Job::find($id);
+                    if ($job->status != 0) {
+                        continue;
+                    }
+                    
+                    // 掲載承認待ちに変更
+                    $job->update([
+                        'status' => 5,
+                    ]);
+                }
+            });
+
+            // TODO 法人ごとに承認依頼メールを送信
+
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more jobs not found'], 404);
+        }
+    }
+
+    /**
+     * 求人データ一括承認
+     */
+    public function approvedMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+
+            DB::transaction(function () use ($ids) {
+                foreach ($ids as $id) {
+                    $job = Job::find($id);
+                    if ($job->status != 5) {
+                        continue;
+                    }
+                    
+                    // 掲載承認済に変更
+                    $job->update([
+                        'status' => 9,
+                    ]);
+                }
+            });
+
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more jobs not found'], 404);
+        }
+    }
+
+    /**
+     * 求人データ一括掲載ON
+     */
+    public function publishMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+
+            $nothing_contract = false;
+            DB::transaction(function () use ($ids) {
+                foreach ($ids as $id) {
+                    $job = Job::find($id);
+                    if ($job->status == 10) {
+                        continue;
+                    }
+                    $contract = self::getActiveContract($job->office_id);
+                    if (!$contract) {
+                        $nothing_contract = true;
+                    }
+                    // 掲載中に変更
+                    $job->update([
+                        'status' => 10,
+                        'publish_start_date' => date('Y-m-d H:i:s'),
+                        'publish_end_date' => null,
+                    ]);
+                    // 契約プランの更新
+                    if (!$contract->start_date || !$contract->end_plan_date) {
+                        // 掲載開始日、掲載終了日が空の場合、最初の掲載のため、本日から掲載
+                        Contract::where('id', $contract->contract_id)
+                            ->update([
+                                'start_date' => date('Y-m-d'),
+                                'end_plan_date' => date("Y-m-d", strtotime("+{$contract->term} month +1 day")), // 開始した日付は除くため、+1日
+                            ]);
+                    }
+
+                    // TODO IndexingAPI送信
+                }
+            });
+
+            return response()->json([
+                'result' => 'ok',
+                'message' => $nothing_contract === true ? '契約プランが存在しない求人があり、一部求人は掲載中に変更されません。' : '',
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more jobs not found'], 404);
+        }
+    }
+
+    /**
+     * 求人データ一括掲載OFF
+     */
+    public function stopMultiple(Request $request)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+
+            DB::transaction(function () use ($ids) {
+                foreach ($ids as $id) {
+                    $job = Job::find($id);
+                    if ($job->status != 10) {
+                        continue;
+                    }
+                    
+                    // 掲載停止に変更
+                    $job->update([
+                        'status' => 20,
+                        'publish_end_date' => date('Y-m-d H:i:s'),
+                    ]);
+
+                    // TODO IndexingAPI送信
+                }
+            });
+
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more jobs not found'], 404);
+        }
+    }
+
+    /**
+     * 求人コピー
+     */
+    public function copyMultiple(Request $request, $id)
+    {
+        try {
+            $ids = $request->input('ids');
+            if (!$ids || !is_array($ids)) {
+                throw new \InvalidArgumentException('Invalid or missing IDs parameter');
+            }
+            $origin = Job::find($id);
+            if (!$origin) {
+                return response()->json([
+                    'result' => 'ok',
+                    'message' => 'コピー元の求人が存在しません。',
+                ]);
+            }
+
+            DB::transaction(function () use ($ids, $origin) {
+                foreach ($ids as $id) {
+                    $job = Job::find($id);
+                    if ($job->status != 0) {
+                        // 掲載準備中以外はコピーしない
+                        continue;
+                    }
+                    
+                    // 求人情報更新
+                    $job->update([
+                        'm_salary_lower' => $origin->m_salary_lower,
+                        'm_salary_upper' => $origin->m_salary_upper,
+                        't_salary_lower' => $origin->t_salary_lower,
+                        't_salary_upper' => $origin->t_salary_upper,
+                        'd_salary_lower' => $origin->d_salary_lower,
+                        'd_salary_upper' => $origin->d_salary_upper,
+                        'commision_lower' => $origin->commision_lower,
+                        'commision_upper' => $origin->commision_upper,
+                        'salary' => $origin->salary,
+                        'work_time' => $origin->work_time,
+                        'job_description' => $origin->job_description,
+                        'holiday' => $origin->holiday,
+                        'welfare' => $origin->welfare,
+                        'entry_requirement' => $origin->entry_requirement,
+                        'catch_copy' => $origin->catch_copy,
+                        'recommend_point' => $origin->recommend_point,
+                        'salon_message' => $origin->salon_message,
+                    ]);
+                    // 求人こだわり条件
+                    $job->jobCommitmentTerms()->delete();
+                    $insert_data = [];
+                    foreach ($origin->jobCommitmentTerms as $job_commitment_term) {
+                        $insert_data[] = [
+                            'commitment_term_id' => $job_commitment_term->commitment_term_id,
+                        ];
+                    }
+                    if (count($insert_data) > 0) {
+                        $job->jobCommitmentTerms()->createMany($insert_data);
+                    }
+                    // 求人資格
+                    $job->jobQualifications()->delete();
+                    $insert_data = [];
+                    foreach ($origin->jobQualifications as $job_qualification) {
+                        $insert_data[] = [
+                            'qualification_id' => $job_qualification->qualification_id,
+                        ];
+                    }
+                    if (count($insert_data) > 0) {
+                        $job->jobQualifications()->createMany($insert_data);
+                    }
+                    // 求人休日
+                    $job->jobHolidays()->delete();
+                    $insert_data = [];
+                    foreach ($origin->jobHolidays as $job_holiday) {
+                        $insert_data[] = [
+                            'holiday_id' => $job_holiday->holiday_id,
+                        ];
+                    }
+                    if (count($insert_data) > 0) {
+                        $job->jobHolidays()->createMany($insert_data);
+                    }
+                    // 求人画像
+                    $job->jobImages()->delete();
+                    $insert_data = [];
+                    foreach ($origin->jobImages as $job_image) {
+                        $insert_data[] = [
+                            'image' => $job_image->image,
+                            'alttext' => $job_image->alttext,
+                            'sort' => $job_image->sort,
+                        ];
+                    }
+                    if (count($insert_data) > 0) {
+                        $job->jobImages()->createMany($insert_data);
+                    }
+                    // 画像ファイルをコピー
+                    UploadImage::copyImageDir(config('uploadimage.job_image_storage'), $origin->id, $job->id);
+                }
+            });
+
+            return response()->json(['result' => 'ok']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'One or more jobs not found'], 404);
+        }
+    }
+
+    /**
      * 求人一括設定画像更新処理
      */
     private function updateJobImage($job, $job_images)
