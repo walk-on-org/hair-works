@@ -1,58 +1,100 @@
+import { ApexOptions } from "apexcharts";
+
 import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
-import { CardProps } from "@mui/material/Card";
+import Card, { CardProps } from "@mui/material/Card";
 import Typography from "@mui/material/Typography";
-import { alpha, useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
+
+import Chart, { useChart } from "@/components/chart";
 
 import { fNumber } from "@/utils/format-number";
-
-import { bgGradient } from "@/theme/css";
-import { ColorSchema } from "@/theme/palette";
 
 // ----------------------------------------------------------------------
 
 interface Props extends CardProps {
   title: string;
   total: number;
-  icon: React.ReactNode;
-  color?: ColorSchema;
+  chart: {
+    colors?: string[];
+    series: number[];
+    options?: ApexOptions;
+  };
 }
 
 export default function DashboardWidgetSummary({
   title,
   total,
-  icon,
-  color = "primary",
+  chart,
   sx,
   ...other
 }: Props) {
   const theme = useTheme();
 
+  const {
+    colors = [theme.palette.primary.light, theme.palette.primary.main],
+    series,
+    options,
+  } = chart;
+
+  const chartOptions = useChart({
+    colors: [colors[1]],
+    fill: {
+      type: "gradient",
+      gradient: {
+        colorStops: [
+          { offset: 0, color: colors[0], opacity: 1 },
+          { offset: 100, color: colors[1], opacity: 1 },
+        ],
+      },
+    },
+    chart: {
+      animations: {
+        enabled: true,
+      },
+      sparkline: {
+        enabled: true,
+      },
+    },
+    tooltip: {
+      x: {
+        show: false,
+      },
+      y: {
+        formatter: (value: number) => fNumber(value),
+        title: {
+          formatter: () => "",
+        },
+      },
+      marker: {
+        show: false,
+      },
+    },
+    ...options,
+  });
+
   return (
-    <Stack
-      alignItems="center"
-      sx={{
-        ...bgGradient({
-          direction: "135deg",
-          startColor: alpha(theme.palette[color].light, 0.2),
-          endColor: alpha(theme.palette[color].main, 0.2),
-        }),
-        py: 5,
-        borderRadius: 2,
-        textAlign: "center",
-        color: `${color}.darker`,
-        backgroundColor: "common.white",
-        ...sx,
-      }}
+    <Card
+      sx={{ display: "flex", alignItems: "center", p: 3, ...sx }}
       {...other}
     >
-      {icon && <Box sx={{ width: 64, height: 64, mb: 1 }}>{icon}</Box>}
+      <Box sx={{ flexGrow: 1 }}>
+        <Typography variant="subtitle2" sx={{ mb: 2 }}>
+          {title}
+        </Typography>
 
-      <Typography variant="h3">{fNumber(total)}</Typography>
+        <Typography variant="h3" gutterBottom>
+          {fNumber(total)}
+        </Typography>
+      </Box>
 
-      <Typography variant="subtitle2" sx={{ opacity: 0.64 }}>
-        {title}
-      </Typography>
-    </Stack>
+      <Chart
+        dir="ltr"
+        type="line"
+        series={[{ data: series }]}
+        options={chartOptions}
+        width={96}
+        height={64}
+      />
+    </Card>
   );
 }

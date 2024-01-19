@@ -283,4 +283,10 @@ export const endpoints = {
     destroy: (id: string) => `/api/admin/admin_users/destroy/${id}`,
     destroyMultiple: "/api/admin/admin_users/destroy_multiple",
   },
+  dashboard: {
+    jobCount: "/api/admin/dashboard/job_count",
+    memebrCount: "/api/admin/dashboard/member_count",
+    applicantCount: "/api/admin/dashboard/applicant_count",
+    inquiryCount: "/api/admin/dashboard/inquiry_count",
+  },
 };

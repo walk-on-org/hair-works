@@ -333,4 +333,9 @@ Route::middleware(['middleware' => 'api'])->prefix('admin')->group(function () {
     Route::post('/mailmagazine_configs/destroy/{id}', [App\Http\Controllers\Admin\MailmagazineConfigController::class, 'destroy']);
     Route::post('/mailmagazine_configs/destroy_multiple', [App\Http\Controllers\Admin\MailmagazineConfigController::class, 'destroyMultiple']);
     Route::get('/mailmagazine_configs/download/send_list/{id}', [App\Http\Controllers\Admin\MailmagazineConfigController::class, 'downloadSendList']);
+    // ダッシュボード
+    Route::get('/dashboard/job_count', [App\Http\Controllers\Admin\DashboardController::class, 'getJobCount']);
+    Route::get('/dashboard/member_count', [App\Http\Controllers\Admin\DashboardController::class, 'getMemberCount']);
+    Route::get('/dashboard/applicant_count', [App\Http\Controllers\Admin\DashboardController::class, 'getApplicantCount']);
+    Route::get('/dashboard/inquiry_count', [App\Http\Controllers\Admin\DashboardController::class, 'getInquiryCount']);
 });
