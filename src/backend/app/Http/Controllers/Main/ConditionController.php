@@ -535,10 +535,12 @@ class ConditionController extends Controller
             ->get();
         
         // 条件に合う求人件数を取得
-        $job_count = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $job_count = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->where('jobs.status', 10)
             ->where('offices.prefecture_id', $params->prefecture)
-            ->whereNull('offices.deleted_at')
             ->groupBy('offices.city_id')
             ->select(
                 'offices.city_id',
@@ -585,12 +587,14 @@ class ConditionController extends Controller
             ->get();
 
         // 条件に合う求人件数を取得
-        $job_count = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $job_count = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->join('office_accesses', 'offices.id', '=', 'office_accesses.office_id')
             ->join('stations', 'office_accesses.station_id', '=', 'stations.id')
             ->where('jobs.status', 10)
             ->where('stations.prefecture_id', $params->prefecture)
-            ->whereNull('offices.deleted_at')
             ->groupBy('office_accesses.station_id')
             ->select(
                 'office_accesses.station_id',
@@ -624,9 +628,11 @@ class ConditionController extends Controller
             ->get();
 
         // 条件に合う求人件数を取得
-        $job_count_query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $job_count_query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->where('jobs.status', 10)
-            ->whereNull('offices.deleted_at')
             ->groupBy('jobs.job_category_id')
             ->select(
                 'jobs.job_category_id',
@@ -689,9 +695,11 @@ class ConditionController extends Controller
             ->get();
 
         // 条件に合う求人件数を取得
-        $job_count_query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $job_count_query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->where('jobs.status', 10)
-            ->whereNull('offices.deleted_at')
             ->groupBy('jobs.position_id')
             ->select(
                 'jobs.position_id',
@@ -754,9 +762,11 @@ class ConditionController extends Controller
             ->get();
 
         // 条件に合う求人件数を取得
-        $job_count_query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $job_count_query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->where('jobs.status', 10)
-            ->whereNull('offices.deleted_at')
             ->groupBy('jobs.employment_id')
             ->select(
                 'jobs.employment_id',

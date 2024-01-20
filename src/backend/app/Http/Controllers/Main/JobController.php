@@ -142,13 +142,17 @@ class JobController extends Controller
      */
     public function getAllCount(Request $request)
     {
-        $count = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
-            ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+        $count = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->join('corporations', function ($join) {
+                $join->on('offices.corporation_id', '=', 'corporations.id')
+                    ->whereNull('corporations.deleted_at');
+            })
             ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
             ->join('positions', 'jobs.position_id', '=', 'positions.id')
             ->join('employments', 'jobs.employment_id', '=', 'employments.id')
-            ->whereNull('offices.deleted_at')
-            ->whereNull('corporations.deleted_at')
             ->where('job_categories.status', 1)
             ->where('positions.status', 1)
             ->where('employments.status', 1)
@@ -417,9 +421,11 @@ class JobController extends Controller
      */
     public function getOtherSameOffice($id)
     {
-        $job = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $job = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->where('jobs.id', $id)
-            ->whereNull('offices.deleted_at')
             ->select(
                 'jobs.id',
                 'jobs.office_id',
@@ -431,14 +437,16 @@ class JobController extends Controller
         }
 
         // 同一事業所の他求人を取得
-        $other_jobs = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $other_jobs = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
             ->join('positions', 'jobs.position_id', '=', 'positions.id')
             ->join('employments', 'jobs.employment_id', '=', 'employments.id')
             ->where('jobs.status', 10)
             ->where('jobs.office_id', $job->office_id)
             ->where('jobs.id', '<>', $id)
-            ->whereNull('offices.deleted_at')
             ->where('job_categories.status', 1)
             ->where('positions.status', 1)
             ->where('employments.status', 1)
@@ -466,9 +474,11 @@ class JobController extends Controller
      */
     public function getAlike($id)
     {
-        $job = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $job = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->where('jobs.id', $id)
-            ->whereNull('offices.deleted_at')
             ->select(
                 'jobs.id as job_id',
                 'jobs.job_category_id',
@@ -841,14 +851,16 @@ class JobController extends Controller
         if ($request->commitment_term_id || $request->position_id || $request->m_salary_lower) {
             $query = Job::join('job_commitment_terms', 'jobs.id', '=', 'job_commitment_terms.job_id')
                 ->join('commitment_terms', 'job_commitment_terms.commitment_term_id', '=', 'commitment_terms.id')
-                ->join('offices', 'jobs.office_id', '=', 'offices.id')
+                ->join('offices', function ($join) {
+                    $join->on('jobs.office_id', '=', 'offices.id')
+                        ->whereNull('offices.deleted_at');
+                })
                 ->join('office_accesses', 'offices.id', '=', 'office_accesses.office_id')
                 ->join('stations', 'office_accesses.station_id', '=', 'stations.id')
                 ->join('positions', 'jobs.position_id', '=', 'positions.id')
                 ->join('stations as stations_main', 'stations.station_group_id', '=', 'stations_main.id')
                 ->join('prefectures', 'stations_main.prefecture_id', '=', 'prefectures.id')
                 ->join('cities', 'stations_main.city_id', '=', 'cities.id')
-                ->whereNull('offices.deleted_at')
                 ->where('stations.status', 0)
                 ->where('stations_main.status', 0)
                 ->groupBy('stations.station_group_id')
@@ -887,14 +899,18 @@ class JobController extends Controller
         // 記事のこだわり条件に合う、求人（ランダム）
         $relation_cmt_job = [];
         if ($request->commitment_term_id || $request->position_id || $request->m_salary_lower) {
-            $query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
-                ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+            $query = Job::join('offices', function ($join) {
+                    $join->on('jobs.office_id', '=', 'offices.id')
+                        ->whereNull('offices.deleted_at');
+                })
+                ->join('corporations', function ($join) {
+                    $join->on('offices.corporation_id', '=', 'corporations.id')
+                        ->whereNull('corporations.deleted_at');
+                })
                 ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
                 ->join('positions', 'jobs.position_id', '=', 'positions.id')
                 ->join('employments', 'jobs.employment_id', '=', 'employments.id')
                 ->leftJoin('job_commitment_terms', 'jobs.id', '=', 'job_commitment_terms.job_id')
-                ->whereNull('offices.deleted_at')
-                ->whereNull('corporations.deleted_at')
                 ->where('jobs.status', 10)
                 ->select(
                     'jobs.id as job_id',
@@ -1175,12 +1191,14 @@ class JobController extends Controller
         }
         if (count($corporation_ids) == 0 ) return [];
 
-        $other_offices_tmp = Office::join('jobs', 'offices.id', '=', 'jobs.office_id')
+        $other_offices_tmp = Office::join('jobs', function ($join) {
+                $join->on('offices.id', '=', 'jobs.office_id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->join('prefectures', 'offices.prefecture_id', '=', 'prefectures.id')
             ->join('cities', 'offices.city_id', '=', 'cities.id')
             ->where('jobs.status', 10)
             ->whereIn('offices.corporation_id', $corporation_ids)
-            ->whereNull('jobs.deleted_at')
             ->groupBy('offices.id')
             ->groupBy('offices.name')
             ->select(
@@ -1299,13 +1317,19 @@ class JobController extends Controller
                 'url' => config('uploadimage.office_image_relative_path') . $office_image->office_id . '/' . $office_image->image,
             ];
         }
-        $corporation_images = CorporationImage::join('corporations', 'corporation_images.corporation_id', '=', 'corporations.id')
-            ->join('offices', 'corporations.id', '=', 'offices.corporation_id')
-            ->join('jobs', 'offices.id', '=', 'jobs.office_id')
+        $corporation_images = CorporationImage::join('corporations', function ($join) {
+                $join->on('corporation_images.corporation_id', '=', 'corporations.id')
+                    ->whereNull('corporations.deleted_at');
+            })
+            ->join('offices', function ($join) {
+                $join->on('corporations.id', '=', 'offices.corporation_id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->join('jobs', function ($join) {
+                $join->on('offices.id', '=', 'jobs.office_id')
+                    ->whereNull('jobs.deleted_at');
+            })
             ->whereIn('jobs.id', $job_ids)
-            ->whereNull('corporations.deleted_at')
-            ->whereNull('offices.deleted_at')
-            ->whereNull('jobs.deleted_at')
             ->select(
                 'corporation_images.corporation_id',
                 'jobs.id as job_id',
@@ -1425,13 +1449,17 @@ class JobController extends Controller
      */
     private function getPickUpJobs($type, $limit)
     {
-        $query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
-            ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+        $query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->join('corporations', function ($join) {
+                $join->on('offices.corporation_id', '=', 'corporations.id')
+                    ->whereNull('corporations.deleted_at');
+            })
             ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
             ->join('positions', 'jobs.position_id', '=', 'positions.id')
             ->join('employments', 'jobs.employment_id', '=', 'employments.id')
-            ->whereNull('offices.deleted_at')
-            ->whereNull('corporations.deleted_at')
             ->where('jobs.status', 10);
         if ($type == 'pickup') {
             // PickUp求人
@@ -1770,13 +1798,17 @@ class JobController extends Controller
      */
     private function getAlikeJobs($city_id, $job_category_id, $position_id, $employment_id, $exclusion_job_id)
     {
-        $query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
-            ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+        $query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->join('corporations', function ($join) {
+                $join->on('offices.corporation_id', '=', 'corporations.id')
+                    ->whereNull('corporations.deleted_at');
+            })
             ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
             ->join('positions', 'jobs.position_id', '=', 'positions.id')
             ->join('employments', 'jobs.employment_id', '=', 'employments.id')
-            ->whereNull('offices.deleted_at')
-            ->whereNull('corporations.deleted_at')
             ->where('jobs.status', 10)
             ->select(
                 'jobs.id as job_id',
@@ -1867,9 +1899,11 @@ class JobController extends Controller
     private function getRelationConditionLink($condition, $prefecture_id, $government_city_id, $city_id, $line_id, $station_id)
     {
         $base_data = [];
-        $job_count_query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $job_count_query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->join('cities', 'offices.city_id', '=', 'cities.id')
-            ->whereNull('offices.deleted_at')
             ->where('jobs.status', 10);
         if ($condition == 'position') {
             $base_data = Position::where('positions.status', 1)

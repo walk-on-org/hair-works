@@ -58,9 +58,11 @@ class EmploymentController extends Controller
             ->get();
 
         // 条件に合う求人件数を取得
-        $job_count_query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $job_count_query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->where('jobs.status', 10)
-            ->whereNull('offices.deleted_at')
             ->groupBy('jobs.employment_id')
             ->select(
                 'jobs.employment_id',

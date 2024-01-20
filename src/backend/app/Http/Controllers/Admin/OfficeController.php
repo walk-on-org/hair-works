@@ -21,10 +21,12 @@ class OfficeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Office::join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+        $query = Office::join('corporations', function ($join) {
+                $join->on('offices.corporation_id', '=', 'corporations.id')
+                    ->whereNull('corporations.deleted_at');
+            })
             ->join('prefectures', 'offices.prefecture_id', '=', 'prefectures.id')
-            ->join('cities', 'offices.city_id', '=', 'cities.id')
-            ->whereNull('corporations.deleted_at');
+            ->join('cities', 'offices.city_id', '=', 'cities.id');
 
         // 検索条件指定
         if ($request->corporation_name) {
@@ -153,10 +155,12 @@ class OfficeController extends Controller
                     'contracts1.end_plan_date',
                     'contracts1.end_date',
                 );
-            $query = Office::join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+            $query = Office::join('corporations', function ($join) {
+                    $join->on('offices.corporation_id', '=', 'corporations.id')
+                        ->whereNull('corporations.deleted_at');
+                })
                 ->join('prefectures', 'offices.prefecture_id', '=', 'prefectures.id')
-                ->join('cities', 'offices.city_id', '=', 'cities.id')
-                ->whereNull('corporations.deleted_at');
+                ->join('cities', 'offices.city_id', '=', 'cities.id');
 
             // 検索条件指定
             if ($request->corporation_name) {

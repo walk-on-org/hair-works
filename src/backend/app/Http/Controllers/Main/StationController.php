@@ -95,11 +95,13 @@ class StationController extends Controller
             ->get();
 
         // 条件に合う求人件数を取得
-        $job_count_query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $job_count_query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->join('office_accesses', 'offices.id', '=', 'office_accesses.office_id')
             ->join('stations', 'office_accesses.station_id', '=', 'stations.id')
             ->where('jobs.status', 10)
-            ->whereNull('offices.deleted_at')
             ->groupBy('office_accesses.station_id')
             ->select(
                 'office_accesses.station_id',

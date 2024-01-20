@@ -14,12 +14,21 @@ class HistoryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = History::join('jobs', 'histories.job_id', '=', 'jobs.id')
+        $query = History::join('jobs', function ($join) {
+                $join->on('histories.job_id', '=', 'jobs.id')
+                    ->whereNull('jobs.deleted_at');
+            }):
             ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
             ->join('positions', 'jobs.position_id', '=', 'positions.id')
             ->join('employments', 'jobs.employment_id', '=', 'employments.id')
-            ->join('offices', 'jobs.office_id', '=', 'offices.id')
-            ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+            ->join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->join('corporations', function ($join) {
+                $join->on('offices.corporation_id', '=', 'corporations.id')
+                    ->whereNull('corporations.deleted_at');
+            })
             ->leftJoin('members', function ($join) {
                     $join->on('histories.member_id', '=', 'members.id')
                         ->whereNull('members.deleted_at');
@@ -52,10 +61,7 @@ class HistoryController extends Controller
         $count = $query->count();
 
         // データ取得
-        $query = $query->whereNull('corporations.deleted_at')
-            ->whereNull('offices.deleted_at')
-            ->whereNull('jobs.deleted_at')
-            ->select(
+        $query = $query->select(
                 'histories.id',
                 'histories.member_id',
                 'members.name as member_name',

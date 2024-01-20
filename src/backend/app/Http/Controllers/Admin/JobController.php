@@ -23,13 +23,17 @@ class JobController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
-            ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+        $query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
+            ->join('corporations', function ($join) {
+                $join->on('offices.corporation_id', '=', 'corporations.id')
+                    ->whereNull('corporations.deleted_at');
+            })
             ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
             ->join('positions', 'jobs.position_id', '=', 'positions.id')
-            ->join('employments', 'jobs.employment_id', '=', 'employments.id')
-            ->whereNull('offices.deleted_at')
-            ->whereNull('corporations.deleted_at');
+            ->join('employments', 'jobs.employment_id', '=', 'employments.id');
 
         // 検索条件指定
         if ($request->corporation_name) {
@@ -195,13 +199,17 @@ class JobController extends Controller
                     'contracts1.end_plan_date',
                     'contracts1.end_date',
                 );
-            $query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
-                ->join('corporations', 'offices.corporation_id', '=', 'corporations.id')
+            $query = Job::join('offices', function ($join) {
+                    $join->on('jobs.office_id', '=', 'offices.id')
+                        ->whereNull('offices.deleted_at');
+                })
+                ->join('corporations', function ($join) {
+                    $join->on('offices.corporation_id', '=', 'corporations.id')
+                        ->whereNull('corporations.deleted_at');
+                })
                 ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
                 ->join('positions', 'jobs.position_id', '=', 'positions.id')
-                ->join('employments', 'jobs.employment_id', '=', 'employments.id')
-                ->whereNull('offices.deleted_at')
-                ->whereNull('corporations.deleted_at');
+                ->join('employments', 'jobs.employment_id', '=', 'employments.id');
             // 検索条件指定
             if ($request->corporation_name) {
                 $query = $query->where('corporations.name', 'LIKE', '%' . $request->corporation_name . '%');

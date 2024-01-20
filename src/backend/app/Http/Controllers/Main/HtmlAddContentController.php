@@ -113,7 +113,10 @@ class HtmlAddContentController extends Controller
         }
 
         // 平均給与
-        $query = Job::join('offices', 'jobs.office_id', '=', 'offices.id')
+        $query = Job::join('offices', function ($join) {
+                $join->on('jobs.office_id', '=', 'offices.id')
+                    ->whereNull('offices.deleted_at');
+            })
             ->where('jobs.status', 10);
         if ($request->prefecture_id) {
             $query = $query->where('offices.prefecture_id', $request->prefecture_id);

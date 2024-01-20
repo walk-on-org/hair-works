@@ -56,7 +56,10 @@ class MemberController extends Controller
         $count = $query->count();
 
         // データ取得
-        $query = $query->leftJoin('jobs', 'members.job_id', '=', 'jobs.id')
+        $query = $query->leftJoin('jobs', function ($join) {
+                $join->on('members.job_id', '=', 'jobs.id')
+                    ->whereNull('jobs.deleted_at');
+            })
             ->leftJoin('members as introduction_members', function ($join) {
                 $join->on('members.introduction_member_id', '=', 'introduction_members.id')
                     ->whereNull('introduction_members.deleted_at');
