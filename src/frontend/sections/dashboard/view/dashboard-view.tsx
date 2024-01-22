@@ -97,7 +97,9 @@ export default function DashboardView() {
         <Grid xs={12}>
           <DashboardMemberDeploymentTable
             title="経路・月別会員登録展開率（Google全て）"
-            tableLabels={[{ id: "deployment", label: "展開" }].concat(
+            tableLabels={[
+              { id: "deployment", label: "展開", minWidth: 120 },
+            ].concat(
               memberDeploymentEveryMonthByGoogleAll.map((row) => {
                 return {
                   id: row.created_ym,
@@ -105,6 +107,7 @@ export default function DashboardView() {
                     row.created_ym.substring(0, 4) +
                     "/" +
                     row.created_ym.substring(4),
+                  minWidth: 100,
                 };
               })
             )}
@@ -116,7 +119,9 @@ export default function DashboardView() {
         <Grid xs={12}>
           <DashboardMemberDeploymentTable
             title="経路・月別会員登録展開率（Googleヘアメイク、アイリスト、カラーリスト除く）"
-            tableLabels={[{ id: "deployment", label: "展開" }].concat(
+            tableLabels={[
+              { id: "deployment", label: "展開", minWidth: 120 },
+            ].concat(
               memberDeploymentEveryMonthByGoogle.map((row) => {
                 return {
                   id: row.created_ym,
@@ -124,6 +129,7 @@ export default function DashboardView() {
                     row.created_ym.substring(0, 4) +
                     "/" +
                     row.created_ym.substring(4),
+                  minWidth: 100,
                 };
               })
             )}
@@ -134,7 +140,9 @@ export default function DashboardView() {
         <Grid xs={12}>
           <DashboardMemberDeploymentTable
             title="経路・月別会員登録展開率（Googleヘアメイク）"
-            tableLabels={[{ id: "deployment", label: "展開" }].concat(
+            tableLabels={[
+              { id: "deployment", label: "展開", minWidth: 120 },
+            ].concat(
               memberDeploymentEveryMonthByGoogleHairmake.map((row) => {
                 return {
                   id: row.created_ym,
@@ -142,6 +150,7 @@ export default function DashboardView() {
                     row.created_ym.substring(0, 4) +
                     "/" +
                     row.created_ym.substring(4),
+                  minWidth: 100,
                 };
               })
             )}
@@ -152,7 +161,9 @@ export default function DashboardView() {
         <Grid xs={12}>
           <DashboardMemberDeploymentTable
             title="経路・月別会員登録展開率（Googleアイリスト）"
-            tableLabels={[{ id: "deployment", label: "展開" }].concat(
+            tableLabels={[
+              { id: "deployment", label: "展開", minWidth: 120 },
+            ].concat(
               memberDeploymentEveryMonthByGoogleEyelist.map((row) => {
                 return {
                   id: row.created_ym,
@@ -160,6 +171,7 @@ export default function DashboardView() {
                     row.created_ym.substring(0, 4) +
                     "/" +
                     row.created_ym.substring(4),
+                  minWidth: 100,
                 };
               })
             )}
@@ -170,7 +182,9 @@ export default function DashboardView() {
         <Grid xs={12}>
           <DashboardMemberDeploymentTable
             title="経路・月別会員登録展開率（Googleカラーリスト）"
-            tableLabels={[{ id: "deployment", label: "展開" }].concat(
+            tableLabels={[
+              { id: "deployment", label: "展開", minWidth: 120 },
+            ].concat(
               memberDeploymentEveryMonthByGoogleColorlist.map((row) => {
                 return {
                   id: row.created_ym,
@@ -178,6 +192,7 @@ export default function DashboardView() {
                     row.created_ym.substring(0, 4) +
                     "/" +
                     row.created_ym.substring(4),
+                  minWidth: 100,
                 };
               })
             )}
@@ -188,7 +203,9 @@ export default function DashboardView() {
         <Grid xs={12}>
           <DashboardMemberDeploymentTable
             title="経路・月別会員登録展開率（Yahoo）"
-            tableLabels={[{ id: "deployment", label: "展開" }].concat(
+            tableLabels={[
+              { id: "deployment", label: "展開", minWidth: 120 },
+            ].concat(
               memberDeploymentEveryMonthByYahoo.map((row) => {
                 return {
                   id: row.created_ym,
@@ -196,6 +213,7 @@ export default function DashboardView() {
                     row.created_ym.substring(0, 4) +
                     "/" +
                     row.created_ym.substring(4),
+                  minWidth: 100,
                 };
               })
             )}
@@ -206,7 +224,9 @@ export default function DashboardView() {
         <Grid xs={12}>
           <DashboardMemberDeploymentTable
             title="経路・月別会員登録展開率（Google人材紹介）"
-            tableLabels={[{ id: "deployment", label: "展開" }].concat(
+            tableLabels={[
+              { id: "deployment", label: "展開", minWidth: 120 },
+            ].concat(
               memberDeploymentEveryMonthByGoogleAgent.map((row) => {
                 return {
                   id: row.created_ym,
@@ -214,6 +234,7 @@ export default function DashboardView() {
                     row.created_ym.substring(0, 4) +
                     "/" +
                     row.created_ym.substring(4),
+                  minWidth: 100,
                 };
               })
             )}

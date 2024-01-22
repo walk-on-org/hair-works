@@ -2,7 +2,6 @@ import Table from "@mui/material/Table";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
-import CardHeader from "@mui/material/CardHeader";
 import Card, { CardProps } from "@mui/material/Card";
 import TableContainer from "@mui/material/TableContainer";
 import Accordion from "@mui/material/Accordion";
@@ -15,7 +14,6 @@ import Scrollbar from "@/components/scrollbar";
 import { TableHeadCustom } from "@/components/table";
 
 import { IDashboardMemberDeploymentItem } from "@/types/dashboard";
-import { fPercent } from "@/utils/format-number";
 
 // ----------------------------------------------------------------------
 
