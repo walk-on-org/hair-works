@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Main;
 
 use App\Http\Controllers\Controller;
+use App\Library\LatLngAddress;
 use App\Models\Job;
 use App\Models\Office;
 use App\Models\Corporation;
@@ -686,8 +687,167 @@ class JobController extends Controller
         // 関連する求人取得
         $relation_pickup_job_title = '';
         $relation_pickup_jobs = [];
-        if (isset($request->pickupjob) && $request->pickupjob == '1') {
-            // TODO
+        if (isset($request->pickupjob) && $request->pickupjob == '1' && $request->prefecture_id) {
+            $prefecture = Prefecture::find($request->prefecture_id);
+            if ($prefecture) {
+                $relation_pickup_job_title = $prefecture->name;
+                $query = Job::join('offices', function ($join) {
+                        $join->on('jobs.office_id', '=', 'offices.id')
+                            ->whereNull('offices.deleted_at');
+                    })
+                    ->join('corporations', function ($join) {
+                        $join->on('offices.corporation_id', '=', 'corporations.id')
+                            ->whereNull('corporations.deleted_at');
+                    })
+                    ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
+                    ->join('positions', 'jobs.position_id', '=', 'positions.id')
+                    ->join('employments', 'jobs.employment_id', '=', 'employments.id')
+                    ->join('cities', 'offices.city_id', '=', 'cities.id')
+                    ->where('jobs.status', 10)
+                    ->where('offices.prefecture_id', $prefecture->id)
+                    ->select(
+                        'jobs.id as job_id',
+                        'jobs.name as job_name',
+                        'offices.id as office_id',
+                        'offices.name as office_name',
+                        'jobs.private',
+                        'jobs.recommend',
+                        'jobs.catch_copy',
+                        'job_categories.name as job_category_name',
+                        'positions.name as position_name',
+                        'employments.name as employment_name',
+                        'jobs.m_salary_lower',
+                        'jobs.m_salary_upper',
+                        'jobs.t_salary_lower',
+                        'jobs.t_salary_upper',
+                        'jobs.d_salary_lower',
+                        'jobs.d_salary_upper',
+                        'jobs.commission_lower',
+                        'jobs.commission_upper',
+                    )
+                    ->orderBy('jobs.private')
+                    ->orderByRaw('RAND()')
+                    ->limit(6);
+
+                if ($request->government_city_id && count(explode(',', $request->government_city_id)) == 1) {
+                    // 政令指定都市の場合、政令指定都市でおすすめ求人
+                    $government_city = GovernmentCity::find($request->government_city_id);
+                    if ($government_city) {
+                        $relation_pickup_job_title .= $government_city->name;
+                        $relation_pickup_jobs = $query->where('cities.government_city_id', $government_city->id)
+                            ->get();
+                    } else {
+                        $relation_pickup_jobs = [];
+                    }
+                } else if ($request->city_id && count(explode(',', $request->city_id)) == 1) {
+                    // 市区町村の場合、市区町村でおすすめ求人（ただし政令指定都市のある市区町村の場合は政令指定都市でおすすめ求人）
+                    $city = City::leftJoin('government_cities', 'cities.government_city_id', '=', 'government_cities.id')
+                        ->where('cities.id', $request->city_id)
+                        ->select(
+                            'cities.id as city_id',
+                            'cities.name as city_name',
+                            'government_cities.id as government_city_id',
+                            'government_cities.name as government_city_name',
+                        )
+                        ->first();
+                    if ($city && $city->government_city_id) {
+                        $relation_pickup_job_title .= $city->government_city_name;
+                        $relation_pickup_jobs = $query->where('cities.government_city_id', $city->government_city_id)
+                            ->get();
+                    } else if ($city) {
+                        $relation_pickup_job_title .= $city->city_name;
+                        $relation_pickup_jobs = $query->where('offices.city_id', $city->city_id)
+                            ->get();
+                    } else {
+                        $relation_pickup_jobs = [];
+                    }
+                } else if ($request->station_id && count(explode(',', $request->station_id)) == 1) {
+                    // 駅の場合、市区町村でおすすめ求人（ただし政令指定都市のある市区町村の場合は政令指定都市でおすすめ求人）
+                    $station = Station::join('cities', 'stations.city_id', '=', 'cities.id')
+                        ->leftJoin('government_cities', 'cities.government_city_id', '=', 'government_cities.id')
+                        ->where('stations.id', $request->station_id)
+                        ->select(
+                            'cities.id as city_id',
+                            'cities.name as city_name',
+                            'government_cities.id as government_city_id',
+                            'government_cities.name as government_city_name',
+                        )
+                        ->first();
+                    if ($station && $station->government_city_id) {
+                        $relation_pickup_job_title .= $station->government_city_name;
+                        $relation_pickup_jobs = $query->where('cities.government_city_id', $station->government_city_id)
+                            ->get();
+                    } else if ($station) {
+                        $relation_pickup_job_title .= $station->city_name;
+                        $relation_pickup_jobs = $query->where('offices.city_id', $station->city_id)
+                            ->get();
+                    } else {
+                        $relation_pickup_jobs = [];
+                    }
+                } else if ($request->line_id && count(explode(',', $request->line_id)) == 1) {
+                    // 路線の場合、路線でおすすめ求人
+                    $line = Line::find($request->line_id);
+                    if ($line) {
+                        $relation_pickup_job_title = $line->name . '沿線（' . $relation_pickup_job_title . '）';
+                        $relation_pickup_jobs = $query->join('office_accesses', 'offices.id', '=', 'office_accesses.office_id')
+                            ->where('office_accesses.line_id', $line->id)
+                            ->get();
+                    } else {
+                        $relation_pickup_jobs = [];
+                    }
+                } else {
+                    // 都道府県の場合、都道府県でおすすめ求人
+                    $relation_pickup_jobs = $query->get();
+                }
+                foreach ($relation_pickup_jobs as $job) {
+                    $job->private = $job->private ? true : false;
+                    $job->recommend = $job->recommend ? true : false;
+                } 
+
+                $job_ids = array_column($relation_pickup_jobs->toArray(), 'job_id');
+                $office_ids = array_column($relation_pickup_jobs->toArray(), 'office_id');
+                
+                // 求人画像を取得
+                $job_images = self::getMultipleJobImages($job_ids);
+                foreach ($relation_pickup_jobs as $job) {
+                    if (isset($job_images[$job->job_id]) && count($job_images[$job->job_id]) > 0) {
+                        $job->image = $job_images[$job->job_id][0]->image;
+                        $job->image_updated_at = $job_images[$job->job_id][0]->updated_at;
+                        $job->alttext = $job_images[$job->job_id][0]->alttext;
+                    } else {
+                        $job->image = null;
+                        $job->image_updated_at = null;
+                        $job->alttext = null;
+                    }
+                }
+
+                // アクセスを取得
+                $office_accesses = OfficeAccess::join('lines', 'office_accesses.line_id', '=', 'lines.id')
+                    ->join('stations', 'office_accesses.station_id', '=', 'stations.id')
+                    ->whereIn('office_accesses.office_id', $office_ids)
+                    ->where('lines.status', 0)
+                    ->where('stations.status', 0)
+                    ->groupBy('office_accesses.office_id')
+                    ->groupBy('stations.station_group_id')
+                    ->select(
+                        'office_accesses.office_id',
+                        DB::raw('max(stations.name) as station_name'),
+                        DB::raw('min(office_accesses.move_type) as move_type'),
+                        DB::raw('max(office_accesses.time) as time'),
+                    )
+                    ->orderBy('office_accesses.office_id')
+                    ->orderBy('time')
+                    ->get();
+                foreach ($relation_pickup_jobs as $job) {
+                    $index = array_search($job->office_id, array_column($office_accesses->toArray(), 'office_id'));
+                    if ($index !== false) {
+                        $access = $office_accesses[$index];
+                        $job->access = $access->station_name . '駅' . OfficeAccess::MOVE_TYPE[$access->move_type] . $access->time . '分';
+                    } else {
+                        $job->access = null;
+                    }
+                }
+            }
         }
 
         return self::responseSuccess([
@@ -961,11 +1121,43 @@ class JobController extends Controller
             // 求人画像を取得
             $job_images = self::getMultipleJobImages($job_ids);
             foreach ($relation_cmt_job as $job) {
-                // TODO
+                if (isset($job_images[$job->job_id]) && count($job_images[$job->job_id]) > 0) {
+                    $job->image = $job_images[$job->job_id][0]->image;
+                    $job->image_updated_at = $job_images[$job->job_id][0]->updated_at;
+                    $job->alttext = $job_images[$job->job_id][0]->alttext;
+                } else {
+                    $job->image = null;
+                    $job->image_updated_at = null;
+                    $job->alttext = null;
+                }
             }
 
             // アクセスを取得
-            // TODO
+            $office_accesses = OfficeAccess::join('lines', 'office_accesses.line_id', '=', 'lines.id')
+                ->join('stations', 'office_accesses.station_id', '=', 'stations.id')
+                ->whereIn('office_accesses.office_id', $office_ids)
+                ->where('lines.status', 0)
+                ->where('stations.status', 0)
+                ->groupBy('office_accesses.office_id')
+                ->groupBy('stations.station_group_id')
+                ->select(
+                    'office_accesses.office_id',
+                    DB::raw('max(stations.name) as station_name'),
+                    DB::raw('min(office_accesses.move_type) as move_type'),
+                    DB::raw('max(office_accesses.time) as time'),
+                )
+                ->orderBy('office_accesses.office_id')
+                ->orderBy('time')
+                ->get();
+            foreach ($relation_cmt_job as $job) {
+                $index = array_search($job->office_id, array_column($office_accesses->toArray(), 'office_id'));
+                if ($index !== false) {
+                    $access = $office_accesses[$index];
+                    $job->access = $access->station_name . '駅' . OfficeAccess::MOVE_TYPE[$access->move_type] . $access->time . '分';
+                } else {
+                    $job->access = null;
+                }
+            }
         }
 
         return self::responseSuccess([
@@ -982,7 +1174,29 @@ class JobController extends Controller
      */
     public function getRecommendJob(Request $request)
     {
+        $jobs = LatLngAddress::getJobsByLatLng(
+            $request->prefecture_id,
+            $request->position_id,
+            $request->employment_id,
+            $request->lat,
+            $request->lng,
+            $request->limit
+        );
 
+        // 関連情報を取得
+        $job_ids = array_column($jobs->toArray(), 'job_id');
+        $office_ids = array_column($jobs->toArray(), 'office_id');
+
+        // アクセスを取得
+        $office_accesses = self::getMultipleOfficeAccess($office_ids);
+        // 画像
+        $job_images = self::getMultipleJobImages($job_ids);
+
+        return self::responseSuccess([
+            'jobs' => $jobs,
+            'office_accesses' => $office_accesses,
+            'job_images' => $job_images,
+        ]);
     }
 
     /**
@@ -1440,7 +1654,7 @@ class JobController extends Controller
             ];
         }
 
-        return self::getMaxUpdatedAtImage($job_images, $office_images, $corporation_images);
+        return self::getMaxUpdatedAtImage($job_images->toArray(), $office_images->toArray(), $corporation_images->toArray());
     }
 
     /**
@@ -1461,9 +1675,9 @@ class JobController extends Controller
 
         // ２つ以上設定している場合、更新日時が最新の方を使用する
         $base_datetime = '2000-01-01';
-        $max_job_image_updated_at = count($job_images) > 0 ? max(array_column($job_images->toArray(), 'updated_at')) : $base_datetime;
-        $max_office_image_updated_at = count($office_images) > 0 ? max(array_column($office_images->toArray(), 'updated_at')) : $base_datetime;
-        $max_corporation_image_updated_at = count($corporation_images) > 0 ? max(array_column($corporation_images->toArray(), 'updated_at')) : $base_datetime;
+        $max_job_image_updated_at = count($job_images) > 0 ? max(array_column($job_images, 'updated_at')) : $base_datetime;
+        $max_office_image_updated_at = count($office_images) > 0 ? max(array_column($office_images, 'updated_at')) : $base_datetime;
+        $max_corporation_image_updated_at = count($corporation_images) > 0 ? max(array_column($corporation_images, 'updated_at')) : $base_datetime;
         if (strtotime($max_job_image_updated_at) > strtotime($max_corporation_image_updated_at) && strtotime($max_job_image_updated_at) > strtotime($max_office_image_updated_at)) {
             return $job_images;
         } else if (strtotime($max_office_image_updated_at) > strtotime($max_corporation_image_updated_at)) {
@@ -1889,7 +2103,18 @@ class JobController extends Controller
         $office_ids = array_column($alikes, 'office_id');
 
         // 求人画像
-        // TODO
+        $job_images = self::getMultipleJobImages($job_ids);
+        foreach ($alikes as $alike) {
+            if (isset($job_images[$alike->job_id]) && count($job_images[$alike->job_id]) > 0) {
+                $alike->image = $job_images[$alike->job_id][0]->image;
+                $alike->image_updated_at = $job_images[$alike->job_id][0]->updated_at;
+                $alike->alttext = $job_images[$alike->job_id][0]->alttext;
+            } else {
+                $alike->image = null;
+                $alike->image_updated_at = null;
+                $alike->alttext = null;
+            }
+        }
 
         // 事業所アクセス
         $office_accesses = OfficeAccess::join('lines', 'office_accesses.line_id', '=', 'lines.id')
