@@ -119,7 +119,7 @@ class JobController extends Controller
         // 事業所アクセスを取得
         $office_accesses = self::getMultipleOfficeAccess($office_ids);
         // 求人画像を取得
-        // TODO
+        $job_images = self::getMultipleJobImages($job_ids);
         // 求人こだわり条件を取得
         $job_commitment_terms = self::getMultipleJobCommitmentTerms($job_ids);
         // 求人休日を取得
@@ -130,7 +130,7 @@ class JobController extends Controller
         return self::responseSuccess([
             'jobs' => $jobs,
             'office_accesses' => $office_accesses,
-            'job_images' => '',
+            'job_images' => $job_images,
             'job_commitment_terms' => $job_commitment_terms,
             'job_holidays' => $job_holidays,
             'other_offices' => $other_offices,
@@ -959,7 +959,10 @@ class JobController extends Controller
             $office_ids = array_column($relation_cmt_job->toArray(), 'office_id');
 
             // 求人画像を取得
-            // TODO
+            $job_images = self::getMultipleJobImages($job_ids);
+            foreach ($relation_cmt_job as $job) {
+                // TODO
+            }
 
             // アクセスを取得
             // TODO
@@ -1349,12 +1352,38 @@ class JobController extends Controller
     
         $result = [];
         foreach ($job_ids as $job_id) {
-            // TODO
-            $tmp_job_image = null;
-            $tmp_office_image = null;
-            $tmp_corporation_image = null;
+            // 該当の求人画像を抽出
+            $tmp_job_image = [];
+            foreach ($job_images as $job_image) {
+                if ($job_image->job_id == $job_id) {
+                    $tmp_job_image[] = $job_image;
+                }
+            }
+
+            // 該当の事業所画像を抽出
+            $tmp_office_image = [];
+            foreach ($office_images as $office_image) {
+                if ($office_image->job_id == $job_id) {
+                    $tmp_office_image[] = $office_image;
+                }
+            }
+            
+            // 該当の法人画像を抽出
+            $tmp_corporation_image = [];
+            foreach ($corporation_images as $corporation_image) {
+                if ($corporation_image->job_id == $job_id) {
+                    $tmp_corporation_image[] = $corporation_image;
+                }
+            }
+
+            // 上記の中で最後に更新した画像を使用
+            $use_image = self::getMaxUpdatedAtImage($tmp_job_image, $tmp_office_image, $tmp_corporation_image);
+            if (count($use_image) == 0) {
+                continue;
+            }
+            $result[$job_id] = $use_image;
         }
-        
+        return $result;
     }
 
     /**
@@ -1431,7 +1460,7 @@ class JobController extends Controller
         }
 
         // ２つ以上設定している場合、更新日時が最新の方を使用する
-        $base_datetime = new \Datetime('2000-01-01');
+        $base_datetime = '2000-01-01';
         $max_job_image_updated_at = count($job_images) > 0 ? max(array_column($job_images->toArray(), 'updated_at')) : $base_datetime;
         $max_office_image_updated_at = count($office_images) > 0 ? max(array_column($office_images->toArray(), 'updated_at')) : $base_datetime;
         $max_corporation_image_updated_at = count($corporation_images) > 0 ? max(array_column($corporation_images->toArray(), 'updated_at')) : $base_datetime;
@@ -1614,13 +1643,13 @@ class JobController extends Controller
             ->groupBy('stations.station_group_id')
             ->select(
                 'office_accesses.office_id',
-                DB::raw('MAX(stations.name) as station_name'),
-                DB::raw('MAX(prefectures.permalink) as prefecture_roman'),
-                DB::raw('MAX(cities.permalink) as city_roman'),
-                DB::raw('MAX(stations.permalink) as station_roman'),
-                DB::raw('MIN(office_accesses.move_type) as move_type'),
-                DB::raw('MAX(office_accesses.time) as time'),
-                DB::raw('MAX(office_accesses.note) as note'),
+                DB::raw('max(stations.name) as station_name'),
+                DB::raw('max(prefectures.permalink) as prefecture_roman'),
+                DB::raw('max(cities.permalink) as city_roman'),
+                DB::raw('max(stations.permalink) as station_roman'),
+                DB::raw('min(office_accesses.move_type) as move_type'),
+                DB::raw('max(office_accesses.time) as time'),
+                DB::raw('max(office_accesses.note) as note'),
             )
             ->orderBy('office_accesses.office_id')
             ->orderBy('time')

@@ -1177,7 +1177,7 @@ class MailmagazineConfigController extends Controller
         }
 
         // 2つ以上設定している場合、更新日時が最新の方を使用する
-        $base_datetime = new \Datetime('2000-01-01');
+        $base_datetime = '2000-01-01';
         $max_job_image_updated_at = $job_image ? $job_image->updated_at : $base_datetime;
         $max_office_image_updated_at = $office_image ? $office_image->updated_at : $base_datetime;
         $max_corporation_image_updated_at = $corporation_image ? $corporation_image->updated_at : $base_datetime;

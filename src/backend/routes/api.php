@@ -93,6 +93,10 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/jobs/{id}/othersameoffice', [App\Http\Controllers\Main\JobController::class, 'getOtherSameOffice']);
     Route::get('/jobs/{id}/alike', [App\Http\Controllers\Main\JobController::class, 'getAlike']);
     // 事業所
+    Route::get('/offices/pickup', [App\Http\Controllers\Main\OfficeController::class, 'getPickup']);
+    Route::get('/offices/{id}', [App\Http\Controllers\Main\OfficeController::class, 'show']);
+    Route::get('/offices/{id}/preview', [App\Http\Controllers\Main\OfficeController::class, 'preview']);
+    Route::get('/offices/{id}/relationlink', [App\Http\Controllers\Main\OfficeController::class, 'getRelationlink']);
 
     // 認証（会員）
     Route::post('/auth/login', [App\Http\Controllers\Main\AuthController::class, 'login']);
