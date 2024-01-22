@@ -7,7 +7,7 @@ import Drawer from "@mui/material/Drawer";
 import { usePathname } from "@/routes/hooks/use-pathname";
 
 import { useResponsive } from "@/hooks/use-responsive";
-import { useMockedUser } from "@/hooks/use-mocked-user";
+import { useAuthContext } from "@/auth/hooks";
 
 import Logo from "@/components/logo";
 import Scrollbar from "@/components/scrollbar";
@@ -25,8 +25,7 @@ type Props = {
 };
 
 export default function NavVertical({ openNav, onCloseNav }: Props) {
-  // TODO ログインユーザーのロールによってメニュー切り替え
-  const { user } = useMockedUser();
+  const { user } = useAuthContext();
   const pathname = usePathname();
   const lgUp = useResponsive("up", "lg");
   const navData = useNavData();

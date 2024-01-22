@@ -22,6 +22,9 @@ export const paths = {
   // ADMIN
   admin: {
     root: ROOTS.ADMIN,
+    auth: {
+      login: `${ROOTS.ADMIN}/login`,
+    },
     dashboard: `${ROOTS.ADMIN}/dashboard`,
     corporation: {
       root: `${ROOTS.ADMIN}/corporations`,

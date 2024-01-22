@@ -61,46 +61,55 @@ export function useNavData() {
             title: "ダッシュボード",
             path: paths.admin.dashboard,
             icon: ICONS.dashboard,
+            roles: ["super_admin", "admin"],
           },
           {
             title: "法人",
             path: paths.admin.corporation.root,
             icon: ICONS.ecommerce,
+            roles: ["super_admin", "admin", "owner"],
           },
           {
             title: "事業所",
             path: paths.admin.office.root,
             icon: ICONS.ecommerce,
+            roles: ["super_admin", "admin", "owner"],
           },
           {
             title: "求人",
             path: paths.admin.job.root,
             icon: ICONS.job,
+            roles: ["super_admin", "admin", "owner"],
           },
           {
             title: "会員情報",
             path: paths.admin.member.root,
             icon: ICONS.user,
+            roles: ["super_admin", "admin"],
           },
           {
             title: "応募者",
             path: paths.admin.applicant.root,
             icon: ICONS.user,
+            roles: ["super_admin", "admin", "owner"],
           },
           {
             title: "問い合わせ",
             path: paths.admin.inquiry.root,
             icon: ICONS.external,
+            roles: ["super_admin", "admin"],
           },
           {
             title: "CV経路",
             path: paths.admin.conversionHistory.root,
             icon: ICONS.external,
+            roles: ["super_admin", "admin"],
           },
           {
             title: "データ分析・活用",
             path: "/admin/analysis",
             icon: ICONS.analytics,
+            roles: ["super_admin", "admin"],
             children: [
               {
                 title: "お気に入り",
@@ -120,6 +129,7 @@ export function useNavData() {
             title: "特集",
             path: "/admin/article",
             icon: ICONS.blog,
+            roles: ["super_admin", "admin"],
             children: [
               {
                 title: "記事",
@@ -135,6 +145,7 @@ export function useNavData() {
             title: "アカウント",
             path: "/admin/account",
             icon: ICONS.user,
+            roles: ["super_admin", "admin"],
             children: [
               {
                 title: "管理者ユーザ",
@@ -150,6 +161,7 @@ export function useNavData() {
             title: "マスタ設定",
             path: "/admin/settings",
             icon: ICONS.setting,
+            roles: ["super_admin", "admin"],
             children: [
               {
                 title: "職種",

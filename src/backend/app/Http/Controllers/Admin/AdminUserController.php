@@ -7,6 +7,7 @@ use App\Models\AdminUser;
 use App\Models\AdminUserCorporation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
@@ -80,6 +81,7 @@ class AdminUserController extends Controller
 
             DB::transaction(function () use ($data) {
                 // 管理者ユーザ登録
+                $data['password'] = Hash::make($data['password']);
                 $admin_user = AdminUser::create($data);
 
                 // 管理者ユーザ法人
@@ -117,6 +119,7 @@ class AdminUserController extends Controller
 
             DB::transaction(function () use ($data, $id) {
                 $admin_user = AdminUser::findOrFail($id);
+                $data['password'] = Hash::make($data['password']);
                 $admin_user->update($data);
 
                 // 管理者ユーザ法人

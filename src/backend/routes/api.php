@@ -117,7 +117,13 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
 });
 
 // 管理サイト用API
-Route::middleware(['middleware' => 'api'])->prefix('admin')->group(function () {
+Route::middleware(['middleware' => 'guest:adminapi'])->prefix('admin')->group(function () {
+    // 認証
+    Route::post('/auth/login', [App\Http\Controllers\Admin\AuthController::class, 'login']);
+});
+Route::middleware(['middleware' => 'auth:adminapi'])->prefix('admin')->group(function () {
+    // ユーザ取得
+    Route::get('/auth/user', [App\Http\Controllers\Admin\AuthController::class, 'user']);
     // 職種
     Route::get('/job_categories', [App\Http\Controllers\Admin\JobCategoryController::class, 'index']);
     Route::get('/job_categories/{id}', [App\Http\Controllers\Admin\JobCategoryController::class, 'show']);

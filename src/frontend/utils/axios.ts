@@ -289,4 +289,8 @@ export const endpoints = {
     applicantCount: "/api/admin/dashboard/applicant_count",
     inquiryCount: "/api/admin/dashboard/inquiry_count",
   },
+  auth: {
+    login: "/api/admin/auth/login",
+    user: "/api/admin/auth/user",
+  },
 };
