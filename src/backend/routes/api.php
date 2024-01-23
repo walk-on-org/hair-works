@@ -97,18 +97,17 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::get('/offices/{id}', [App\Http\Controllers\Main\OfficeController::class, 'show']);
     Route::get('/offices/{id}/preview', [App\Http\Controllers\Main\OfficeController::class, 'preview']);
     Route::get('/offices/{id}/relationlink', [App\Http\Controllers\Main\OfficeController::class, 'getRelationlink']);
-
     // 認証（会員）
     Route::post('/auth/login', [App\Http\Controllers\Main\AuthController::class, 'login']);
     Route::post('/auth/signup', [App\Http\Controllers\Main\AuthController::class, 'signup']);
     Route::post('/auth/edit', [App\Http\Controllers\Main\AuthController::class, 'edit']);
     Route::post('/auth/member', [App\Http\Controllers\Main\AuthController::class, 'member']);
     Route::post('/auth/signupagent', [App\Http\Controllers\Main\AuthController::class, 'signupagent']);
-
     // 会員連絡可能日時
     // 応募者
     // 応募希望日時
     // 問い合わせ
+    Route::post('inquiries', [App\Http\Controllers\Main\InquiryController::class, 'create']);
     // 閲覧履歴
     // お気に入り
     // CV経路
