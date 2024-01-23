@@ -98,7 +98,7 @@ export default function AdminLoginView() {
 
         <Link
           component={RouterLink}
-          href={"/admin/resetpassword"}
+          href={paths.admin.auth.forgotPassword}
           variant="body2"
           color="inherit"
           underline="always"

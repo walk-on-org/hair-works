@@ -8,6 +8,7 @@ use App\Models\AdminRole;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -18,7 +19,7 @@ class AuthController extends Controller
     {
         try {
             $data = $request->validate([
-                'email' => 'required',
+                'email' => 'required|email',
                 'password' => 'required',
             ]);
 
@@ -30,6 +31,10 @@ class AuthController extends Controller
             if (!Hash::check($data['password'], $admin_user->password)) {
                 throw new \Exception('パスワードが一致しませんでした。');
             }
+
+            // 法人ID
+            $admin_user_corporations = $admin_user->adminUserCorporations;
+            $corporation_ids = array_column($admin_user_corporations->toArray(), 'corporation_id');
 
             // トークン発行
             $credentials = request(['email', 'password']);
@@ -45,6 +50,7 @@ class AuthController extends Controller
                     'email' => $admin_user->email,
                     'name' => $admin_user->name,
                     'role' => AdminRole::find($admin_user->admin_role_id)->name,
+                    'corporation' => $corporation_ids,
                 ],
             ], 200);
         } catch (ValidationException $e) {
@@ -54,6 +60,9 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * ログインユーザ取得
+     */
     public function user()
     {
         return response()->json(auth()->user());
@@ -68,4 +77,40 @@ class AuthController extends Controller
         return response()->json(['message' => 'ログアウト'], 200);
     }
 
+    /**
+     * パスワードリセットのリクエスト要求
+     */
+    public function sendRequestForgotPassword(Request $request)
+    {
+        try {
+            $data = $request->validate([
+                'email' => 'required|email',
+            ]);
+
+            // TODO token付きでパスワードリセットページをメール送信
+
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->errors()], 422);
+        }
+    }
+
+    /**
+     * パスワードリセット
+     */
+    public function resetPassword(Request $request)
+    {
+        try {
+            $data = $request->validate([
+                'email' => 'required|email',
+                'token' => 'required',
+                'password' => ['required', 'confirmed', Password::min(8)],
+                //'password_confirmation'
+            ]);
+
+            // TODO TOkenチェックして、パスワード変更
+
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->errors()], 422);
+        }
+    }
 }

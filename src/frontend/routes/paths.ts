@@ -24,6 +24,8 @@ export const paths = {
     root: ROOTS.ADMIN,
     auth: {
       login: `${ROOTS.ADMIN}/login`,
+      forgotPassword: `${ROOTS.ADMIN}/password/new`,
+      resetPassword: `${ROOTS.ADMIN}/password/reset`,
     },
     dashboard: `${ROOTS.ADMIN}/dashboard`,
     corporation: {

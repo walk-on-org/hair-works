@@ -292,5 +292,7 @@ export const endpoints = {
   auth: {
     login: "/api/admin/auth/login",
     user: "/api/admin/auth/user",
+    forgotPassword: "/api/admin/auth/forgot_password",
+    resetPassword: "/api/admin/auth/reset_password",
   },
 };

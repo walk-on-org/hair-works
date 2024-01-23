@@ -1,4 +1,6 @@
 "use client";
+
+import { AuthGuard, GuestGuard } from "@/auth/guard";
 import AdminLayout from "@/layouts/admin";
 import AuthLayout from "@/layouts/auth";
 import { usePathname } from "@/routes/hooks/use-pathname";
@@ -9,13 +11,18 @@ type Props = {
 
 export default function Layout({ children }: Props) {
   const pathname = usePathname();
-  // TODO ログイン認証
+
   return (
     <>
-      {pathname == "/admin/login" ? (
-        <AuthLayout>{children}</AuthLayout>
+      {pathname.startsWith("/admin/login") ||
+      pathname.startsWith("/admin/password") ? (
+        <GuestGuard>
+          <AuthLayout>{children}</AuthLayout>
+        </GuestGuard>
       ) : (
-        <AdminLayout>{children}</AdminLayout>
+        <AuthGuard>
+          <AdminLayout>{children}</AdminLayout>
+        </AuthGuard>
       )}
     </>
   );

@@ -119,6 +119,8 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
 Route::middleware(['middleware' => 'guest:adminapi'])->prefix('admin')->group(function () {
     // 認証
     Route::post('/auth/login', [App\Http\Controllers\Admin\AuthController::class, 'login']);
+    Route::post('/auth/forgot_password', [App\Http\Controllers\Admin\AuthController::class, 'sendRequestForgotPassword']);
+    Route::post('/auth/reset_password', [App\Http\Controllers\Admin\AuthController::class, 'resetPassword']);
 });
 Route::middleware(['middleware' => 'auth:adminapi'])->prefix('admin')->group(function () {
     // ユーザ取得
