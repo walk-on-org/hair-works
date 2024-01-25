@@ -88,7 +88,6 @@ class ImportJobCommand extends Command
      */
     public function handle()
     {
-        \Log::debug('インポート開始');
         $id = (int) $this->argument('id');
 
         $management = MultipleProcessManagement::find($id);
@@ -108,9 +107,6 @@ class ImportJobCommand extends Command
             'status' => 1,  // 実行中
             'total_count' => $csv->key(),
         ]);
-
-        // 文字コードチェック
-        // TODO
 
         $errors = [];
         $processed_count = 0;

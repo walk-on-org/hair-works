@@ -97,9 +97,6 @@ class ImportOfficeCommand extends Command
             'total_count' => $csv->key(),
         ]);
 
-        // 文字コードチェック
-        // TODO
-
         $errors = [];
         $processed_count = 0;
         $error_count = 0;
