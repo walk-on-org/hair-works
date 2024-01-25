@@ -10,6 +10,7 @@ use App\Models\JobQualification;
 use App\Models\JobImage;
 use App\Models\Office;
 use App\Models\Contract;
+use App\Models\MultipleProcessManagement;
 use App\Library\UploadImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -402,6 +403,37 @@ class JobController extends Controller
         ];
 
         return response()->streamDownload($callback, $filename, $response_header);
+    }
+
+    /**
+     * 求人データCSVアップロード
+     */
+    public function uploadCsv(Request $request)
+    {
+        try {
+            $data = $request->validate([
+                'file' => 'file',
+            ]);
+
+            // CSVファイルをサーバに保存
+            $upload_file = $request->file('file');
+            $filename = time() . '_' . $upload_file->getClientOriginalName();
+            $upload_file->storeAs(config('uploadimage.job_upload_storage'), $filename);
+
+            // 一括処理管理テーブルに登録
+            $data = MultipleProcessManagement::create([
+                'process_type' => 2,    // 求人アップロード
+                'upload_file' => $filename,
+            ]);
+
+            // インポートバッチ起動
+            $command = 'php "' . base_path('artisan') . '" command:import-job-command ' . $data->id . ' > /dev/null &';
+            exec($command);
+
+            return response()->json(['result' => 'ok', 'process_id' => $data->id]);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->errors()], 422);
+        }
     }
 
     /**

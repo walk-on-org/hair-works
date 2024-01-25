@@ -25,4 +25,10 @@ return [
   'job_image_relative_path' => '/storage/uploads/job_image/',
   'article_image_relative_path' => '/storage/uploads/article/',
   'custom_lp_logo_relative_path' => '/storage/uploads/custom_lp/',
+
+  // アップロードCSV
+  'office_upload_storage' => 'csv/upload_office/',
+  'job_upload_storage' => 'csv/upload_job/',
+  'office_error_storage' => 'csv/error_office/',
+  'job_error_storage' => 'csv/error_job/',
 ];

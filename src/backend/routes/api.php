@@ -282,6 +282,7 @@ Route::middleware(['middleware' => 'auth:adminapi'])->prefix('admin')->group(fun
     Route::post('/offices/destroy/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'destroy']);
     Route::post('/offices/destroy_multiple', [App\Http\Controllers\Admin\OfficeController::class, 'destroyMultiple']);
     Route::get('/offices/download/csv', [App\Http\Controllers\Admin\OfficeController::class, 'downloadCsv']);
+    Route::post('/offices/upload/csv', [App\Http\Controllers\Admin\OfficeController::class, 'uploadCsv']);
     Route::post('/offices/copy_multiple/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'copyMultiple']);
     // 求人
     Route::get('/jobs', [App\Http\Controllers\Admin\JobController::class, 'index']);
@@ -291,6 +292,7 @@ Route::middleware(['middleware' => 'auth:adminapi'])->prefix('admin')->group(fun
     Route::post('/jobs/destroy/{id}', [App\Http\Controllers\Admin\JobController::class, 'destroy']);
     Route::post('/jobs/destroy_multiple', [App\Http\Controllers\Admin\JobController::class, 'destroyMultiple']);
     Route::get('/jobs/download/csv', [App\Http\Controllers\Admin\JobController::class, 'downloadCsv']);
+    Route::post('/jobs/upload/csv', [App\Http\Controllers\Admin\JobController::class, 'uploadCsv']);
     Route::post('/jobs/approval_request_multiple', [App\Http\Controllers\Admin\JobController::class, 'approvalRequestMultiple']);
     Route::post('/jobs/approved_multiple', [App\Http\Controllers\Admin\JobController::class, 'approvedMultiple']);
     Route::post('/jobs/publish_multiple', [App\Http\Controllers\Admin\JobController::class, 'publishMultiple']);
@@ -349,4 +351,7 @@ Route::middleware(['middleware' => 'auth:adminapi'])->prefix('admin')->group(fun
     Route::get('/dashboard/member_count', [App\Http\Controllers\Admin\DashboardController::class, 'getMemberCount']);
     Route::get('/dashboard/applicant_count', [App\Http\Controllers\Admin\DashboardController::class, 'getApplicantCount']);
     Route::get('/dashboard/inquiry_count', [App\Http\Controllers\Admin\DashboardController::class, 'getInquiryCount']);
+    // 一括処理管理
+    Route::get('/multiple_process_management/check_process/{id}', [App\Http\Controllers\Admin\MultipleProcessManagementController::class, 'checkProcess']);
+    Route::get('/multiple_process_management/download_error/{id}', [App\Http\Controllers\Admin\MultipleProcessManagementController::class, 'downloadError']);
 });

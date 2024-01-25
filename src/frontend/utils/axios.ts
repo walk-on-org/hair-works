@@ -193,6 +193,7 @@ export const endpoints = {
     destroy: (id: string) => `/api/admin/offices/destroy/${id}`,
     destroyMultiple: "/api/admin/offices/destroy_multiple",
     downloadCsv: "/api/admin/offices/download/csv",
+    uploadCsv: "/api/admin/offices/upload/csv",
     copyMultiple: (id: string) => `/api/admin/offices/copy_multiple/${id}`,
   },
   job: {
@@ -203,6 +204,7 @@ export const endpoints = {
     destroy: (id: string) => `/api/admin/jobs/destroy/${id}`,
     destroyMultiple: "/api/admin/jobs/destroy_multiple",
     downloadCsv: "/api/admin/jobs/download/csv",
+    uploadCsv: "/api/admin/jobs/upload/csv",
     approvalRequestMultiple: "/api/admin/jobs/approval_request_multiple",
     approvedMultiple: "/api/admin/jobs/approved_multiple",
     publishMultiple: "/api/admin/jobs/publish_multiple",
@@ -294,5 +296,11 @@ export const endpoints = {
     user: "/api/admin/auth/user",
     forgotPassword: "/api/admin/auth/forgot_password",
     resetPassword: "/api/admin/auth/reset_password",
+  },
+  processManagement: {
+    checkProcess: (id: string) =>
+      `/api/admin/multiple_process_management/check_process/${id}`,
+    errorDownload: (id: string) =>
+      `/api/admin/multiple_process_management/download_error/${id}`,
   },
 };

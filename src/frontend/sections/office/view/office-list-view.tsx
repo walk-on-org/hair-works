@@ -28,6 +28,7 @@ import Scrollbar from "@/components/scrollbar";
 import { ConfirmDialog } from "@/components/custom-dialog";
 import { useSettingsContext } from "@/components/settings";
 import CustomBreadcrumbs from "@/components/custom-breadcrumbs";
+import { UploadBox } from "@/components/upload";
 import {
   useTable,
   emptyRows,
@@ -44,6 +45,7 @@ import { IOfficeItem, IOfficeTableFilters } from "@/types/office";
 
 import OfficeTableRow from "../office-table-row";
 import OfficeTableToolbar from "../office-table-toolbar";
+import OfficeImportProgress from "../office-import-progress";
 import axios, { endpoints } from "@/utils/axios";
 import { EXPORT_CHAR_CODE_OPTIONS } from "@/config-global";
 
@@ -93,14 +95,23 @@ export default function OfficeListView({
     defaultRowsPerPage: limit,
     defaultSelected: [],
   });
-  const confirm = useBoolean();
-  const exportCsv = useBoolean();
-  const copyConfirm = useBoolean();
-  const reload = useBoolean();
+  const confirm = useBoolean(); // 削除確認
+  const exportCsv = useBoolean(); // エクスポート確認
+  const importCsv = useBoolean(); // インポート確認
+  const copyConfirm = useBoolean(); // コピー確認
+  const importErrorExport = useBoolean(); // インポートエラー確認
+  const reload = useBoolean(); // 一覧リロード
   const [exportCharCode, setExportCharCode] = useState(
     EXPORT_CHAR_CODE_OPTIONS[0].value
-  );
-  const [originOfficeId, setOriginOfficeId] = useState("");
+  ); // エクスポート文字コード
+  const [importFile, setImportFile] = useState<File | string>(); // インポートファイル
+  const [importFileName, setImportFileName] = useState("");
+  const [importProcessId, setImportProcessId] = useState<number | undefined>(
+    undefined
+  ); // インポート処理ID
+  const [importInProcess, setImportInProcess] = useState<boolean>(false); // インポート処理中
+  const [originOfficeId, setOriginOfficeId] = useState(""); // コピー元事業所ID
+
   const settings = useSettingsContext();
   const [tableData, setTableData] = useState<IOfficeItem[]>([]);
   const { enqueueSnackbar } = useSnackbar();
@@ -313,6 +324,92 @@ export default function OfficeListView({
     }
   }, [exportCharCode, table, corporationName, officeName]);
 
+  // CSVインポートファイル選択
+  const handleDropImportCsv = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+
+      const newFile = Object.assign(file, {
+        preview: URL.createObjectURL(file),
+      });
+
+      if (newFile) {
+        setImportFileName(file.name);
+        setImportFile(newFile);
+      }
+    },
+    [importFile, importFileName]
+  );
+
+  // CSVインポート実行
+  const handleImportCsv = useCallback(async () => {
+    try {
+      const res = await axios.post(
+        endpoints.office.uploadCsv,
+        {
+          file: importFile,
+        },
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setImportProcessId(res.data.process_id);
+      setImportInProcess(true);
+      setImportFile(undefined);
+      setImportFileName("");
+      enqueueSnackbar("インポートを開始しました。");
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.log(error);
+    }
+  }, [importFile]);
+
+  // CSVインポート終了
+  const handleImportFinish = useCallback(
+    (existsError: boolean) => {
+      setImportInProcess(false);
+      reload.onToggle();
+      if (existsError) {
+        importErrorExport.onTrue();
+      } else {
+        enqueueSnackbar("インポートを終了しました。");
+      }
+    },
+    [reload, importErrorExport]
+  );
+
+  // インポートエラー結果CSVダウンロード
+  const handleExportErrorCsv = useCallback(() => {
+    try {
+      axios
+        .get(
+          endpoints.processManagement.errorDownload(
+            importProcessId == undefined ? "" : String(importProcessId)
+          ),
+          {
+            responseType: "blob",
+          }
+        )
+        .then((res) => {
+          const blob = new Blob([res.data], { type: res.data.type });
+          const filename = decodeURI(
+            res.headers["content-disposition"]
+          ).substring(
+            res.headers["content-disposition"].indexOf("=") + 1,
+            res.headers["content-disposition"].length
+          );
+          saveAs(blob, filename);
+          enqueueSnackbar("エラー結果をエクスポートしました！");
+        });
+    } catch (error) {
+      enqueueSnackbar("エラーが発生しました。", { variant: "error" });
+      console.error(error);
+    }
+  }, [importProcessId]);
+
   // コピー元求人ID変更
   const handleChangeOriginOfficeId = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -379,7 +476,12 @@ export default function OfficeListView({
             onClearFilters={handleResetFilters}
           />
 
-          <Stack alignItems="flex-end" sx={{ p: 2 }}>
+          <Stack
+            direction="row"
+            justifyContent="flex-end"
+            sx={{ p: 2 }}
+            gap={1}
+          >
             <Button
               onClick={exportCsv.onTrue}
               variant="outlined"
@@ -387,7 +489,26 @@ export default function OfficeListView({
             >
               エクスポート
             </Button>
+
+            {!importInProcess && (
+              <Button
+                onClick={importCsv.onTrue}
+                variant="outlined"
+                startIcon={<Iconify icon="solar:import-bold" />}
+              >
+                インポート
+              </Button>
+            )}
           </Stack>
+
+          {importInProcess && (
+            <OfficeImportProgress
+              processId={
+                importProcessId == undefined ? "" : String(importProcessId)
+              }
+              onFinish={handleImportFinish}
+            />
+          )}
 
           <TableContainer sx={{ position: "relative", overflow: "unset" }}>
             <TableSelectedAction
@@ -552,6 +673,93 @@ export default function OfficeListView({
             }}
           >
             エクスポート
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={importCsv.value}
+        onClose={importCsv.onFalse}
+        title="インポート"
+        content={
+          <>
+            <Stack
+              direction="column"
+              spacing={2}
+              flexGrow={1}
+              sx={{ width: 1 }}
+            >
+              <Typography>
+                インポートするファイルを選択してください。
+              </Typography>
+
+              {importFileName && <Typography>{importFileName}</Typography>}
+
+              <UploadBox
+                accept={{ "text/csv": [] }}
+                onDrop={handleDropImportCsv}
+                placeholder={
+                  <Stack
+                    spacing={0.5}
+                    alignItems="center"
+                    sx={{ color: "text.disabled" }}
+                  >
+                    <Iconify icon="eva:cloud-upload-fill" width={40} />
+                    <Typography variant="body2">ファイルを選択</Typography>
+                  </Stack>
+                }
+                sx={{
+                  mb: 3,
+                  py: 2.5,
+                  width: "auto",
+                  height: "auto",
+                  borderRadius: 1.5,
+                }}
+              />
+            </Stack>
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            onClick={() => {
+              handleImportCsv();
+              importCsv.onFalse();
+            }}
+          >
+            インポート
+          </Button>
+        }
+      />
+
+      <ConfirmDialog
+        open={importErrorExport.value}
+        onClose={importErrorExport.onFalse}
+        title="インポート結果エラー"
+        content={
+          <>
+            <Stack
+              direction="column"
+              spacing={2}
+              flexGrow={1}
+              sx={{ width: 1 }}
+            >
+              <Typography>
+                インポートしたファイルにエラーが存在しました。
+                ファイルの中身を確認して、エラーになった行のみを再度インポートしてください。
+              </Typography>
+            </Stack>
+          </>
+        }
+        action={
+          <Button
+            variant="contained"
+            onClick={() => {
+              handleExportErrorCsv();
+              importErrorExport.onFalse();
+            }}
+          >
+            確認
           </Button>
         }
       />
