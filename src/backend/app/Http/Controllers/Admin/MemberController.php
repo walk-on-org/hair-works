@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Library\LatLngAddress;
 use App\Models\Member;
 use App\Models\MemberQualification;
 use App\Models\MemberLpJobCategory;
@@ -467,6 +468,12 @@ class MemberController extends Controller
 
             DB::transaction(function () use ($data, $id) {
                 $member = Member::findOrFail($id);
+                // 緯度経度を取得
+                $latlng = LatLngAddress::getLatLngInfoByAddress($member->prefecture_id, $member->address, false);
+                if ($latlng !== false) {
+                    $data['lat'] = $latlng['lat'];
+                    $data['lng'] = $latlng['lng'];
+                }
                 $member->update($data);
 
                 // 会員資格

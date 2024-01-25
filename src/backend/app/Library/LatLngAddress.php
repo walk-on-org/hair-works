@@ -10,23 +10,48 @@ use Illuminate\Support\Facades\DB;
 
 class LatLngAddress extends Facade
 {
-    public static function getLatLngInfoByAddress($prefecture_id ,$address)
+    /**
+     * 都道府県ID、住所から緯度経度を取得する
+     * 
+     * @param integer $prefecture_id    都道府県ID
+     * @param string $address           市区町村以降の住所
+     * @param boolean $is_sleep         呼び出し前にスリープするか
+     */
+    public static function getLatLngInfoByAddress($prefecture_id ,$address, $is_sleep = true)
     {
         try {
             $prefecture = Prefecture::find($prefecture_id);
             if (!$prefecture) {
-                return [
-                    'lat' => null,
-                    'lng' => null,
-                ];
+                return false;
             }
 
             // APIで緯度経度取得
-        } catch (\Exception $ex) {
+            if ($is_sleep) {
+                sleep(5);
+            }
+            $response = Http::get('https://msearch.gsi.go.jp/address-search/AddressSearch', [
+                'q' => $prefecture->name . $address,
+            ]);
+            if (!$response->successful()) {
+                return false;
+            }
+
+            // 結果より緯度経度を取得
+            $result = $response->json();
+            if (count($result) == 0
+                || !isset($result[0]['geometry'])
+                || !isset($result[0]['geometry']['coordinates'])
+                || count($result[0]['geometry']['coordinates']) <> 2) {
+                return false;
+            }
+
             return [
-                'lat' => null,
-                'lng' => null,
+                'lat' => $result[0]['geometry']['coordinates'][1],
+                'lng' => $result[0]['geometry']['coordinates'][0],
             ];
+        } catch (\Exception $e) {
+            \Log::error($e);
+            return false;
         }
     }
 
