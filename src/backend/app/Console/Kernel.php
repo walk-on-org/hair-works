@@ -12,6 +12,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        // 毎日AM1時に実行
+        $schedule->command('command:create-indeed-xml')
+            ->dailyAt('16:00');
+        // 毎日AM1時15分に実行
+        $schedule->command('command:create-kyujinbox-xml')
+            ->dailyAt('16:15');
+        // 毎日AM1時30分に実行
+        $schedule->command('command:create-stanby-xml')
+            ->dailyAt('16:30');
         // 毎日AM2時に実行
         $schedule->command('command:compensate-latlng')
             ->dailyAt('17:00');
