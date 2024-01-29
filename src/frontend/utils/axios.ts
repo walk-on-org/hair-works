@@ -291,6 +291,9 @@ export const endpoints = {
     applicantCount: "/api/admin/dashboard/applicant_count",
     inquiryCount: "/api/admin/dashboard/inquiry_count",
   },
+  applicantCountReport: {
+    root: "/api/admin/applicant_count_report",
+  },
   auth: {
     login: "/api/admin/auth/login",
     user: "/api/admin/auth/user",

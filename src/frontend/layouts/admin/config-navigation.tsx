@@ -123,6 +123,10 @@ export function useNavData() {
                 title: "メルマガ送信リスト作成",
                 path: paths.admin.mailmagazineConfig.root,
               },
+              {
+                title: "応募件数レポート",
+                path: paths.admin.applicantCountReport.root,
+              },
             ],
           },
           {

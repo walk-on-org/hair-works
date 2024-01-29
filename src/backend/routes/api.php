@@ -351,6 +351,8 @@ Route::middleware(['middleware' => 'auth:adminapi'])->prefix('admin')->group(fun
     Route::get('/dashboard/member_count', [App\Http\Controllers\Admin\DashboardController::class, 'getMemberCount']);
     Route::get('/dashboard/applicant_count', [App\Http\Controllers\Admin\DashboardController::class, 'getApplicantCount']);
     Route::get('/dashboard/inquiry_count', [App\Http\Controllers\Admin\DashboardController::class, 'getInquiryCount']);
+    // 応募件数レポート
+    Route::get('/applicant_count_report',  [App\Http\Controllers\Admin\ApplicantCountReportController::class, 'getApplicantCount']);
     // 一括処理管理
     Route::get('/multiple_process_management/check_process/{id}', [App\Http\Controllers\Admin\MultipleProcessManagementController::class, 'checkProcess']);
     Route::get('/multiple_process_management/download_error/{id}', [App\Http\Controllers\Admin\MultipleProcessManagementController::class, 'downloadError']);

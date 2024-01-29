@@ -78,6 +78,9 @@ export const paths = {
       edit: (id: string) =>
         `${ROOTS.ADMIN}/analysis/mailmagazine_configs/${id}/edit`,
     },
+    applicantCountReport: {
+      root: `${ROOTS.ADMIN}/analysis/applicant_count_report`,
+    },
     article: {
       root: `${ROOTS.ADMIN}/article/articles`,
       new: `${ROOTS.ADMIN}/article/articles/new`,
