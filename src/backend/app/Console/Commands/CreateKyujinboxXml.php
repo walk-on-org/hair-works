@@ -120,11 +120,11 @@ class CreateKyujinboxXml extends Command
 
             $xml = new \SimpleXmlElement('<source></source>');
             $xml->addChild('publisher', 'HairWorks');
-            $xml->addChild('publisherurl', 'https://hair-work.jp/');
+            $xml->addChild('publisherurl', config('app.front_url') . '/');
             $xml->addChild('lastBuildDate', date('Y/m/d H:i:s'));
             foreach ($jobs as $job) {
                 $jobtag = $xml->addChild('job');
-                $jobtag->addChild('url', self::addCdata('https://hair-work.jp/detail/' . $job->job_id));
+                $jobtag->addChild('url', self::addCdata(config('app.front_url') . '/detail/' . $job->job_id));
                 $jobtag->addChild('title', self::addCdata(self::getTitle($job)));
                 $jobtag->addChild('company', self::addCdata(self::getCompany($job)));
                 $jobtag->addChild('agency', self::addCdata($job->recommend ? '株式会社walk-on' : ''));
@@ -149,7 +149,7 @@ class CreateKyujinboxXml extends Command
                 $jobtag->addChild('referencenumber', self::addCdata($job->job_id));
                 $jobtag->addChild('category', self::addCdata(self::getCategory($job)));
                 $jobtag->addChild('imageUrls', self::addCdata(self::getImageUrls($job)));
-                $jobtag->addChild('applyUrl', self::addCdata('https://hair-work.jp/entry/' . $job->job_id));
+                $jobtag->addChild('applyUrl', self::addCdata(config('app.front_url') . '/entry/' . $job->job_id));
                 $jobtag->addChild('benefits', self::addCdata($job->welfare));
                 $jobtag->addChild('postExit', self::addCdata(''));
                 $jobtag->addChild('insurance', self::addCdata(''));
@@ -429,7 +429,7 @@ class CreateKyujinboxXml extends Command
             if ($index > 0) {
                 $rtn .= ',';
             }
-            $rtn .= 'https://hair-work.jp' . $row->image['url'];
+            $rtn .= config('app.front_url') . $row->image['url'];
         }
         return $rtn;
     }

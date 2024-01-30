@@ -62,7 +62,7 @@ class UpdateMemberStatus extends Command
                 ->whereRaw('weekday(date) between 0 and 5') // 平日に祝日があるか
                 ->count();
             if ($national_holiday_count > 0) {
-                $target_date date('Y-m-d', strtotime($target_date . ' -' . $national_holiday_count . ' day'));
+                $target_date = date('Y-m-d', strtotime($target_date . ' -' . $national_holiday_count . ' day'));
             }
             \Log::debug($national_holiday_count);
             \Log::debug($target_date);
@@ -71,7 +71,7 @@ class UpdateMemberStatus extends Command
             $members = Member::whereIn('status', [0, 1])
                 ->where('created_at', '<', $target_date . ' 15:00:00')
                 ->get();
-            foreach ($members) {
+            foreach ($members as $member) {
                 DB::beginTransaction();
                 try {
                     // リリース（コンタクト無）に更新

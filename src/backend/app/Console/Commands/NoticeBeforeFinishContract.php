@@ -58,13 +58,7 @@ class NoticeBeforeFinishContract extends Command
             foreach ($corporations as $corporation) {
                 $url = '';
                 $corporation_id = $corporation->corporation_id;
-                if (config('app.env') == 'local') {
-                    $url = "http://localhost:3500/admin/corporations/{$corporation_id}";
-                } else if (config('app.env') == 'test') {
-                    $url = "https://staging.hair-work.jp/admin/corporations/{$corporation_id}";
-                } else {
-                    $url = "https://hair-work.jp/admin/corporations/{$corporation_id}";
-                }
+                $url = config('app.url') . "/admin/corporations/{$corporation_id}";
                 $corporation_info[] = '▼' . $corporation->corporation_name . "\r\n法人ページ：" . $url . "\r\n";
             }
 

@@ -112,15 +112,15 @@ class CreateIndeedXml extends Command
 
             $xml = new \SimpleXmlElement('<source></source>');
             $xml->addChild('publisher', 'HairWorks');
-            $xml->addChild('publisherurl', 'https://hair-work.jp/');
+            $xml->addChild('publisherurl', config('app.front_url') . '/');
             $xml->addChild('lastBuildDate', date('Y/m/d H:i:s'));
             foreach ($jobs as $job) {
                 $jobtag = $xml->addChild('job');
                 $jobtag->addChild('title', self::addCdata(self::getTitle($job)));
                 $jobtag->addChild('date', self::addCdata(self::getDate($job)));
                 $jobtag->addChild('referencenumber', self::addCdata($job->job_id));
-                $jobtag->addChild('url', self::addCdata('https://hair-work.jp/detail/' . $job->job_id));
-                $jobtag->addChild('apply_url', self::addCdata('https://hair-work.jp/entry/' . $job->job_id . str_replace('&', '&amp;', '?utm_source=Indeed&utm_medium=cpc&utm_campaign=Indeed')));
+                $jobtag->addChild('url', self::addCdata(config('app.front_url') . '/detail/' . $job->job_id));
+                $jobtag->addChild('apply_url', self::addCdata(config('app.front_url') . '/entry/' . $job->job_id . str_replace('&', '&amp;', '?utm_source=Indeed&utm_medium=cpc&utm_campaign=Indeed')));
                 $jobtag->addChild('company', self::addCdata($job->office_name));
                 $jobtag->addChild('sourcename', self::addCdata(self::getSourcename($job)));
                 $jobtag->addChild('city', self::addCdata($job->city_name . preg_replace('/(\s).*/m', '', preg_replace('/(　)+/', "\s", $job->address))));
@@ -628,7 +628,7 @@ class CreateIndeedXml extends Command
             if ($index > 0) {
                 $rtn .= ',';
             }
-            $rtn .= 'https://hair-work.jp' . $row->image['url'];
+            $rtn .= config('app.front_url') . $row->image['url'];
         }
         return $rtn;
     }

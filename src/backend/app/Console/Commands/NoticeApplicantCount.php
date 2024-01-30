@@ -293,7 +293,7 @@ class NoticeApplicantCount extends Command
     {
         $text = '';
         foreach ($corporations as $c) {
-            $text .= '・' . $c['corporation_name'] . "\r\nCMS：https://hair-work.jp/admin/corporations/" . $c['corporation_id'] . "\r\n";
+            $text .= '・' . $c['corporation_name'] . "\r\nCMS：" . config('app.url') . "/admin/corporations/" . $c['corporation_id'] . "\r\n";
             if ($c['applicant_count'] > 0) {
                 $text .= '応募数：' . $c['applicant_count'] . '件';
                 if ($is_two_month) {

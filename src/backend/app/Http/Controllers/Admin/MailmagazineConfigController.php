@@ -902,8 +902,8 @@ class MailmagazineConfigController extends Controller
                 if (is_null($job->station_name) && is_null($job->move_type) && is_null($job->time)) {
                     $row["job_{$index}_access"] = $job->station_name . '駅' . OfficeAccess::MOVE_TYPE[$job->move_type] . $job->time . '分';
                 }
-                $row["job_{$index}_detail_url"] = "https://hair-work.jp/detail/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
-                $row["job_{$index}_entry_url"] = "https://hair-work.jp/entry/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
+                $row["job_{$index}_detail_url"] = config('app.front_url') . "/detail/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
+                $row["job_{$index}_entry_url"] = config('app.front_url') . "/entry/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
                 $row["job_{$index}_image_url"] = self::getJobImageUrl($job);
                 $row["job_{$index}_salary"] = self::getSalary($job);
                 $row["job_{$index}_catch_copy"] = $job->catch_copy;
@@ -919,8 +919,8 @@ class MailmagazineConfigController extends Controller
                 if (is_null($job->station_name) && is_null($job->move_type) && is_null($job->time)) {
                     $row["job_{$index}_access"] = $job->station_name . '駅' . OfficeAccess::MOVE_TYPE[$job->move_type] . $job->time . '分';
                 }
-                $row["job_{$index}_detail_url"] = "https://hair-work.jp/detail/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
-                $row["job_{$index}_entry_url"] = "https://hair-work.jp/entry/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
+                $row["job_{$index}_detail_url"] = config('app.front_url') . "/detail/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
+                $row["job_{$index}_entry_url"] = config('app.front_url') . "/entry/{$job->job_id}?utm_source=mailmagazine&utm_medium=mail&utm_campaign={$today}";
                 $row["job_{$index}_image_url"] = self::getJobImageUrl($job);
                 $row["job_{$index}_salary"] = self::getSalary($job);
                 $row["job_{$index}_catch_copy"] = $job->catch_copy;
@@ -1169,11 +1169,11 @@ class MailmagazineConfigController extends Controller
         if (!$job_image && !$office_image && !$corporation_image) {
             return '';
         } else if ($job_image && !$office_image && !$corporation_image) {
-            return 'https://hair-work.jp' . config('uploadimage.job_image_relative_path') . $job_image->office_id . '/' . $job_image->image;
+            return config('app.front_url') . config('uploadimage.job_image_relative_path') . $job_image->office_id . '/' . $job_image->image;
         } else if (!$job_image && $office_image && !$corporation_image) {
-            return 'https://hair-work.jp' . config('uploadimage.office_image_relative_path') . $office_image->office_id . '/' . $office_image->image;
+            return config('app.front_url') . config('uploadimage.office_image_relative_path') . $office_image->office_id . '/' . $office_image->image;
         } else if (!$job_image && !$office_image && $corporation_image) {
-            return 'https://hair-work.jp' . config('uploadimage.corporation_image_relative_path') . $corporation_image->corporation_id . '/' . $corporation_image->image;
+            return config('app.front_url') . config('uploadimage.corporation_image_relative_path') . $corporation_image->corporation_id . '/' . $corporation_image->image;
         }
 
         // 2つ以上設定している場合、更新日時が最新の方を使用する
@@ -1182,11 +1182,11 @@ class MailmagazineConfigController extends Controller
         $max_office_image_updated_at = $office_image ? $office_image->updated_at : $base_datetime;
         $max_corporation_image_updated_at = $corporation_image ? $corporation_image->updated_at : $base_datetime;
         if (strtotime($max_job_image_updated_at) > strtotime($max_corporation_image_updated_at) && strtotime($max_job_image_updated_at) > strtotime($max_office_image_updated_at)) {
-            return 'https://hair-work.jp' . config('uploadimage.job_image_relative_path') . $job_image->office_id . '/' . $job_image->image;
+            return config('app.front_url') . config('uploadimage.job_image_relative_path') . $job_image->office_id . '/' . $job_image->image;
         } else if (strtotime($max_office_image_updated_at) > strtotime($max_corporation_image_updated_at)) {
-            return 'https://hair-work.jp' . config('uploadimage.office_image_relative_path') . $office_image->office_id . '/' . $office_image->image;
+            return config('app.front_url') . config('uploadimage.office_image_relative_path') . $office_image->office_id . '/' . $office_image->image;
         } else {
-            return 'https://hair-work.jp' . config('uploadimage.corporation_image_relative_path') . $corporation_image->corporation_id . '/' . $corporation_image->image;
+            return config('app.front_url') . config('uploadimage.corporation_image_relative_path') . $corporation_image->corporation_id . '/' . $corporation_image->image;
         }
     }
 }

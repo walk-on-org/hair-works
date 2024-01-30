@@ -118,7 +118,7 @@ class CreateStanbyXml extends Command
             $xml = new \SimpleXmlElement('<source></source>');
             foreach ($jobs as $job) {
                 $jobtag = $xml->addChild('job');
-                $jobtag->addChild('url', self::addCdata('https://hair-work.jp/detail/' . $job->job_id . str_replace('&', '&amp;', '?utm_source=stanby&utm_medium=organic&utm_campaign=stanby')));
+                $jobtag->addChild('url', self::addCdata(config('app.front_url') . '/detail/' . $job->job_id . str_replace('&', '&amp;', '?utm_source=stanby&utm_medium=organic&utm_campaign=stanby')));
                 $jobtag->addChild('referencenumber', self::addCdata($job->job_id));
                 $jobtag->addChild('title', self::addCdata(self::getTitle($job)));
                 $jobtag->addChild('company', self::addCdata(self::getCompany($job)));
@@ -150,7 +150,7 @@ class CreateStanbyXml extends Command
                 $jobtag->addChild('category', self::addCdata(self::getCategory($job)));
                 $jobtag->addChild('imageUrls', self::addCdata(self::getImageUrls($job)));
                 $jobtag->addChild('movieurls', self::addCdata(''));
-                $jobtag->addChild('applyurl', self::addCdata('https://hair-work.jp/entry/' . $job->job_id . str_replace('&', '&amp;', '?utm_source=stanby&utm_medium=organic&utm_campaign=stanby')));
+                $jobtag->addChild('applyurl', self::addCdata(config('app.front_url') . '/entry/' . $job->job_id . str_replace('&', '&amp;', '?utm_source=stanby&utm_medium=organic&utm_campaign=stanby')));
             }
 
             // XML保存
@@ -619,7 +619,7 @@ class CreateStanbyXml extends Command
             if ($index > 0) {
                 $rtn .= ',';
             }
-            $rtn .= 'https://hair-work.jp' . $row->image['url'];
+            $rtn .= config('app.front_url') . $row->image['url'];
         }
         return $rtn;
     }
