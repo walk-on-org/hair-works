@@ -14,10 +14,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 // 公開サイト用API
 Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     // 職種
@@ -116,31 +112,97 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
 });
 
 // 管理サイト用API
+// 認証なし
 Route::middleware(['middleware' => 'guest:adminapi'])->prefix('admin')->group(function () {
     // 認証
     Route::post('/auth/login', [App\Http\Controllers\Admin\AuthController::class, 'login']);
     Route::post('/auth/forgot_password', [App\Http\Controllers\Admin\AuthController::class, 'sendRequestForgotPassword']);
     Route::post('/auth/reset_password', [App\Http\Controllers\Admin\AuthController::class, 'resetPassword']);
 });
+// 認証あり
 Route::middleware(['middleware' => 'auth:adminapi'])->prefix('admin')->group(function () {
     // ユーザ取得
     Route::get('/auth/user', [App\Http\Controllers\Admin\AuthController::class, 'user']);
-    // 職種
+    // 法人
+    Route::get('/corporations', [App\Http\Controllers\Admin\CorporationController::class, 'index']);
+    Route::get('/corporations/{id}', [App\Http\Controllers\Admin\CorporationController::class, 'show']);
+    Route::get('/corporations/download/csv', [App\Http\Controllers\Admin\CorporationController::class, 'downloadCsv']);
+    // 事業所
+    Route::get('/offices', [App\Http\Controllers\Admin\OfficeController::class, 'index']);
+    Route::get('/offices/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'show']);
+    Route::get('/offices/download/csv', [App\Http\Controllers\Admin\OfficeController::class, 'downloadCsv']);
+    // 求人
+    Route::get('/jobs', [App\Http\Controllers\Admin\JobController::class, 'index']);
+    Route::get('/jobs/{id}', [App\Http\Controllers\Admin\JobController::class, 'show']);
+    Route::get('/jobs/download/csv', [App\Http\Controllers\Admin\JobController::class, 'downloadCsv']);
+    // 応募者
+    Route::get('/applicants', [App\Http\Controllers\Admin\ApplicantController::class, 'index']);
+    Route::get('/applicants/{id}', [App\Http\Controllers\Admin\ApplicantController::class, 'show']);
+    Route::post('/applicants/update/{id}', [App\Http\Controllers\Admin\ApplicantController::class, 'update']);
+    Route::get('/applicants/download/csv', [App\Http\Controllers\Admin\ApplicantController::class, 'downloadCsv']);
+    // マスタデータ
     Route::get('/job_categories', [App\Http\Controllers\Admin\JobCategoryController::class, 'index']);
+    Route::get('/positions', [App\Http\Controllers\Admin\PositionController::class, 'index']);
+    Route::get('/employments', [App\Http\Controllers\Admin\EmploymentController::class, 'index']);
+});
+// 認証あり（管理者アカウントのみ）
+Route::middleware(['auth:adminapi', 'role'])->prefix('admin')->group(function () {
+    // ダッシュボード
+    Route::get('/dashboard/job_count', [App\Http\Controllers\Admin\DashboardController::class, 'getJobCount']);
+    Route::get('/dashboard/member_count', [App\Http\Controllers\Admin\DashboardController::class, 'getMemberCount']);
+    Route::get('/dashboard/applicant_count', [App\Http\Controllers\Admin\DashboardController::class, 'getApplicantCount']);
+    Route::get('/dashboard/inquiry_count', [App\Http\Controllers\Admin\DashboardController::class, 'getInquiryCount']);
+    // 法人
+    Route::post('/corporations/create', [App\Http\Controllers\Admin\CorporationController::class, 'create']);
+    Route::post('/corporations/update/{id}', [App\Http\Controllers\Admin\CorporationController::class, 'update']);
+    Route::post('/corporations/destroy/{id}', [App\Http\Controllers\Admin\CorporationController::class, 'destroy']);
+    Route::post('/corporations/destroy_multiple', [App\Http\Controllers\Admin\CorporationController::class, 'destroyMultiple']);
+    // 事業所
+    Route::post('/offices/create', [App\Http\Controllers\Admin\OfficeController::class, 'create']);
+    Route::post('/offices/update/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'update']);
+    Route::post('/offices/destroy/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'destroy']);
+    Route::post('/offices/destroy_multiple', [App\Http\Controllers\Admin\OfficeController::class, 'destroyMultiple']);
+    Route::post('/offices/upload/csv', [App\Http\Controllers\Admin\OfficeController::class, 'uploadCsv']);
+    Route::post('/offices/copy_multiple/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'copyMultiple']);
+    // 求人
+    Route::post('/jobs/create', [App\Http\Controllers\Admin\JobController::class, 'create']);
+    Route::post('/jobs/update/{id}', [App\Http\Controllers\Admin\JobController::class, 'update']);
+    Route::post('/jobs/destroy/{id}', [App\Http\Controllers\Admin\JobController::class, 'destroy']);
+    Route::post('/jobs/destroy_multiple', [App\Http\Controllers\Admin\JobController::class, 'destroyMultiple']);
+    Route::post('/jobs/upload/csv', [App\Http\Controllers\Admin\JobController::class, 'uploadCsv']);
+    Route::post('/jobs/approval_request_multiple', [App\Http\Controllers\Admin\JobController::class, 'approvalRequestMultiple']);
+    Route::post('/jobs/approved_multiple', [App\Http\Controllers\Admin\JobController::class, 'approvedMultiple']);
+    Route::post('/jobs/publish_multiple', [App\Http\Controllers\Admin\JobController::class, 'publishMultiple']);
+    Route::post('/jobs/stop_multiple', [App\Http\Controllers\Admin\JobController::class, 'stopMultiple']);
+    Route::post('/jobs/copy_multiple/{id}', [App\Http\Controllers\Admin\JobController::class, 'copyMultiple']);
+    // 会員情報
+    Route::get('/members', [App\Http\Controllers\Admin\MemberController::class, 'index']);
+    Route::get('/members/{id}', [App\Http\Controllers\Admin\MemberController::class, 'show']);
+    Route::post('/members/update/{id}', [App\Http\Controllers\Admin\MemberController::class, 'update']);
+    Route::post('/members/destroy/{id}', [App\Http\Controllers\Admin\MemberController::class, 'destroy']);
+    Route::post('/members/destroy_multiple', [App\Http\Controllers\Admin\MemberController::class, 'destroyMultiple']);
+    Route::get('/members/download/csv', [App\Http\Controllers\Admin\MemberController::class, 'downloadCsv']);
+    // 問い合わせ
+    Route::get('/inquiries', [App\Http\Controllers\Admin\InquiryController::class, 'index']);
+    Route::get('/inquiries/{id}', [App\Http\Controllers\Admin\InquiryController::class, 'show']);
+    Route::post('/inquiries/update/{id}', [App\Http\Controllers\Admin\InquiryController::class, 'update']);
+    Route::post('/inquiries/destroy/{id}', [App\Http\Controllers\Admin\InquiryController::class, 'destroy']);
+    Route::post('/inquiries/destroy_multiple', [App\Http\Controllers\Admin\InquiryController::class, 'destroyMultiple']);
+    Route::get('/inquiries/download/csv', [App\Http\Controllers\Admin\InquiryController::class, 'downloadCsv']);
+
+    // 職種
     Route::get('/job_categories/{id}', [App\Http\Controllers\Admin\JobCategoryController::class, 'show']);
     Route::post('/job_categories/create', [App\Http\Controllers\Admin\JobCategoryController::class, 'create']);
     Route::patch('/job_categories/update/{id}' , [App\Http\Controllers\Admin\JobCategoryController::class, 'update']);
     Route::post('/job_categories/destroy/{id}' , [App\Http\Controllers\Admin\JobCategoryController::class, 'destroy']);
     Route::post('/job_categories/destroy_multiple' , [App\Http\Controllers\Admin\JobCategoryController::class, 'destroyMultiple']);
     // 役職/役割
-    Route::get('/positions', [App\Http\Controllers\Admin\PositionController::class, 'index']);
     Route::get('/positions/{id}', [App\Http\Controllers\Admin\PositionController::class, 'show']);
     Route::post('/positions/create', [App\Http\Controllers\Admin\PositionController::class, 'create']);
     Route::patch('/positions/update/{id}' , [App\Http\Controllers\Admin\PositionController::class, 'update']);
     Route::post('/positions/destroy/{id}', [App\Http\Controllers\Admin\PositionController::class, 'destroy']);
     Route::post('/positions/destroy_multiple', [App\Http\Controllers\Admin\PositionController::class, 'destroyMultiple']);
     // 雇用形態
-    Route::get('/employments', [App\Http\Controllers\Admin\EmploymentController::class, 'index']);
     Route::get('/employments/{id}', [App\Http\Controllers\Admin\EmploymentController::class, 'show']);
     Route::post('/employments/create', [App\Http\Controllers\Admin\EmploymentController::class, 'create']);
     Route::patch('/employments/update/{id}' , [App\Http\Controllers\Admin\EmploymentController::class, 'update']);
@@ -266,57 +328,6 @@ Route::middleware(['middleware' => 'auth:adminapi'])->prefix('admin')->group(fun
     Route::post('/admin_users/destroy/{id}', [App\Http\Controllers\Admin\AdminUserController::class, 'destroy']);
     Route::post('/admin_users/destroy_multiple', [App\Http\Controllers\Admin\AdminUserController::class, 'destroyMultiple']);
 
-    // 法人
-    Route::get('/corporations', [App\Http\Controllers\Admin\CorporationController::class, 'index']);
-    Route::get('/corporations/{id}', [App\Http\Controllers\Admin\CorporationController::class, 'show']);
-    Route::post('/corporations/create', [App\Http\Controllers\Admin\CorporationController::class, 'create']);
-    Route::post('/corporations/update/{id}', [App\Http\Controllers\Admin\CorporationController::class, 'update']);
-    Route::post('/corporations/destroy/{id}', [App\Http\Controllers\Admin\CorporationController::class, 'destroy']);
-    Route::post('/corporations/destroy_multiple', [App\Http\Controllers\Admin\CorporationController::class, 'destroyMultiple']);
-    Route::get('/corporations/download/csv', [App\Http\Controllers\Admin\CorporationController::class, 'downloadCsv']);
-    // 事業所
-    Route::get('/offices', [App\Http\Controllers\Admin\OfficeController::class, 'index']);
-    Route::get('/offices/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'show']);
-    Route::post('/offices/create', [App\Http\Controllers\Admin\OfficeController::class, 'create']);
-    Route::post('/offices/update/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'update']);
-    Route::post('/offices/destroy/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'destroy']);
-    Route::post('/offices/destroy_multiple', [App\Http\Controllers\Admin\OfficeController::class, 'destroyMultiple']);
-    Route::get('/offices/download/csv', [App\Http\Controllers\Admin\OfficeController::class, 'downloadCsv']);
-    Route::post('/offices/upload/csv', [App\Http\Controllers\Admin\OfficeController::class, 'uploadCsv']);
-    Route::post('/offices/copy_multiple/{id}', [App\Http\Controllers\Admin\OfficeController::class, 'copyMultiple']);
-    // 求人
-    Route::get('/jobs', [App\Http\Controllers\Admin\JobController::class, 'index']);
-    Route::get('/jobs/{id}', [App\Http\Controllers\Admin\JobController::class, 'show']);
-    Route::post('/jobs/create', [App\Http\Controllers\Admin\JobController::class, 'create']);
-    Route::post('/jobs/update/{id}', [App\Http\Controllers\Admin\JobController::class, 'update']);
-    Route::post('/jobs/destroy/{id}', [App\Http\Controllers\Admin\JobController::class, 'destroy']);
-    Route::post('/jobs/destroy_multiple', [App\Http\Controllers\Admin\JobController::class, 'destroyMultiple']);
-    Route::get('/jobs/download/csv', [App\Http\Controllers\Admin\JobController::class, 'downloadCsv']);
-    Route::post('/jobs/upload/csv', [App\Http\Controllers\Admin\JobController::class, 'uploadCsv']);
-    Route::post('/jobs/approval_request_multiple', [App\Http\Controllers\Admin\JobController::class, 'approvalRequestMultiple']);
-    Route::post('/jobs/approved_multiple', [App\Http\Controllers\Admin\JobController::class, 'approvedMultiple']);
-    Route::post('/jobs/publish_multiple', [App\Http\Controllers\Admin\JobController::class, 'publishMultiple']);
-    Route::post('/jobs/stop_multiple', [App\Http\Controllers\Admin\JobController::class, 'stopMultiple']);
-    Route::post('/jobs/copy_multiple/{id}', [App\Http\Controllers\Admin\JobController::class, 'copyMultiple']);
-    // 会員情報
-    Route::get('/members', [App\Http\Controllers\Admin\MemberController::class, 'index']);
-    Route::get('/members/{id}', [App\Http\Controllers\Admin\MemberController::class, 'show']);
-    Route::post('/members/update/{id}', [App\Http\Controllers\Admin\MemberController::class, 'update']);
-    Route::post('/members/destroy/{id}', [App\Http\Controllers\Admin\MemberController::class, 'destroy']);
-    Route::post('/members/destroy_multiple', [App\Http\Controllers\Admin\MemberController::class, 'destroyMultiple']);
-    Route::get('/members/download/csv', [App\Http\Controllers\Admin\MemberController::class, 'downloadCsv']);
-    // 応募者
-    Route::get('/applicants', [App\Http\Controllers\Admin\ApplicantController::class, 'index']);
-    Route::get('/applicants/{id}', [App\Http\Controllers\Admin\ApplicantController::class, 'show']);
-    Route::post('/applicants/update/{id}', [App\Http\Controllers\Admin\ApplicantController::class, 'update']);
-    Route::get('/applicants/download/csv', [App\Http\Controllers\Admin\ApplicantController::class, 'downloadCsv']);
-    // 問い合わせ
-    Route::get('/inquiries', [App\Http\Controllers\Admin\InquiryController::class, 'index']);
-    Route::get('/inquiries/{id}', [App\Http\Controllers\Admin\InquiryController::class, 'show']);
-    Route::post('/inquiries/update/{id}', [App\Http\Controllers\Admin\InquiryController::class, 'update']);
-    Route::post('/inquiries/destroy/{id}', [App\Http\Controllers\Admin\InquiryController::class, 'destroy']);
-    Route::post('/inquiries/destroy_multiple', [App\Http\Controllers\Admin\InquiryController::class, 'destroyMultiple']);
-    Route::get('/inquiries/download/csv', [App\Http\Controllers\Admin\InquiryController::class, 'downloadCsv']);
     // 特集記事カテゴリ
     Route::get('/article_categories', [App\Http\Controllers\Admin\ArticleCategoryController::class, 'index']);
     Route::get('/article_categories/{id}', [App\Http\Controllers\Admin\ArticleCategoryController::class, 'show']);
@@ -346,11 +357,6 @@ Route::middleware(['middleware' => 'auth:adminapi'])->prefix('admin')->group(fun
     Route::post('/mailmagazine_configs/destroy/{id}', [App\Http\Controllers\Admin\MailmagazineConfigController::class, 'destroy']);
     Route::post('/mailmagazine_configs/destroy_multiple', [App\Http\Controllers\Admin\MailmagazineConfigController::class, 'destroyMultiple']);
     Route::get('/mailmagazine_configs/download/send_list/{id}', [App\Http\Controllers\Admin\MailmagazineConfigController::class, 'downloadSendList']);
-    // ダッシュボード
-    Route::get('/dashboard/job_count', [App\Http\Controllers\Admin\DashboardController::class, 'getJobCount']);
-    Route::get('/dashboard/member_count', [App\Http\Controllers\Admin\DashboardController::class, 'getMemberCount']);
-    Route::get('/dashboard/applicant_count', [App\Http\Controllers\Admin\DashboardController::class, 'getApplicantCount']);
-    Route::get('/dashboard/inquiry_count', [App\Http\Controllers\Admin\DashboardController::class, 'getInquiryCount']);
     // 応募件数レポート
     Route::get('/applicant_count_report',  [App\Http\Controllers\Admin\ApplicantCountReportController::class, 'getApplicantCount']);
     // 一括処理管理

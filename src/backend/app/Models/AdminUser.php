@@ -41,6 +41,10 @@ class AdminUser extends Authenticatable implements JWTSubject
         return $this->belongsToMany('App\Models\Corporation', 'admin_user_corporations');
     }
 
+    public function corporationIds() {
+        return array_column($this->corporations->toArray(), 'id');
+    }
+
     public function adminUserCorporations() {
         return $this->hasMany('App\Models\AdminUserCorporation');
     }

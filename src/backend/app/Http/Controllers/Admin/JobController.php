@@ -63,6 +63,17 @@ class JobController extends Controller
             $query = $query->whereIn('jobs.employment_id', $employment_id);
         }
 
+        // ユーザ情報
+        if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+            // 管理者アカウントの場合、条件なし
+        } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+            // サロンアカウントの場合、アカウントに紐づく法人で絞る
+            $query = $query->whereIn('corporations.id', auth()->user()->corporationIds());
+        } else {
+            // 上記以外は認証エラー
+            return self::responseUnauthorized();
+        }
+
         // 件数取得
         $count = $query->count();
 
@@ -243,6 +254,18 @@ class JobController extends Controller
                 $job_ids = is_array($request->job_ids) ? $request->job_ids : explode(',', $request->job_ids);
                 $query = $query->whereIn('jobs.id', $job_ids);
             }
+
+            // ユーザ情報
+            if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+                // 管理者アカウントの場合、条件なし
+            } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+                // サロンアカウントの場合、アカウントに紐づく法人で絞る
+                $query = $query->whereIn('corporations.id', auth()->user()->corporationIds());
+            } else {
+                // 上記以外は認証エラー
+                return;
+            }
+
             // データ取得
             $jobs = $query->leftJoin(DB::raw("({$contract_subquery->toSql()}) as latest_contracts"), 'corporations.id', '=', 'latest_contracts.corporation_id')
                 ->groupBy('jobs.id')
@@ -445,6 +468,19 @@ class JobController extends Controller
             $job = Job::find($id);
             if (!$job) {
                 throw new ModelNotFoundException();
+            }
+
+            // ユーザ情報
+            if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+                // 管理者アカウントの場合、条件なし
+            } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+                // サロンアカウントの場合、アカウントに紐づく法人のみ
+                if (!in_array($job->office->corporation_id, auth()->user()->corporationIds())) {
+                    return self::responseUnauthorized();
+                }
+            } else {
+                // 上記以外は認証エラー
+                return self::responseUnauthorized();
             }
 
             $job['office_name'] = $job->office->name;

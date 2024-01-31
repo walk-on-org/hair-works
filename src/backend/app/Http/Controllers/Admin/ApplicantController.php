@@ -49,6 +49,17 @@ class ApplicantController extends Controller
             $query = $query->where('applicants.name', 'LIKE', '%' . $request->name . '%');
         }
 
+        // ユーザ情報
+        if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+            // 管理者アカウントの場合、条件なし
+        } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+            // サロンアカウントの場合、アカウントに紐づく法人で絞る
+            $query = $query->whereIn('corporations.id', auth()->user()->corporationIds());
+        } else {
+            // 上記以外は認証エラー
+            return self::responseUnauthorized();
+        }
+
         // 件数取得
         $count = $query->count();
 
@@ -188,6 +199,18 @@ class ApplicantController extends Controller
                 $applicant_ids = is_array($request->applicant_ids) ? $request->applicant_ids : explode(',', $request->applicant_ids);
                 $query = $query->whereIn('applicants.id', $applicant_ids);
             }
+
+            // ユーザ情報
+            if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+                // 管理者アカウントの場合、条件なし
+            } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+                // サロンアカウントの場合、アカウントに紐づく法人で絞る
+                $query = $query->whereIn('corporations.id', auth()->user()->corporationIds());
+            } else {
+                // 上記以外は認証エラー
+                return;
+            }
+
             // データ取得
             $applicants = $query->leftJoin('members', function ($join) {
                     $join->on('applicants.member_id', '=', 'members.id')
@@ -358,6 +381,19 @@ class ApplicantController extends Controller
                 throw new ModelNotFoundException();
             }
 
+            // ユーザ情報
+            if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+                // 管理者アカウントの場合、条件なし
+            } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+                // サロンアカウントの場合、アカウントに紐づく法人のみ
+                if (!in_array($applicant->job->office->corporation_id, auth()->user()->corporationIds())) {
+                    return self::responseUnauthorized();
+                }
+            } else {
+                // 上記以外は認証エラー
+                return self::responseUnauthorized();
+            }
+
             $applicant['job_name'] = $applicant->job->name;
             $applicant['job_recommend_name'] = $applicant->job->recommend ? '人材紹介' : '';
             $applicant['office_id'] = $applicant->job->office_id;
@@ -425,8 +461,25 @@ class ApplicantController extends Controller
                 'applicant_contact_histories.*.contact_memo' => 'required|string',
             ]);
 
-            DB::transaction(function () use ($data, $id) {
-                $applicant = Applicant::findOrFail($id);
+            $applicant = Applicant::find($id);
+            if (!$applicant) {
+                throw new ModelNotFoundException();
+            }
+
+            // ユーザ情報
+            if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+                // 管理者アカウントの場合、条件なし
+            } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+                // サロンアカウントの場合、アカウントに紐づく法人のみ
+                if (!in_array($applicant->job->office->corporation_id, auth()->user()->corporationIds())) {
+                    return self::responseUnauthorized();
+                }
+            } else {
+                // 上記以外は認証エラー
+                return self::responseUnauthorized();
+            }
+
+            DB::transaction(function () use ($data, $id, $applicant) {
                 $applicant->update($data);
 
                 // 応募コンタクト履歴
@@ -462,8 +515,12 @@ class ApplicantController extends Controller
                     $applicant->applicantContactHistories()->delete();
                 }
             });
+
+            return response()->json(['result' => 'ok']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Applicant not found'], 404);
         } catch (ValidationException $e) {
-            return response()->json(['error' => $e->errors()], 422); 
+            return response()->json(['error' => $e->errors()], 422);
         }
     }
 }

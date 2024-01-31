@@ -40,6 +40,17 @@ class OfficeController extends Controller
         // 件数取得
         $count = $query->count();
 
+        // ユーザ情報
+        if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+            // 管理者アカウントの場合、条件なし
+        } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+            // サロンアカウントの場合、アカウントに紐づく法人で絞る
+            $query = $query->whereIn('corporations.id', auth()->user()->corporationIds());
+        } else {
+            // 上記以外は認証エラー
+            return self::responseUnauthorized();
+        }
+
         // データ取得
         $query = $query
             ->leftJoin('jobs', function ($join) {
@@ -175,6 +186,18 @@ class OfficeController extends Controller
                 $office_ids = is_array($request->office_ids) ? $request->office_ids : explode(',', $request->office_ids);
                 $query = $query->whereIn('offices.id', $office_ids);
             }
+
+            // ユーザ情報
+            if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+                // 管理者アカウントの場合、条件なし
+            } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+                // サロンアカウントの場合、アカウントに紐づく法人で絞る
+                $query = $query->whereIn('corporations.id', auth()->user()->corporationIds());
+            } else {
+                // 上記以外は認証エラー
+                return;
+            }
+
             // データ取得
             $offices = $query->leftJoin(DB::raw("({$contract_subquery->toSql()}) as latest_contracts"), 'corporations.id', '=', 'latest_contracts.corporation_id')
                 ->leftJoin('jobs', function ($join) {
@@ -359,6 +382,19 @@ class OfficeController extends Controller
             $office = Office::find($id);
             if (!$office) {
                 throw new ModelNotFoundException();
+            }
+
+            // ユーザ情報
+            if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+                // 管理者アカウントの場合、条件なし
+            } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+                // サロンアカウントの場合、アカウントに紐づく法人のみ
+                if (!in_array($office->corporation_id, auth()->user()->corporationIds())) {
+                    return self::responseUnauthorized();
+                }
+            } else {
+                // 上記以外は認証エラー
+                return self::responseUnauthorized();
             }
 
             $office['corporation_name'] = $office->corporation->name;

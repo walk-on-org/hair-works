@@ -45,6 +45,17 @@ class CorporationController extends Controller
             $query = $query->where('corporations.name', 'LIKE', '%' . $request->corporation_name . '%');
         }
 
+        // ユーザ情報
+        if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+            // 管理者アカウントの場合、条件なし
+        } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+            // サロンアカウントの場合、アカウントに紐づく法人で絞る
+            $query = $query->whereIn('corporations.id', auth()->user()->corporationIds());
+        } else {
+            // 上記以外は認証エラー
+            return self::responseUnauthorized();
+        }
+
         // 件数取得
         $count = $query->count();
         
@@ -166,6 +177,18 @@ class CorporationController extends Controller
                 $corporation_ids = is_array($request->corporation_ids) ? $request->corporation_ids : explode(',', $request->corporation_ids);
                 $query = $query->whereIn('corporations.id', $corporation_ids);
             }
+
+            // ユーザ情報
+            if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+                // 管理者アカウントの場合、条件なし
+            } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+                // サロンアカウントの場合、アカウントに紐づく法人で絞る
+                $query = $query->whereIn('corporations.id', auth()->user()->corporationIds());
+            } else {
+                // 上記以外は認証エラー
+                return;
+            }
+
             // データ取得
             $corporations = $query->leftJoin(DB::raw("({$contract_subquery->toSql()}) as latest_contracts"), 'corporations.id', '=', 'latest_contracts.corporation_id')
                 ->leftJoin('offices', function ($join) {
@@ -240,6 +263,19 @@ class CorporationController extends Controller
             $corporation = Corporation::find($id);
             if (!$corporation) {
                 throw new ModelNotFoundException();
+            }
+
+            // ユーザ情報
+            if (auth()->user()->adminRole->name == 'super_admin' || auth()->user()->adminRole->name == 'admin') {
+                // 管理者アカウントの場合、条件なし
+            } else if (auth()->user()->adminRole->name == 'owner' && count(auth()->user()->corporationIds()) > 0) {
+                // サロンアカウントの場合、アカウントに紐づく法人のみ
+                if (!in_array($id, auth()->user()->corporationIds())) {
+                    return self::responseUnauthorized();
+                }
+            } else {
+                // 上記以外は認証エラー
+                return self::responseUnauthorized();
             }
 
             $corporation['prefecture_name'] = $corporation->prefecture->name;
