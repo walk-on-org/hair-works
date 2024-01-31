@@ -7,6 +7,14 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
+    protected $commands = [  
+        Commands\GenerateSitemapDetail::class,
+        Commands\GenerateSitemapList::class,
+        Commands\GenerateSitemapListRiyoushi::class,
+        Commands\GenerateSitemapOther::class,
+        Commands\GenerateSitemapSalon::class,
+    ];  
+
     /**
      * Define the application's command schedule.
      */
@@ -18,6 +26,21 @@ class Kernel extends ConsoleKernel
         // 毎日AM0時20分に実行
         $schedule->command('command:notice-before-finish-contact')
             ->dailyAt('15:20');
+        // 毎日AM0時30分に実行
+        $schedule->command('sitemap:generate-other')
+            ->dailyAt('15:30');
+        // 毎日AM0時35分に実行
+        $schedule->command('sitemap:generate-list')
+            ->dailyAt('15:35');
+        // 毎日AM0時40分に実行
+        $schedule->command('sitemap:generate-detail')
+            ->dailyAt('15:40');
+        // 毎日AM0時45分に実行
+        $schedule->command('sitemap:generate-salon')
+            ->dailyAt('15:45');
+        // 毎日AM0時45分に実行
+        $schedule->command('sitemap:generate-list-riyoushi')
+            ->dailyAt('15:50');
         // 毎日AM1時に実行
         $schedule->command('command:create-indeed-xml')
             ->dailyAt('16:00');
