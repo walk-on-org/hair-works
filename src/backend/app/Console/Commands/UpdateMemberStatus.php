@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Library\Chatwork;
+use App\Library\Salesforce;
 use App\Models\Member;
 use App\Models\NationalHoliday;
 use Illuminate\Support\Facades\DB;
@@ -80,7 +81,7 @@ class UpdateMemberStatus extends Command
                     ]);
 
                     // SFへ連携
-                    // TODO
+                    Salesforce::updateKyuusyokusya($member)
                     
                     DB::commit();
                 } catch (\Exception $e) {

@@ -100,6 +100,8 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::post('/auth/member', [App\Http\Controllers\Main\AuthController::class, 'member']);
     Route::post('/auth/signupagent', [App\Http\Controllers\Main\AuthController::class, 'signupagent']);
     // 会員連絡可能日時
+    Route::get('/member_proposal_datetime', [App\Http\Controllers\Main\MemberProposalDatetimeController::class, 'index']);
+    Route::get('/member_proposal_datetime/apply', [App\Http\Controllers\Main\MemberProposalDatetimeController::class, 'apply']);
     // 応募者
     // 応募希望日時
     // 問い合わせ

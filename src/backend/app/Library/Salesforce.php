@@ -99,7 +99,7 @@ class Salesforce extends Facade
     /**
      * SF求職者オブジェクト更新
      */
-    public static function updateKyusyokusya($member)
+    public static function updateKyuusyokusya($member)
     {
         // 連携スキップ判定
         if (self::isSkipSalesforce()) {
@@ -119,7 +119,7 @@ class Salesforce extends Facade
         $access_token = $result['access_token'];
         $instance_url = $result['instance_url'];
 
-        // 求職者情報を作成
+        // 求職者情報を更新
         \Log::debug('salesforce求職者更新連携開始');
         // 市区町村と番地を分ける
         $city = City::where('prefecture_id', $member->prefecture_id)
@@ -169,6 +169,47 @@ class Salesforce extends Facade
             \Log::error($response->body());
             return false;
         }
+        return true;
+    }
+
+    /**
+     * SF求職者オブジェクト更新（連絡可能日時）
+     */
+    public static function updateKyuusyokusyaProposalDatetime($member)
+    {
+        // 連携スキップ判定
+        if (self::isSkipSalesforce()) {
+            return true;
+        }
+        // SalesForceIDが未登録なら連携しない
+        if (!$member->salesforce_id) {
+            \Log::debug('SalesForceID未登録のため、スキップ');
+            return true;
+        }
+        // ログイン認証
+        $result = self::loginSalesforce();
+        if(!$result) {
+            return false;
+        }
+
+        $access_token = $result['access_token'];
+        $instance_url = $result['instance_url'];
+
+        // 求職者情報を更新
+        \Log::debug('salesforce求職者更新連携開始');
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . $access_token,
+        ])->asForm()->post($instance_url . '/services/data/v53.0/sobjects/Account/' . $member->salesforce_id, [
+            'ContactableDatetime__c' => $member->memberProposalDatetimesText,
+        ]);
+        \Log::debug($response->body());
+        if ($response->status() != 200 && $response->status() != 201 && $response->status() != 204) {
+            \Log::error($response->status());
+            \Log::error($response->body());
+            return false;
+        }
+        return true;
     }
 
     /**

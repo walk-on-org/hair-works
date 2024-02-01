@@ -104,6 +104,42 @@ class Chatwork extends Facade
     }
 
     /**
+     * 会員連絡可能日時通知
+     */
+    public static function noticeMemberProposalDatetime($member, $is_first_register, $is_send_customer = false)
+    {
+        // 連携スキップ判定
+        if (self::isSkipChatwork()) {
+            return true;
+        }
+
+        // 本文作成
+        $url = config('app.url') . '/admin/members/' . $member->id;
+        $sf_url = $member->salesforce_id ? 'https://walk-on.lightning.force.com/lightning/r/Account/' . $member->salesforce_id . '/view' : '';
+        $process = $is_first_register ? '入力' : '変更';
+        $message = <<< EOF
+        [toall]
+        会員登録したユーザが連絡可能日時を{$process}しました。
+        詳細は管理サイトよりご確認ください。
+        {$url}
+        {$sf_url}
+
+        ■名前：{$member->name}
+        ■連絡可能日時：
+        {$member->memberProposalDatetimesText}
+        EOF;
+
+        // 通知（求職者登録）
+        if ($member->register_site == 1 || $is_send_customer == true) {
+            // 求人広告
+            return self::notice($message, '307741000');
+        } else {
+            // 人材紹介
+            return self::notice($message, '325907207');
+        }
+    }
+
+    /**
      * 応募ゼロ通知
      */
     public static function noticeApplicantZero($first_contract_one_month_corporations, $first_contract_two_month_corporations, $continuation_contract_two_month_corporations)
