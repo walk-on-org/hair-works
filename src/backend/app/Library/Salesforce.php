@@ -4,9 +4,173 @@ namespace App\Library;
 
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Http;
+use App\Models\City;
+use App\Models\LpJobCategory;
+use App\Models\Member;
+use App\Models\Qualification;
 
 class Salesforce extends Facade
 {
+    /**
+     * 会員情報からSF求職者オブジェクト登録
+     */
+    public static function createKyuusyokusya($member, $cvh, $job = null)
+    {
+        // 連携スキップ判定
+        if (self::isSkipSalesforce()) {
+            return true;
+        }
+        // ログイン認証
+        $result = self::loginSalesforce();
+        if(!$result) {
+            return false;
+        }
+
+        $access_token = $result['access_token'];
+        $instance_url = $result['instance_url'];
+
+        // 求職者情報を作成
+        \Log::debug('salesforce求職者登録連携開始');
+        // 市区町村と番地を分ける
+        $city = City::where('prefecture_id', $member->prefecture_id)
+            ->whereRaw('? like concat(name, \'%\')', [$member->address])
+            ->first();
+        $billing_city = '';
+        $billing_street = $member->address;
+        if ($city) {
+            $billing_city = $city->name;
+            $billing_street = str_replace($city->name, '', $billing_street);
+        }
+        // 希望職種
+        $kibousyokusyu = LpJobCategory::whereIn('id', array_column($member->lpJobCategories->toArray(), 'id'))
+            ->pluck('name')
+            ->join(';');
+        $kibousyokusyu = str_replace('（中途）', '', $kibousyokusyu);
+        $kibousyokusyu = str_replace('（新卒）', '', $kibousyokusyu);
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . $access_token,
+        ])->asForm()->post($instance_url . '/services/data/v53.0/sobjects/Account/', [
+            'RecordTypeId' => '0125h000000l0IqAAI',
+            'LastName' => $member->name,
+            'kana__c' => $member->name_kana,
+            'joutai__c' => Member::STATUS[$member->status],
+            'tourokubi__c' => date('Y/m/d H:i:s'),
+            'mail__c' => $member->email,
+            'Phone' => $member->phone,
+            'birthday__c' => $member->birthyear,
+            'hoyuusikaku__c' => Qualification::whereIn('id', array_column($member->qualifications->toArray(), 'id'))->pluck('name')->join(';'),
+            'kibousyokusyu__c' => $kibousyokusyu,
+            'tensyokujiki__c' => Member::CHANGE_TIME[$member->change_time],
+            'kinnmukeitai__c' => $member->employment->name,
+            'kibouti__c' => $member->empPrefecture->name,
+            'taisyokuikou__c' => Member::RETIREMENT_TIME[$member->retirement_time],
+            'tourokusaito__c' => Member::REGISTER_SITE[$member->register_site],
+            'tourokukeiro__c' => $cvh ? $cvh->utm_source : '',
+            'tourokucampaign__c' => $cvh ? $cvh->utm_campaign : '',
+            'koukokukeyword__c' => $cvh ? self::getAdKeyword($cvh) : '',
+            'tourokuform__c' => Member::REGISTER_FROM[$member->register_form],
+            'introductionname__c' => $member->introduction_name,
+            'introductionaccount__c' => $member->introductionMember ? $member->introductionMember->salesforce_id : '',
+            'introductiongiftstatus__c' => Member::INTRODUCTION_GIFT_STATUS[$member->introduction_gift_status],
+            'BillingPostalCode' => $member->postcode,
+            'BillingState' => $member->prefecture->name,
+            'BillingCity' => $billing_city,
+            'BillingStreet' => $billing_street,
+            'BillingCountry' => '日本',
+            'SoukyakuFlg2__c' => $job ? ($job->recommend ? true : false) : false,
+            'JobChangeFeeling__c' => Member::JOB_CHANGE_FEELING[$member->job_change_feeling],
+        ]);
+        \Log::debug($response->body());
+        if ($response->status() != 200 && $response->status() != 201) {
+            \Log::error($response->status());
+            \Log::error($response->body());
+            return false;
+        }
+        // SFのIDを会員情報へ登録
+        $json = $response->json();
+        $member->update([
+            'salesforce_id' => $json['id'],
+        ]);
+        return true;
+    }
+
+    /**
+     * SF求職者オブジェクト更新
+     */
+    public static function updateKyusyokusya($member)
+    {
+        // 連携スキップ判定
+        if (self::isSkipSalesforce()) {
+            return true;
+        }
+        // SalesForceIDが未登録なら連携しない
+        if (!$member->salesforce_id) {
+            \Log::debug('SalesForceID未登録のため、スキップ');
+            return true;
+        }
+        // ログイン認証
+        $result = self::loginSalesforce();
+        if(!$result) {
+            return false;
+        }
+
+        $access_token = $result['access_token'];
+        $instance_url = $result['instance_url'];
+
+        // 求職者情報を作成
+        \Log::debug('salesforce求職者更新連携開始');
+        // 市区町村と番地を分ける
+        $city = City::where('prefecture_id', $member->prefecture_id)
+            ->whereRaw('? like concat(name, \'%\')', [$member->address])
+            ->first();
+        $billing_city = '';
+        $billing_street = $member->address;
+        if ($city) {
+            $billing_city = $city->name;
+            $billing_street = str_replace($city->name, '', $billing_street);
+        }
+        // 希望職種
+        $kibousyokusyu = LpJobCategory::whereIn('id', array_column($member->lpJobCategories->toArray(), 'id'))
+            ->pluck('name')
+            ->join(';');
+        $kibousyokusyu = str_replace('（中途）', '', $kibousyokusyu);
+        $kibousyokusyu = str_replace('（新卒）', '', $kibousyokusyu);
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . $access_token,
+        ])->asForm()->post($instance_url . '/services/data/v53.0/sobjects/Account/' . $member->salesforce_id, [
+            'LastName' => $member->name,
+            'kana__c' => $member->name_kana,
+            'joutai__c' => Member::STATUS[$member->status],
+            'mail__c' => $member->email,
+            'Phone' => $member->phone,
+            'birthday__c' => $member->birthyear,
+            'hoyuusikaku__c' => Qualification::whereIn('id', array_column($member->qualifications->toArray(), 'id'))->pluck('name')->join(';'),
+            'kibousyokusyu__c' => $kibousyokusyu,
+            'tensyokujiki__c' => Member::CHANGE_TIME[$member->change_time],
+            'kinnmukeitai__c' => $member->employment->name,
+            'kibouti__c' => $member->empPrefecture->name,
+            'taisyokuikou__c' => Member::RETIREMENT_TIME[$member->retirement_time],
+            'introductionname__c' => $member->introduction_name,
+            'introductionaccount__c' => $member->introductionMember ? $member->introductionMember->salesforce_id : '',
+            'introductiongiftstatus__c' => Member::INTRODUCTION_GIFT_STATUS[$member->introduction_gift_status],
+            'BillingPostalCode' => $member->postcode,
+            'BillingState' => $member->prefecture->name,
+            'BillingCity' => $billing_city,
+            'BillingStreet' => $billing_street,
+            'JobChangeFeeling__c' => Member::JOB_CHANGE_FEELING[$member->job_change_feeling],
+        ]);
+        \Log::debug($response->body());
+        if ($response->status() != 200 && $response->status() != 201 && $response->status() != 204) {
+            \Log::error($response->status());
+            \Log::error($response->body());
+            return false;
+        }
+    }
+
     /**
      * SFサロンオブジェクト登録
      */

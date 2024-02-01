@@ -5,6 +5,8 @@ namespace App\Library;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Http;
 use App\Models\Inquiry;
+use App\Models\LpJobCategory;
+use App\Models\Member;
 
 class Chatwork extends Facade
 {
@@ -36,6 +38,69 @@ class Chatwork extends Facade
 
         // 通知（サロン問い合わせ連携）
         return self::notice($message, '303953916');
+    }
+
+    /**
+     * 会員登録Chatwork通知
+     */
+    public static function noticeRegisterMember($member, $is_send_customer_to_jobad = false, $is_applicant_recommend_job = false)
+    {
+        if ($is_send_customer_to_jobad) {
+            \Log::debug('エージェント→求人広告へ送客');
+        } else if ($is_applicant_recommend_job) {
+            \Log::debug('求人広告→エージェントへ送客');
+        } else if ($member->register_site == 1) {
+            \Log::debug('求人広告のままに通知');
+        } else {
+            \Log::debug('エージェントのままに通知');
+        }
+        // 連携スキップ判定
+        if (self::isSkipChatwork()) {
+            return true;
+        }
+
+        // 本文作成
+        $url = config('app.url') . '/admin/members/' . $member->id;
+        $sf_url = $member->salesforce_id ? 'https://walk-on.lightning.force.com/lightning/r/Account/' . $member->salesforce_id . '/view' : '';
+        $jobcategory = LpJobCategory::whereIn('id', array_column($member->lpJobCategories->toArray(), 'id'))
+            ->pluck('name')
+            ->join('、');
+        $process = $is_applicant_recommend_job ? '人材紹介求人に応募' : '会員登録';
+        $change_time = Member::CHANGE_TIME[$member->change_time];
+        $resiter_site = Member::REGISTER_SITE[$member->register_site];
+        $resiter_form = Member::REGISTER_FORM[$member->resiter_form];
+        $message = <<<EOF
+        [toall]
+        {$register_site}より{$process}したユーザがいます。
+        詳細は管理サイトよりご確認ください。
+        {$url}
+        {$sf_url}
+
+        ■名前：{$member->name}
+        ■メールアドレス：{$member->email}
+        ■電話番号：{$member->phone}
+        ■希望転職時期：{$change_time}
+        ■希望勤務体系：{$member->employment->name}
+        ■希望職種：{$jobcategory}
+        ■希望勤務地：{$member->empPrefecture->name}
+        ■登録サイト：{$register_site}
+        ■登録フォーム：{$register_form}
+        EOF;
+
+        // 通知（求職者登録）
+        if ($is_send_customer_to_jobad) {
+            // エージェントのDV対象外は、求人広告
+            return self::notice($message, '307741000');
+        } else if ($is_applicant_recommend_job) {
+            // 求人広告で人材紹介求人に応募した場合、人材紹介
+            return self::notice($message, '325907207');
+        } else if ($member->register_site == 1) {
+            // 求人広告
+            return self::notice($message, '307741000');
+        } else {
+            // 人材紹介
+            return self::notice($message, '325907207');
+        }
     }
 
     /**
