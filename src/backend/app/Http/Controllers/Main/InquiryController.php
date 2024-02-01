@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Main;
 use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
 use App\Models\ConversionHistory;
+use App\Library\Chatwork;
+use App\Library\Salesforce;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -23,18 +25,20 @@ class InquiryController extends Controller
                 'prefecture_id' => 'numeric|exists:prefectures,id',
                 'tel' => 'required',
                 'mail' => '',
-                'inquiry_type' => 'required|number',
+                'inquiry_type' => 'required|numeric',
                 'inquiry_note' => '',
                 'utm_unique' => '',
                 'cv_url' => '',
             ]);
 
-            DB::transaction(function () use ($data) {
+            DB::beginTransaction();
+            try {
                 // 問い合わせ登録
                 $data['status'] = 0;
                 $inquiry = Inquiry::create($data);
 
                 // CV経路登録
+                $cvh = null;
                 if ($data['utm_unique']) {
                     $cvh = ConversionHistory::where('unique_id', $data['unique_id'])
                         ->first();
@@ -46,7 +50,7 @@ class InquiryController extends Controller
                         'inquiry_id' => $inquiry->id,
                     ]);
                 } else {
-                    $cvh = ConversionHistory::create([
+                    ConversionHistory::create([
                         'cv_url' => $data['cv_url'],
                         'cv_date' => date('Y-m-d H:i:s'),
                         'inquiry_id' => $inquiry->id,
@@ -55,10 +59,20 @@ class InquiryController extends Controller
 
                 // TODO メール送信
 
-                // TODO SalesForce連携
+                // SalesForce連携
+                if (false === Salesforce::createSalonByInquiry($inquiry, $cvh)) {
+                    Chatwork::noticeSystemError('お問い合わせ時に顧客情報のSF連携に失敗しました。');
+                } 
 
-                // TODO Chatwork連携
-            });
+                // Chatwork連携
+                Chatwork::noticeInquiry($inquiry);
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                \Log::error($e);
+                return self::responseInternalServerError();
+            }
 
             return self::responseSuccess(['result' => 1]);
         } catch (ValidationException $e) {

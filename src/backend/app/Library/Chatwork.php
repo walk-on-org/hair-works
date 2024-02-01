@@ -4,9 +4,40 @@ namespace App\Library;
 
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Http;
+use App\Models\Inquiry;
 
 class Chatwork extends Facade
 {
+    /**
+     * 問い合わせ通知
+     */
+    public static function noticeInquiry($inquiry)
+    {
+        // 連携スキップ判定
+        if (self::isSkipChatwork()) {
+            return true;
+        }
+
+        $url = config('app.url') . '/admin/inquiries/' . $inquiry->id;
+        $inquiry_type_name = Inquiry::INQUIRY_TYPE[$inquiry->inquiry_type];
+        $message = <<<EOF
+        [toall]
+        サロン問い合わせがありました。対応をお願いします。
+        {$url}
+        ■サロン名：{$inquiry->salon_name}
+        ■担当者名：{$inquiry->name}
+        ■サロン所在地：{$inquiry->prefecture->name}
+        ■電話番号：{$inquiry->tel}
+        ■メールアドレス：{$inquiry->mail}
+        ■お問い合わせ内容：{$inquiry_type_name}
+        ■補足事項
+        {$inquiry->inquiry_note}
+        EOF;
+
+        // 通知（サロン問い合わせ連携）
+        return self::notice($message, '303953916');
+    }
+
     /**
      * 応募ゼロ通知
      */
