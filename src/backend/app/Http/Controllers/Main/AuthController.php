@@ -13,8 +13,13 @@ use App\Library\LatLngAddress;
 use App\Library\Chatwork;
 use App\Library\Salesforce;
 use App\Library\MemberUtil;
+use App\Mail\RegisterMemberMail;
+use App\Mail\RegisterMemberToAdminMail;
+use App\Mail\RegisterAgentMemberMail;
+use App\Mail\RegisterAgentMemberToAdminMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -142,10 +147,21 @@ class AuthController extends Controller
                 }
 
                 // 求職者へおすすめする求人情報取得
+                $position_id = MemberUtil::convertLpJobCategoryToPosition($member->id);
+                $recommend_jobs = LatLngAddress::getJobsByLatLng(
+                    $member->prefecture_id,
+                    $position_id,
+                    $member->employment_id,
+                    $member->lat,
+                    $member->lng,
+                    4
+                );
 
-                // TODO 会員登録メール送信
+                // 会員登録メール送信
+                Mail::send(new RegisterMemberMail($member, $recommend_jobs, $position_id));
 
-                // TODO 会員登録メール送信（TO：管理者）
+                // 会員登録メール送信（TO：管理者）
+                Mail::send(new RegisterMemberToAdminMail($member));
 
                 // CV経路登録・更新
                 $cvh = null;
@@ -427,9 +443,13 @@ class AuthController extends Controller
                     ]);
                 }
 
-                // TODO 会員登録メール送信
+                // 会員登録メール送信
+                if ($member->email) {
+                    Mail::send(new RegisterAgentMemberMail($member));
+                }
 
-                // TODO 会員登録メール送信（TO：管理者）
+                // 会員登録メール送信（TO：管理者）
+                Mail::send(new RegisterAgentMemberToAdminMail($member));
 
                 // CV経路登録・更新
                 $cvh = null;

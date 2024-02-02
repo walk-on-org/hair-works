@@ -47,7 +47,7 @@ class MemberUtil extends Facade
      */
     public static function convertLpJobCategoryToPosition($member_id)
     {
-        $lp_job_category = MemberLpJobCategory::where('member_id', $member->id)
+        $lp_job_category = MemberLpJobCategory::where('member_id', $member_id)
             ->first();
         if ($lp_job_category) {
             if ($lp_job_category->lp_job_category_id == 1) {
