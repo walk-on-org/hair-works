@@ -3,39 +3,35 @@
 namespace App\Http\Controllers\Main;
 
 use App\Http\Controllers\Controller;
-use App\Models\Member;
-use App\Models\MemberProposalDatetime;
-use App\Library\Chatwork;
-use App\Library\Salesforce;
-use App\Library\MemberUtil;
+use App\Models\Applicant;
+use App\Models\ApplicantProposalDatetime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-class MemberProposalDatetimeController extends Controller
+class ApplicantProposalDatetimeController extends Controller
 {
     /**
-     * 会員連絡可能日時取得
+     * 応募者希望日時取得
      */
     public function index(Request $request)
     {
         try {
             $data = $request->validate([
-                'member_enc_id' => 'required',
+                'applicant_enc_id' => 'required',
             ]);
 
             // TODO ID複合化
-            $data['member_id'] = $data['member_enc_id'];
+            $data['applicant_id'] = $data['applicant_enc_id'];
 
             // 会員データ取得
-            $member = Member::find($data['member_id']);
-            if (!$member) {
+            $applicant = Applicant::find($data['applicant_id']);
+            if (!$applicant) {
                 return self::responseBadRequest();
             }
 
-            // 会員連絡可能日時データ取得
-            $member_proposal_datetimes = MemberProposalDatetime::where('member_id', $data['member_id'])
-                ->select(
+            // 応募者希望日時データ取得
+            $applicant_proposal_datetimes = ApplicantProposalDatetime::where('applicant_id', $data['applicant_id'])                ->select(
                     'number',
                     'date',
                     'time_am',
@@ -47,7 +43,7 @@ class MemberProposalDatetimeController extends Controller
                 )
                 ->order('number')
                 ->get();
-            foreach ($member_proposal_datetimes as $row) {
+            foreach ($applicant_proposal_datetimes as $row) {
                 $row->time_am = $row->time_am ? true : false;
                 $row->time_12_14 = $row->time_12_14 ? true : false;
                 $row->time_14_16 = $row->time_14_16 ? true : false;
@@ -57,8 +53,9 @@ class MemberProposalDatetimeController extends Controller
             }
 
             return self::responseSuccess([
-                'member_proposal_datetimes' => $member_proposal_datetimes,
-                'member_id' => $data['member_id'],
+                'applicant_proposal_datetimes' => $applicant_proposal_datetimes,
+                'applicant_id' => $data['applicant_id'],
+                'proposal_type' => Applicant::PROPOSAL_TYPE[$applicant->proposal_type],
             ]);
         } catch (ValidationException $e) {
             return self::responseBadRequest();
@@ -66,38 +63,38 @@ class MemberProposalDatetimeController extends Controller
     }
 
     /**
-     * 会員連絡可能日時適用
+     * 応募者希望日時適用
      */
     public function apply(Request $request)
     {
         try {
             $data = $request->validate([
-                'memberid' => 'required',
+                'applicantid' => 'required',
                 'proposaldatetimes' => 'nullable|array',
                 'proposaldatetimes.*.number' => 'required',
                 'proposaldatetimes.*.date' => 'required',
-                'proposaldatetimes.*.time_am' => 'required|boolean',
-                'proposaldatetimes.*.time_12_14' => 'required|boolean',
-                'proposaldatetimes.*.time_14_16' => 'required|boolean',
-                'proposaldatetimes.*.time_16_18' => 'required|boolean',
-                'proposaldatetimes.*.time_18_20' => 'required|boolean',
-                'proposaldatetimes.*.time_all' => 'required|boolean',
+                'proposaldatetimes.*.time_am' => '',
+                'proposaldatetimes.*.time_12_14' => '',
+                'proposaldatetimes.*.time_14_16' => '',
+                'proposaldatetimes.*.time_16_18' => '',
+                'proposaldatetimes.*.time_18_20' => '',
+                'proposaldatetimes.*.time_all' => '',
             ]);
 
             DB::beginTransaction();
             try {
-                // 会員連絡可能日時削除
-                $delete_count = MemberProposalDatetime::where('member_id', $data['memberid'])
+                // 応募者希望日時削除
+                $delete_count = ApplicantProposalDatetime::where('applicant_id', $data['applicantid'])
                     ->delete();
 
-                // 会員連絡可能日時登録
+                // 応募者希望日時登録
                 if (isset($data['proposaldatetimes']) && is_array($data['proposaldatetimes'])) {
                     foreach ($data['proposaldatetimes'] as $row) {
                         if (!$row['date']) {
                             continue;
                         }
-                        MemberProposalDatetime::create([
-                            'member_id' => $data['memberid'],
+                        ApplicantProposalDatetime::create([
+                            'applicant_id' => $data['applicantid'],
                             'number' => $row['number'],
                             'date' => $row['date'],
                             'time_am' => $row['time_am'],
@@ -109,19 +106,6 @@ class MemberProposalDatetimeController extends Controller
                         ]);
                     }
                 }
-
-                // SF連携
-                $member = Member::find($data['memberid']);
-                if (false === Salesforce::updateKyuusyokusyaProposalDatetime($member)) {
-                    Chatwork::noticeSystemError('会員更新時に会員情報のSF連携に失敗しました。会員ID=' . $member->id . '、パラメータ=' . json_encode($data));
-                }
-
-                // Chatwork通知
-                Chatwork::noticeMemberProposalDatetime(
-                    $member,
-                    $deleted_count > 0 ? false : true,
-                    $member->register_site == 1 ? false : MemberUtil::isSendCustomerFromAgentToJobad($member)
-                );
             } catch (\Exception $e) {
                 DB::rollBack();
                 \Log::error($e);

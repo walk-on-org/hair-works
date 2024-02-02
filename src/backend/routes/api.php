@@ -100,12 +100,15 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::post('/auth/member', [App\Http\Controllers\Main\AuthController::class, 'member']);
     Route::post('/auth/signupagent', [App\Http\Controllers\Main\AuthController::class, 'signupagent']);
     // 会員連絡可能日時
-    Route::get('/member_proposal_datetime', [App\Http\Controllers\Main\MemberProposalDatetimeController::class, 'index']);
-    Route::get('/member_proposal_datetime/apply', [App\Http\Controllers\Main\MemberProposalDatetimeController::class, 'apply']);
+    Route::get('/member_proposal_datetimes', [App\Http\Controllers\Main\MemberProposalDatetimeController::class, 'index']);
+    Route::post('/member_proposal_datetimes/apply', [App\Http\Controllers\Main\MemberProposalDatetimeController::class, 'apply']);
     // 応募者
+    Route::post('/applicants', [App\Http\Controllers\Main\ApplicantController::class, 'create']);
     // 応募希望日時
+    Route::get('/applicant_proposal_datetimes', [App\Http\Controllers\Main\ApplicantProposalDatetimeController::class, 'index']);
+    Route::post('/applicant_proposal_datetimes/apply', [App\Http\Controllers\Main\ApplicantProposalDatetimeController::class, 'apply']);
     // 問い合わせ
-    Route::post('inquiries', [App\Http\Controllers\Main\InquiryController::class, 'create']);
+    Route::post('/inquiries', [App\Http\Controllers\Main\InquiryController::class, 'create']);
     // 閲覧履歴
     // お気に入り
     // CV経路

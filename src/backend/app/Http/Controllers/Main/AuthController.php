@@ -373,7 +373,7 @@ class AuthController extends Controller
                 'prefecture' => 'required|exists:prefectures,id',
                 'address' => 'required',
                 'tel' => 'required',
-                'email' => 'required',
+                'email' => '',
                 'jobchangefeeling' => 'required',
                 'changetime' => 'required',
                 'retirementtime' => '',

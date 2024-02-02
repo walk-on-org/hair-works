@@ -291,12 +291,12 @@ class Salesforce extends Facade
     {
         if (config('app.env') == 'local') {
             // 開発環境
-            \Log::debug('開発環境のためChatwork連携をスキップ');
+            \Log::debug('開発環境のためSalesForce連携をスキップ');
             return true;
         } else if (config('app.env') == 'test') {
             // テスト環境
-            \Log::debug('テスト環境のためChatwork連携をスキップ');
-            return true;
+            \Log::debug('テスト環境のためSandBox SalesForceへ連携');
+            return false;
         } else {
             return false;
         }
