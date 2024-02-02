@@ -13,13 +13,11 @@ import Iconify from "@/components/iconify";
 type Props = StackProps & {
   backLink: string;
   editLink: string;
-  exportLink: string;
 };
 
-export default function JobDetailToolbar({
+export default function MailmagazineConfigDetailToolbar({
   backLink,
   editLink,
-  exportLink,
   sx,
   ...other
 }: Props) {
@@ -43,12 +41,6 @@ export default function JobDetailToolbar({
         </Button>
 
         <Box sx={{ flexGrow: 1 }} />
-
-        <Tooltip title="メルマガ送信リスト作成">
-          <IconButton component={RouterLink} href={exportLink}>
-            <Iconify icon="solar:export-bold" />
-          </IconButton>
-        </Tooltip>
 
         <Tooltip title="編集">
           <IconButton component={RouterLink} href={editLink}>

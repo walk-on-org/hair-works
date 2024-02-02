@@ -88,7 +88,6 @@ export default function MailmagazineConfigDetailView({ id }: Props) {
         editLink={paths.admin.mailmagazineConfig.edit(
           `${mailmagazineConfig?.id}`
         )}
-        exportLink="TODO"
       />
 
       <Card>
