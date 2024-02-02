@@ -115,6 +115,9 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     Route::post('/keeps/apply', [App\Http\Controllers\Main\KeepController::class, 'apply']);
     Route::post('/keeps/release', [App\Http\Controllers\Main\KeepController::class, 'release']);
     // CV経路
+    Route::post('/conversion_histories/landing_page', [App\Http\Controllers\Main\ConversionHistoryController::class, 'landingPage']);
+    Route::post('/conversion_histories/conversion', [App\Http\Controllers\Main\ConversionHistoryController::class, 'conversion']);
+    
 
     // アクリートSMS受信
 });
