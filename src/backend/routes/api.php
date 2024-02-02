@@ -117,9 +117,8 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     // CV経路
     Route::post('/conversion_histories/landing_page', [App\Http\Controllers\Main\ConversionHistoryController::class, 'landingPage']);
     Route::post('/conversion_histories/conversion', [App\Http\Controllers\Main\ConversionHistoryController::class, 'conversion']);
-    
-
     // アクリートSMS受信
+    Route::post('/accrete_sms_connects/recive', [App\Http\Controllers\Main\AccreteSmsConnectController::class, 'recive']);
 });
 
 // 管理サイト用API

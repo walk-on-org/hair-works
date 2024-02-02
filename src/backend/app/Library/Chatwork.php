@@ -274,6 +274,58 @@ class Chatwork extends Facade
     }
 
     /**
+     * SMS受信通知
+     */
+    public static function noticeReciveSmsForAccete($member, $text, $is_send_customer_to_jobad = false, $is_applicant_recommend_job = false)
+    {
+        if ($is_send_customer_to_jobad) {
+            \Log::debug('エージェント→求人広告へ送客');
+        } else if ($is_applicant_recommend_job) {
+            \Log::debug('求人広告→エージェントへ送客');
+        } else if ($member->register_site == 1) {
+            \Log::debug('求人広告のままに通知');
+        } else {
+            \Log::debug('エージェントのままに通知');
+        }
+
+        // 連携スキップ判定
+        if (self::isSkipChatwork()) {
+            return true;
+        }
+     
+        // 本文作成
+        $url = config('app.url') . '/admin/members/' . $member->id;
+        $sf_url = $member->salesforce_id ? 'https://walk-on.lightning.force.com/lightning/r/Account/' . $member->salesforce_id . '/view' : '';
+        $message = <<<EOF
+        [toall]
+        会員登録したユーザよりSMSの返信が届いております。
+        返信はアクリート管理サイトよりご確認ください。
+        https://adm02.indigo-sms.jp/sics_aac/c/dashboard
+        {$url}
+        {$sf_url}
+
+        ■名前：{$member->name}
+        ■返信内容：
+        {$text}
+        EOF;
+
+        // 通知（求職者登録）
+        if ($is_send_customer_to_jobad) {
+            // エージェントのDV対象外は、求人広告
+            return self::notice($message, '307741000');
+        } else if ($is_applicant_recommend_job) {
+            // 求人広告で人材紹介求人に応募した場合、人材紹介
+            return self::notice($message, '325907207');
+        } else if ($member->register_site == 1) {
+            // 求人広告
+            return self::notice($message, '307741000');
+        } else {
+            // 人材紹介
+            return self::notice($message, '325907207');
+        }
+    }
+
+    /**
      * チャットワーク連携のスキップ判定
      */
     private static function isSkipChatwork()
