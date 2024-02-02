@@ -81,7 +81,7 @@ class UpdateMemberStatus extends Command
                     ]);
 
                     // SFへ連携
-                    Salesforce::updateKyuusyokusya($member)
+                    Salesforce::updateKyuusyokusya($member);
                     
                     DB::commit();
                 } catch (\Exception $e) {
