@@ -110,7 +110,10 @@ Route::middleware(['middleware' => 'api'])->prefix('v1')->group(function () {
     // 問い合わせ
     Route::post('/inquiries', [App\Http\Controllers\Main\InquiryController::class, 'create']);
     // 閲覧履歴
+    Route::post('/histories/view', [App\Http\Controllers\Main\HistoryController::class, 'view']);
     // お気に入り
+    Route::post('/keeps/apply', [App\Http\Controllers\Main\KeepController::class, 'apply']);
+    Route::post('/keeps/release', [App\Http\Controllers\Main\KeepController::class, 'release']);
     // CV経路
 
     // アクリートSMS受信

@@ -12,6 +12,9 @@ class Keep extends Model
         'unique_id',
         'job_id',
         'member_id',
+        'status',
+        'keeped_at',
+        'released_at',
     ];
 
     const STATUS = [

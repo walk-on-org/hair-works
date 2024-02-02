@@ -12,6 +12,7 @@ class History extends Model
         'unique_id',
         'job_id',
         'member_id',
+        'viewed_at',
     ];
 
     public function job() {
