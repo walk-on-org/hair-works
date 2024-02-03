@@ -7,8 +7,10 @@ use App\Models\Inquiry;
 use App\Models\ConversionHistory;
 use App\Library\Chatwork;
 use App\Library\Salesforce;
+use App\Mail\InquiryMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class InquiryController extends Controller
@@ -57,7 +59,12 @@ class InquiryController extends Controller
                     ]);
                 }
 
-                // TODO メール送信
+                // 問い合わせ先にメール送信
+                if ($inquiry->mail) {
+                    Mail::send(new InquiryMail($inquiry, $inquiry->mail));
+                }
+                // 管理者へメール送信
+                Mail::send(new InquiryMail($inquiry, 'info@walk-on.co.jp'));
 
                 // SalesForce連携
                 if (false === Salesforce::createSalonByInquiry($inquiry, $cvh)) {
