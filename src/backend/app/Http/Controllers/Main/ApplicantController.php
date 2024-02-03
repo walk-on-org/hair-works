@@ -14,8 +14,11 @@ use App\Models\Office;
 use App\Models\ConversionHistory;
 use App\Library\Chatwork;
 use App\Library\Salesforce;
+use App\Mail\EntryToApplicantMail;
+use App\Mail\EntryToSalonMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -141,9 +144,14 @@ class ApplicantController extends Controller
                     ]);
                 }
 
-                // TODO 応募者へメール送信
-
-                // TOOD サロンへメール送信
+                // 応募者へメール送信
+                Mail::send(new EntryToApplicantMail($applicant, $office, $job));
+                // サロンへメール送信
+                $to_list = [];
+                foreach ($office->corporation->adminUsers as $user) {
+                    $to_list[] = $user->email;
+                }
+                Mail::send(new EntryToSalonMail($applicant, $office, $job, $to_list));
 
                 // SF連携
                 if ($is_member_create) {
