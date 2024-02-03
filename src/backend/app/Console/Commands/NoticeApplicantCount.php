@@ -6,7 +6,10 @@ use Illuminate\Console\Command;
 use App\Library\Chatwork;
 use App\Models\Corporation;
 use App\Models\Applicant;
+use App\Mail\ApplicantNotZeroMail;
+use App\Mail\ApplicantZeroMail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class NoticeApplicantCount extends Command
 {
@@ -208,7 +211,11 @@ class NoticeApplicantCount extends Command
                 || count($send_first_contract_two_month_zero_corporations) > 0
                 || count($send_continuation_contract_two_month_zero_corporations) > 0) {
                 // メール送信
-                // TODO
+                Mail::send(new ApplicantZeroMail(
+                    count($send_first_contract_one_month_zero_corporations) > 0 ? self::getNoticeText($send_first_contract_one_month_zero_corporations) : 'なし',
+                    count($send_first_contract_two_month_zero_corporations) > 0 ? self::getNoticeText($send_first_contract_two_month_zero_corporations) : 'なし',
+                    count($send_continuation_contract_two_month_zero_corporations) > 0 ? self::getNoticeText($send_continuation_contract_two_month_zero_corporations) : 'なし'
+                ));
                 \Log::debug('応募ゼロ新規契約30日経過：' . self::getNoticeText($send_first_contract_one_month_zero_corporations));
                 \Log::debug('応募ゼロ新規契約60日経過：' . self::getNoticeText($send_first_contract_two_month_zero_corporations));
                 \Log::debug('応募ゼロ継続契約60日経過：' . self::getNoticeText($send_continuation_contract_two_month_zero_corporations));
@@ -227,7 +234,12 @@ class NoticeApplicantCount extends Command
                 || count($send_continuation_contract_one_month_not_zero_corporations) > 0
                 || count($send_continuation_contract_two_month_not_zero_corporations) > 0) {
                 // メール送信
-                // TODO
+                Mail::send(new ApplicantNotZeroMail(
+                    count($send_first_contract_one_month_not_zero_corporations) > 0 ? self::getNoticeText($send_first_contract_one_month_not_zero_corporations) : 'なし',
+                    count($send_first_contract_two_month_not_zero_corporations) > 0 ? self::getNoticeText($send_first_contract_two_month_not_zero_corporations) : 'なし',
+                    count($send_continuation_contract_one_month_not_zero_corporations) > 0 ? self::getNoticeText($send_continuation_contract_one_month_not_zero_corporations) : 'なし',
+                    count($send_continuation_contract_two_month_not_zero_corporations) > 0 ? self::getNoticeText($send_continuation_contract_two_month_not_zero_corporations) : 'なし'
+                ));
                 \Log::debug('応募有新規契約30日経過：' . self::getNoticeText($send_first_contract_one_month_not_zero_corporations));
                 \Log::debug('応募有新規契約60日経過：' . self::getNoticeText($send_first_contract_two_month_not_zero_corporations));
                 \Log::debug('応募有継続契約30日経過：' . self::getNoticeText($send_continuation_contract_one_month_not_zero_corporations));
