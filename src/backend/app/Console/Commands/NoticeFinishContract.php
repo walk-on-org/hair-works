@@ -7,7 +7,9 @@ use App\Library\Chatwork;
 use App\Models\Corporation;
 use App\Models\Contract;
 use App\Models\Job;
+use App\Mail\FinishContractMail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class NoticeFinishContract extends Command
 {
@@ -104,7 +106,10 @@ class NoticeFinishContract extends Command
 
             if (count($finish_corporation_name) > 0 || count($continue_corporation_name) > 0) {
                 // メール送信
-                // TODO
+                Mail::send(new FinishContractMail(
+                    '・' . implode("\r\n・", $finish_corporation_name),
+                    '・' . implode("\r\n・", $continue_corporation_name)
+                ));
                 // Chatwork通知
                 Chatwork::noticeFinishOrContinueContractAlert(
                     '・' . implode("\r\n・", $finish_corporation_name),

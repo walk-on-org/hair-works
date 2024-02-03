@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Library\Chatwork;
 use App\Models\Corporation;
+use App\Mail\FinishContractMail;
+use Illuminate\Support\Facades\Mail;
 
 class NoticeBeforeFinishContract extends Command
 {
@@ -64,7 +66,7 @@ class NoticeBeforeFinishContract extends Command
 
             if (count($corporation_info) > 0) {
                 // メール送信
-                // TODO
+                Mail::send(new BeforeFinishContractMail(implode("\r\n", $corporation_info)));
                 // Chatwork通知
                 Chatwork::noticeBeforeFinishContractAlert(implode("\r\n", $corporation_info));
             }
