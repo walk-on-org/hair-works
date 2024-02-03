@@ -9,11 +9,14 @@ use App\Models\JobHoliday;
 use App\Models\JobQualification;
 use App\Models\JobImage;
 use App\Models\Office;
+use App\Models\Corporation;
 use App\Models\Contract;
 use App\Models\MultipleProcessManagement;
 use App\Library\UploadImage;
+use App\Mail\ApprovalMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
@@ -893,7 +896,8 @@ class JobController extends Controller
                 throw new \InvalidArgumentException('Invalid or missing IDs parameter');
             }
 
-            DB::transaction(function () use ($ids) {
+            $update_ids = [];
+            DB::transaction(function () use ($ids, &$update_ids) {
                 foreach ($ids as $id) {
                     $job = Job::find($id);
                     if ($job->status != 0) {
@@ -904,10 +908,56 @@ class JobController extends Controller
                     $job->update([
                         'status' => 5,
                     ]);
+                    $update_ids[] = $id;
                 }
             });
 
-            // TODO 法人ごとに承認依頼メールを送信
+            // 法人ごとに承認依頼メールを送信
+            $corporations = Corporation::join('offices', function ($join) {
+                    $join->on('corporations.id', '=', 'offices.corporation_id')
+                        ->whereNull('offices.deleted_at');
+                })
+                ->join('jobs', function ($join) {
+                    $join->on('offices.id', '=', 'jobs.office_id')
+                        ->whereNull('jobs.deleted_at');
+                })
+                ->whereIn('jobs.id', $update_ids)
+                ->select(
+                    'corporations.id',
+                    'corporations.name'
+                )
+                ->distinct()
+                ->get();
+            foreach ($corporations as $corporation) {
+                $jobs = Job::join('offices', function ($join) {
+                        $join->on('jobs.office_id', '=', 'offices.id')
+                            ->whereNull('offices.deleted_at');
+                    })
+                    ->join('corporations', function ($join) {
+                        $join->on('offices.corporation_id', '=', 'corporations.id')
+                            ->whereNull('corporations.deleted_at');
+                    })
+                    ->join('job_categories', 'jobs.job_category_id', '=', 'job_categories.id')
+                    ->join('positions', 'jobs.position_id', '=', 'positions.id')
+                    ->join('employments', 'jobs.employment_id', '=', 'employments.id')
+                    ->whereIn('jobs.id', $update_ids)
+                    ->where('corporations.id', $corporation->id)
+                    ->select(
+                        'jobs.id',
+                        'jobs.name',
+                        'job_categories.name as job_category_name',
+                        'positions.name as position_name',
+                        'employments.name as employment_name',
+                    )
+                    ->get();
+                foreach ($jobs as $job) {
+                    $job['enc_id'] = 'TODO';
+                }
+                $corp = Corporation::find($corporation->id);
+                foreach ($corp->adminUsers as $user) {
+                    Mail::send(new ApprovalMail($jobs, $corporation, $user->email));
+                }
+            }
 
             return response()->json(['result' => 'ok']);
         } catch (\InvalidArgumentException $e) {
