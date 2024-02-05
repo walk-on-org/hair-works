@@ -43,29 +43,37 @@ class AccreteSmsConnectController extends Controller
                     ->orderBy('id', 'desc')
                     ->first();
 
-                // 人材紹介求人に応募した求職者かチェック
-                $is_applicant_recommend_job = false;
-                $first_applicant = Applicant::where('member_id', $member->id)
-                    ->orderBy('id')
-                    ->first();
-                if ($first_applicant) {
-                    $is_applicant_recommend_job = $first_applicant->job->recommend ? true : false;
-                }
+                if ($member) {
+                    // 求職者の場合
+                    \Log::debug('求職者からのSMS返信');
+                    // 人材紹介求人に応募した求職者かチェック
+                    $is_applicant_recommend_job = false;
+                    $first_applicant = Applicant::where('member_id', $member->id)
+                        ->orderBy('id')
+                        ->first();
+                    if ($first_applicant) {
+                        $is_applicant_recommend_job = $first_applicant->job->recommend ? true : false;
+                    }
 
-                // Chatwork通知
-                Chatwork::noticeReciveSmsForAccete(
-                    $member,
-                    $data['text'],
-                    $member->register_site == 1 ? false : MemberUtil::isSendCustomerFromAgentToJobad($member),
-                    $is_applicant_recommend_job
-                );
+                    // Chatwork通知
+                    Chatwork::noticeReciveSmsForAccete(
+                        $member,
+                        $data['text'],
+                        $member->register_site == 1 ? false : MemberUtil::isSendCustomerFromAgentToJobad($member),
+                        $is_applicant_recommend_job
+                    );
+                } else {
+                    // サロンの場合
+                    \Log::debug('サロンからのSMS返信');
+                    Chatwork::noticeReciveSalonSmsForAccrete($data['text'], $phone);
+                }
             } catch (\Exception $e) {
                 \Log::error($e);
                 Chatwork::noticeSystemError(json_encode($data) . "\n" . $e->getMessage());
                 return self::responseInternalServerError();
             }
 
-            return response()->json(['plain' => '0'], 200);
+            return response('0', 200);
         } catch (ValidationException $e) {
             return self::responseBadRequest();
         }

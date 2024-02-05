@@ -326,6 +326,32 @@ class Chatwork extends Facade
     }
 
     /**
+     * SMS受信通知（サロン）
+     */
+    public static function noticeReciveSalonSmsForAccrete($text, $phone)
+    {
+        // 連携スキップ判定
+        if (self::isSkipChatwork()) {
+            return true;
+        }
+
+        // 本文作成
+        $message = <<<EOF
+        [toall]
+        会員登録したユーザではない方（サロン）よりSMSの返信が届いております。
+        エリア担当に割り振り後、返信は会社の個人携帯でお願いします。
+        https://adm02.indigo-sms.jp/sics_aac/c/dashboard
+
+        ■電話番号：{$phone}
+        ■返信内容：
+        {$text}
+        EOF;
+
+        // 通知（サロン問い合わせ連携）
+        return self::notice($message, '303953916');
+    }
+
+    /**
      * チャットワーク連携のスキップ判定
      */
     private static function isSkipChatwork()
