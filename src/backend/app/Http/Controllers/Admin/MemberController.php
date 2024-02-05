@@ -9,6 +9,8 @@ use App\Models\MemberQualification;
 use App\Models\MemberLpJobCategory;
 use App\Models\MemberProposalDatetime;
 use App\Models\Applicant;
+use App\Models\Keep;
+use App\Models\History;
 use App\Library\RegisterRoot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -422,14 +424,91 @@ class MemberController extends Controller
 
             // 応募履歴
             $member['applicant_count'] = count($member->applicants);
-            $member['applicants'] = $member->applicants;
-            foreach ($member['applicants'] as $applicant) {
+            $member['applicant_histories'] = $member->applicants;
+            foreach ($member['applicant_histories'] as $applicant) {
                 $applicant['corporation_name'] = $applicant->job->office->corporation->name;
                 $applicant['office_name'] = $applicant->job->office->name;
                 $applicant['job_name'] = $applicant->job->name;
+                $applicant['job_category_name'] = $applicant->job->jobCategory->name;
+                $applicant['position_name'] = $applicant->job->position->name;
+                $applicant['employment_name'] = $applicant->job->employment->name;
                 $applicant['proposal_type_name'] = $applicant->proposal_type ? Applicant::PROPOSAL_TYPE[$applicant->proposal_type] : "";
                 $applicant['applicant_proposal_datetimes_text'] = $applicant->applicantProposalDatetimesText();
+                $applicant_cvhs = $applicant->conversionHistories;
+                foreach ($applicant_cvhs as $cvh) {
+                    $applicant['register_root'] = RegisterRoot::getApplicantRegisterRootByUtmParams($cvh->utm_source, $cvh->utm_medium, $cvh->utm_campaign, $member->created_at, $applicant->created_at);
+                    break;
+                }
             }
+
+            // 重複会員
+            $query = Member::where('members.id', '<>', $member->id);
+            if ($member->email) {
+                $query = $query->where(function ($q) use ($member) {
+                        $q->where('members.phone', $member->phone)
+                            ->orWhere('members.email', $member->email);
+                    });
+            } else {
+                $query = $query->where('members.phone', $member->phone);
+            }
+            $duplicate_members = $query->orderBy('members.created_at', 'desc')->get();
+            $member['duplicate_members'] = $duplicate_members;
+            foreach ($member['duplicate_members'] as $row) {
+                $row['status_name'] = Member::STATUS[$row->status];
+            }
+
+            // お気に入り一覧
+            $keeps = Keep::join('jobs', function ($join) {
+                    $join->on('keeps.job_id', '=', 'jobs.id')
+                        ->whereNull('jobs.deleted_at');
+                })
+                ->join('offices', function ($join) {
+                    $join->on('jobs.office_id', '=', 'offices.id')
+                        ->whereNull('offices.deleted_at');
+                })
+                ->join('corporations', function ($join) {
+                    $join->on('offices.corporation_id', '=', 'corporations.id')
+                        ->whereNull('corporations.deleted_at');
+                })
+                ->where('keeps.member_id', $member->id)
+                ->select(
+                    'corporations.name as corporation_name',
+                    'offices.name as office_name',
+                    'jobs.id as job_id',
+                    'jobs.name as job_name',
+                    'keeps.status',
+                    'keeps.keeped_at',
+                    'keeps.released_at',
+                )
+                ->get();
+            $member['keeps'] = $keeps;
+            foreach ($member['keeps'] as $keep) {
+                $keep['status_name'] = Keep::STATUS[$keep->status];
+            }
+
+            // 閲覧履歴一覧
+            $histories = History::join('jobs', function ($join) {
+                    $join->on('histories.job_id', '=', 'jobs.id')
+                        ->whereNull('jobs.deleted_at');
+                })
+                ->join('offices', function ($join) {
+                    $join->on('jobs.office_id', '=', 'offices.id')
+                        ->whereNull('offices.deleted_at');
+                })
+                ->join('corporations', function ($join) {
+                    $join->on('offices.corporation_id', '=', 'corporations.id')
+                        ->whereNull('corporations.deleted_at');
+                })
+                ->where('histories.member_id', $member->id)
+                ->select(
+                    'corporations.name as corporation_name',
+                    'offices.name as office_name',
+                    'jobs.id as job_id',
+                    'jobs.name as job_name',
+                    'histories.viewed_at',
+                )
+                ->get();
+            $member['histories'] = $histories;
 
             return response()->json(['member' => $member]);
         } catch (ModelNotFoundException $e) {

@@ -43,9 +43,44 @@ export type IMemberItem = {
   member_proposal_datetimes_text: string;
   applicant_count: number;
   register_root: string;
-  applicants: IApplicantItem[];
+  applicant_histories: IMemberApplicantHistoryItem[];
+  duplicate_members: IMemberItem[];
+  keeps: IMemberKeepItem[];
+  histories: IMemberHistoryItem[];
   created_at: Date;
   updated_at: Date;
+};
+
+export type IMemberApplicantHistoryItem = {
+  corporation_name: string;
+  office_name: string;
+  job_name: string;
+  job_category_name: string;
+  position_name: string;
+  employment_name: string;
+  proposal_type_name: string;
+  applicant_proposal_datetimes_text: string;
+  register_root: string;
+  created_at: Date;
+};
+
+export type IMemberKeepItem = {
+  corporation_name: string;
+  office_name: string;
+  job_id: string;
+  job_name: string;
+  status: string;
+  status_name: string;
+  keeped_at: Date;
+  released_at: Date;
+};
+
+export type IMemberHistoryItem = {
+  corporation_name: string;
+  office_name: string;
+  job_id: string;
+  job_name: string;
+  viewed_at: Date;
 };
 
 export type IMemberTableFilterValue = string | string[];

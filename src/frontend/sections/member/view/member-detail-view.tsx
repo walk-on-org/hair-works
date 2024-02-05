@@ -513,11 +513,15 @@ export default function MemberDetailView({ id }: Props) {
             },
             {
               value: "duplication",
-              label: "重複の会員情報\n（電話番号またはメールアドレスが一致）",
+              label: "重複の会員情報（電話番号またはメールアドレスが一致）",
             },
             {
               value: "keep",
               label: "お気に入り一覧",
+            },
+            {
+              value: "history",
+              label: "閲覧履歴一覧",
             },
           ].map((tab) => (
             <Tab key={tab.value} value={tab.value} label={tab.label} />
@@ -552,7 +556,7 @@ export default function MemberDetailView({ id }: Props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {member.applicants.map((row, index) => (
+                  {member.applicant_histories.map((row, index) => (
                     <TableRow key={index}>
                       <TableCell>{fDateTime(row.created_at)}</TableCell>
 
@@ -562,11 +566,11 @@ export default function MemberDetailView({ id }: Props) {
 
                       <TableCell>{row.job_name}</TableCell>
 
-                      <TableCell>TODO</TableCell>
+                      <TableCell>{row.job_category_name}</TableCell>
 
-                      <TableCell>TODO</TableCell>
+                      <TableCell>{row.position_name}</TableCell>
 
-                      <TableCell>TODO</TableCell>
+                      <TableCell>{row.employment_name}</TableCell>
 
                       <TableCell>{row.proposal_type_name}</TableCell>
 
@@ -574,7 +578,7 @@ export default function MemberDetailView({ id }: Props) {
                         {row.applicant_proposal_datetimes_text}
                       </TableCell>
 
-                      <TableCell>TODO</TableCell>
+                      <TableCell>{row.register_root}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -589,13 +593,31 @@ export default function MemberDetailView({ id }: Props) {
               <Table sx={{ minWidth: 960 }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell>TODO</TableCell>
+                    <TableCell>登録日時</TableCell>
+
+                    <TableCell>氏名</TableCell>
+
+                    <TableCell>電話番号</TableCell>
+
+                    <TableCell>メールアドレス</TableCell>
+
+                    <TableCell>状態</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>TODO</TableCell>
-                  </TableRow>
+                  {member.duplicate_members.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{fDateTime(row.created_at)}</TableCell>
+
+                      <TableCell>{row.name}</TableCell>
+
+                      <TableCell>{row.phone}</TableCell>
+
+                      <TableCell>{row.email}</TableCell>
+
+                      <TableCell>{row.status_name}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </Scrollbar>
@@ -608,13 +630,76 @@ export default function MemberDetailView({ id }: Props) {
               <Table sx={{ minWidth: 960 }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell>TODO</TableCell>
+                    <TableCell>法人</TableCell>
+
+                    <TableCell>事業所</TableCell>
+
+                    <TableCell>求人ID</TableCell>
+
+                    <TableCell>求人名</TableCell>
+
+                    <TableCell>状態</TableCell>
+
+                    <TableCell>お気に入り日時</TableCell>
+
+                    <TableCell>お気に入り解除日時</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
+                  {member.keeps.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{row.corporation_name}</TableCell>
+
+                      <TableCell>{row.office_name}</TableCell>
+
+                      <TableCell>{row.job_id}</TableCell>
+
+                      <TableCell>{row.job_name}</TableCell>
+
+                      <TableCell>{row.status_name}</TableCell>
+
+                      <TableCell>{fDateTime(row.keeped_at)}</TableCell>
+
+                      <TableCell>{fDateTime(row.released_at)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
+        )}
+
+        {currentTab == "history" && (
+          <TableContainer sx={{ overflow: "unset" }}>
+            <Scrollbar>
+              <Table sx={{ minWidth: 960 }}>
+                <TableHead>
                   <TableRow>
-                    <TableCell>TODO</TableCell>
+                    <TableCell>法人</TableCell>
+
+                    <TableCell>事業所</TableCell>
+
+                    <TableCell>求人ID</TableCell>
+
+                    <TableCell>求人名</TableCell>
+
+                    <TableCell>閲覧日時</TableCell>
                   </TableRow>
+                </TableHead>
+                <TableBody>
+                  {member.histories.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{row.corporation_name}</TableCell>
+
+                      <TableCell>{row.office_name}</TableCell>
+
+                      <TableCell>{row.job_id}</TableCell>
+
+                      <TableCell>{row.job_name}</TableCell>
+
+                      <TableCell>{fDateTime(row.viewed_at)}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </Scrollbar>
